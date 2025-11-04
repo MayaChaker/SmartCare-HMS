@@ -1,0 +1,488 @@
+/* RoleBasedRoute Component Styles */
+
+.role-based-route {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.role-verification-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f7fafc;
+}
+
+.role-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.role-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #3182ce;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.role-loading-text {
+  color: #4a5568;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Role Access Denied */
+.role-access-denied {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f7fafc;
+  padding: 20px;
+}
+
+.role-denied-container {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  border-top: 4px solid #d69e2e;
+}
+
+.role-denied-icon {
+  width: 64px;
+  height: 64px;
+  background: #faf089;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 2rem;
+  color: #744210;
+}
+
+.role-denied-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 12px 0;
+}
+
+.role-denied-message {
+  color: #4a5568;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+.role-denied-details {
+  background: #f7fafc;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 24px 0;
+  text-align: left;
+  border-left: 4px solid #d69e2e;
+}
+
+.role-denied-details h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-info-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 16px;
+  margin: 16px 0;
+}
+
+.role-info-label {
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.875rem;
+}
+
+.role-info-value {
+  color: #2d3748;
+  font-size: 0.875rem;
+}
+
+.role-info-value.current-role {
+  background: #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.role-info-value.required-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.role-badge {
+  background: #3182ce;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.role-badge.admin {
+  background: #e53e3e;
+}
+
+.role-badge.doctor {
+  background: #38a169;
+}
+
+.role-badge.receptionist {
+  background: #3182ce;
+}
+
+.role-badge.patient {
+  background: #805ad5;
+}
+
+.role-denied-suggestions {
+  background: #ebf8ff;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px 0;
+  border-left: 4px solid #3182ce;
+}
+
+.role-denied-suggestions h5 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #2c5aa0;
+  margin: 0 0 8px 0;
+}
+
+.role-denied-suggestions ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #2c5aa0;
+  font-size: 0.875rem;
+}
+
+.role-denied-suggestions li {
+  margin-bottom: 4px;
+}
+
+.role-denied-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.role-denied-button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  border: 2px solid transparent;
+}
+
+.role-denied-button.primary {
+  background: #3182ce;
+  color: white;
+  border-color: #3182ce;
+}
+
+.role-denied-button.primary:hover {
+  background: #2c5aa0;
+  border-color: #2c5aa0;
+}
+
+.role-denied-button.secondary {
+  background: white;
+  color: #4a5568;
+  border-color: #e2e8f0;
+}
+
+.role-denied-button.secondary:hover {
+  border-color: #cbd5e0;
+  background: #f7fafc;
+}
+
+.role-denied-button.outline {
+  background: transparent;
+  color: #3182ce;
+  border-color: #3182ce;
+}
+
+.role-denied-button.outline:hover {
+  background: #ebf8ff;
+}
+
+/* Role Upgrade Request */
+.role-upgrade-request {
+  background: #f0fff4;
+  border: 1px solid #9ae6b4;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px 0;
+}
+
+.role-upgrade-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.role-upgrade-icon {
+  width: 20px;
+  height: 20px;
+  background: #38a169;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.role-upgrade-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #22543d;
+  margin: 0;
+}
+
+.role-upgrade-message {
+  color: #276749;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  margin: 0 0 12px 0;
+}
+
+.role-upgrade-form {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.role-upgrade-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #9ae6b4;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: white;
+}
+
+.role-upgrade-input:focus {
+  outline: none;
+  border-color: #38a169;
+  box-shadow: 0 0 0 3px rgba(56, 161, 105, 0.1);
+}
+
+.role-upgrade-submit {
+  padding: 8px 16px;
+  background: #38a169;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.role-upgrade-submit:hover {
+  background: #2f855a;
+}
+
+/* Contact Admin */
+.contact-admin {
+  background: #fffaf0;
+  border: 1px solid #fbd38d;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px 0;
+}
+
+.contact-admin-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.contact-admin-icon {
+  width: 20px;
+  height: 20px;
+  background: #d69e2e;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.contact-admin-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #744210;
+  margin: 0;
+}
+
+.contact-admin-message {
+  color: #975a16;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .role-denied-container {
+    padding: 24px;
+    margin: 20px;
+  }
+
+  .role-denied-actions {
+    flex-direction: column;
+  }
+
+  .role-denied-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .role-info-grid {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .role-info-label {
+    font-weight: 600;
+  }
+
+  .role-upgrade-form {
+    flex-direction: column;
+  }
+
+  .role-upgrade-input {
+    width: 100%;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .role-verification-loading {
+    background: #1a202c;
+  }
+
+  .role-loading-text {
+    color: #e2e8f0;
+  }
+
+  .role-access-denied {
+    background: #1a202c;
+  }
+
+  .role-denied-container {
+    background: #2d3748;
+    border-top-color: #d69e2e;
+  }
+
+  .role-denied-title {
+    color: #f7fafc;
+  }
+
+  .role-denied-message {
+    color: #cbd5e0;
+  }
+
+  .role-denied-details {
+    background: #4a5568;
+    border-left-color: #d69e2e;
+  }
+
+  .role-denied-details h4 {
+    color: #f7fafc;
+  }
+
+  .role-info-label {
+    color: #cbd5e0;
+  }
+
+  .role-info-value {
+    color: #e2e8f0;
+  }
+
+  .role-info-value.current-role {
+    background: #4a5568;
+  }
+
+  .role-denied-suggestions {
+    background: #2a4365;
+    border-left-color: #3182ce;
+  }
+
+  .role-denied-suggestions h5 {
+    color: #90cdf4;
+  }
+
+  .role-denied-suggestions ul {
+    color: #90cdf4;
+  }
+
+  .role-upgrade-request {
+    background: #1a2e1a;
+    border-color: #38a169;
+  }
+
+  .role-upgrade-title {
+    color: #9ae6b4;
+  }
+
+  .role-upgrade-message {
+    color: #68d391;
+  }
+
+  .contact-admin {
+    background: #2d2016;
+    border-color: #d69e2e;
+  }
+
+  .contact-admin-title {
+    color: #fbd38d;
+  }
+
+  .contact-admin-message {
+    color: #f6e05e;
+  }
+}

@@ -1,0 +1,96 @@
+/* Admin Header styles scoped to the AdminHeader component */
+
+.admin-header {
+  position: relative;
+  top: 0;
+  left: auto;
+  width: 100%;
+  z-index: 1000;
+  background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+  color: white;
+  padding: var(--space-6) var(--space-8);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Larger logout icon in header button */
+.admin-header .btn-icon svg {
+  font-size: 1.75em;
+  color: inherit; /* match button text color (outline blue, hover white) */
+}
+
+.admin-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.admin-header-right {
+  display: flex;
+  margin-right: 20px;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.admin-title {
+  font-size: var(--text-3xl);
+  line-height: 1.2;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.admin-title .admin-icon {
+  font-size: 1.75em;
+  color: var(--primary-600);
+}
+
+.admin-user-name {
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.85);
+  display: block;
+  margin-top: var(--space-1);
+}
+
+.admin-user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* Ensure admin icon uses the same blue as the logout outline button */
+.admin-header .admin-icon {
+  color: var(--primary-600);
+  margin-top: 5px;
+}
+
+/* Title group: align icon with title and welcome text */
+.admin-title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+
+.admin-title-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Override icon offset when used in the title group */
+.admin-title-group .admin-icon {
+  font-size: 3.5em;
+  transform: none;
+}
+
+/* Tighter spacing since title and welcome are stacked */
+.admin-user-name {
+  margin-top: 0;
+}

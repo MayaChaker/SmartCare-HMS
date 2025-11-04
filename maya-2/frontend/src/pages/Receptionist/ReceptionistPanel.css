@@ -1,0 +1,532 @@
+/* Receptionist Panel styles co-located with ReceptionistPanel.jsx */
+
+.receptionist-panel {
+  min-height: 100vh;
+  background: var(--gray-50);
+}
+
+.receptionist-header {
+  background: white;
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Larger logout icon in header button */
+.receptionist-header .btn-icon svg {
+  font-size: 1.75em;
+  color: inherit; /* match button text color (outline blue, hover white) */
+}
+/* Ensure brand area stacks title and welcome text neatly on the left */
+.header-brand {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-3);
+  align-items: center;
+  cursor: pointer; /* indicate click navigates home */
+  user-select: none; /* prevent text selection on click */
+  -webkit-tap-highlight-color: transparent; /* remove mobile tap highlight */
+}
+
+/* Remove default focus/active outlines/borders on the clickable brand area */
+.header-brand:focus,
+.header-brand:focus-visible,
+.header-brand:active {
+  outline: none;
+  box-shadow: none;
+  border: none;
+}
+/* Single line group for title and welcome */
+.brand-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+}
+.panel-title {
+  display: flex;
+
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: 0;
+}
+.panel-title-text {
+  display: inline-block;
+  font-size: 1.75em;
+}
+.welcome-inline {
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-left: var(--space-3);
+  padding-left: 20px;
+  font-size: 15px;
+}
+
+/* Stack title and inline welcome vertically inside the h1 */
+.panel-title {
+  flex-direction: column;
+
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+/* Remove left margin when stacked; add slight top spacing */
+.welcome-inline {
+  margin-left: 0;
+  margin-top: var(--space-1);
+}
+.receptionist-icon {
+  font-size: 3.5em;
+  color: var(--primary-600);
+}
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+.dashboard-title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  margin: 0;
+}
+/* Ensure receptionist title renders white even if global styles exist */
+.receptionist-dashboard .dashboard-title {
+  color: white !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  -webkit-text-fill-color: initial !important;
+}
+.dashboard-subtitle {
+  font-size: var(--text-base);
+  color: var(--gray-600);
+  margin: 0;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.current-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  color: white;
+}
+/* Force left alignment of current-time text within receptionist dashboard card */
+.receptionist-dashboard .current-time {
+  align-items: flex-start !important;
+}
+.receptionist-dashboard .current-time .time-label,
+.receptionist-dashboard .current-time .time-value {
+  text-align: left !important;
+}
+.time-label {
+  font-size: var(--text-xs);
+  color: white;
+}
+.time-value {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: white;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+.stat-card {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-6);
+  border: 1px solid var(--gray-200);
+  transition: var(--transition-fast);
+}
+.stat-card.primary .stat-icon {
+  background: var(--primary-600);
+}
+.stat-card.success .stat-icon {
+  background: var(--success-600);
+}
+.stat-card.info .stat-icon {
+  background: var(--info-600);
+}
+.stat-card.warning .stat-icon {
+  background: var(--warning-600);
+}
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-4);
+}
+.stat-content h3 {
+  margin: 0;
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--gray-900);
+}
+.stat-content {
+  text-align: left;
+}
+.stat-content span {
+  display: inline-block;
+  text-align: left;
+}
+.stat-content p {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--gray-600);
+}
+.stat-trend {
+  display: inline-block;
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--gray-500);
+}
+
+.receptionist-main {
+  padding: var(--space-6) 0 var(--space-6) var(--space-6);
+}
+.receptionist-content {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: var(--space-6);
+}
+.receptionist-sidebar {
+  background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: none;
+  padding: var(--space-6);
+}
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.nav-button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  text-align: left;
+  width: 100%;
+}
+.nav-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+.nav-button.active {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+}
+.nav-icon {
+  font-size: var(--text-lg);
+}
+
+.table-card {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  overflow: hidden;
+}
+/* Ensure consistent spacing between table cards in main content */
+.receptionist-main .table-card {
+  margin-bottom: var(--space-6);
+}
+.receptionist-main .table-card:last-child {
+  margin-bottom: 0;
+}
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4) var(--space-6);
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+}
+.table-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  margin: 0;
+}
+/* Larger styling for Patients h1 title */
+.receptionist-panel h1.table-title {
+  font-size: var(--text-2xl, 1.75rem);
+  line-height: 1.2;
+  font-weight: var(--font-bold);
+  margin: 0;
+  color: var(--gray-900);
+}
+.appointments-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.receptionist-panel .table-container.appointments-table {
+  padding: 0; /* remove unintended inner padding on the container */
+  margin: 0; /* ensure no extra spacing */
+}
+.receptionist-panel .table-container.appointments-table th,
+.receptionist-panel .table-container.appointments-table td {
+  padding: var(--space-3) var(--space-4) !important; /* compact, even horizontal padding */
+}
+.appointments-table th {
+  background: var(--gray-50);
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: var(--font-semibold);
+  color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-200);
+  font-size: var(--text-sm);
+}
+.appointments-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--gray-100);
+  font-size: var(--text-lg);
+  color: var(--gray-900);
+}
+.appointments-table tr:hover {
+  background: var(--gray-50);
+}
+
+/* Add horizontal spacing between columns in Appointments tables */
+.receptionist-dashboard .appointments-table {
+  border-collapse: separate;
+  border-spacing: var(--space-7) var(--space-3); /* horizontal and vertical gaps */
+}
+.receptionist-panel .table-container.appointments-table > table {
+  border-collapse: separate;
+  border-spacing: var(--space-7) var(--space-3); /* horizontal and vertical gaps */
+}
+
+/* Apply the same spacing to Patients tables */
+.receptionist-dashboard .patients-table {
+  border-collapse: separate;
+  border-spacing: var(--space-7) var(--space-3);
+}
+.receptionist-panel .table-container.patients-table > table {
+  border-collapse: separate;
+  border-spacing: var(--space-7) var(--space-3);
+}
+
+/* Ensure tables fill the available width of the main content */
+.receptionist-panel .table-card,
+.receptionist-panel .table-container {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.receptionist-panel .table-container > table {
+  width: 100%;
+}
+
+/* Queue list: display items as separated cards with spacing */
+.queue-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+.queue-item {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4) var(--space-5);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+}
+.queue-number {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-lg);
+  background: var(--primary-50);
+  color: var(--primary-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-bold);
+}
+.queue-info h4 {
+  margin: 0 0 var(--space-1) 0;
+  font-size: var(--text-base);
+}
+.queue-info p {
+  margin: 0;
+  color: var(--gray-600);
+  font-size: var(--text-sm);
+}
+.queue-status .status-badge {
+  margin: 0;
+}
+
+/* Minimize size of buttons in Appointments table */
+.appointments-table .btn.btn-sm {
+  padding: var(--space-1) var(--space-2) !important;
+  font-size: var(--text-xs) !important;
+  min-height: 28px !important;
+  border-radius: var(--radius-md);
+  gap: var(--space-1);
+}
+
+/* Increase font sizes further for better readability */
+.receptionist-panel .table-container.appointments-table td {
+  font-size: var(--text-xl);
+}
+.receptionist-panel .users-table tbody td {
+  font-size: var(--text-xl);
+}
+.receptionist-panel .queue-info h4 {
+  font-size: var(--text-lg);
+}
+.receptionist-panel .queue-info p {
+  font-size: var(--text-base);
+}
+
+/* Make table section headers visibly larger */
+.receptionist-panel .table-title {
+  font-size: var(--text-3xl);
+}
+
+/* Receptionist table: equal spacing and no-wrap time */
+.receptionist-dashboard .appointments-table {
+  table-layout: fixed;
+}
+.receptionist-dashboard .appointments-table th,
+.receptionist-dashboard .appointments-table td {
+  padding: var(--space-3) var(--space-4) !important;
+}
+.receptionist-dashboard .appointment-time,
+.receptionist-dashboard .time-cell .appointment-time {
+  white-space: nowrap;
+}
+
+/* Organized Patients table styling */
+.users-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.users-table thead th {
+  background: var(--gray-50);
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: var(--font-semibold);
+  color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-200);
+  font-size: var(--text-sm);
+}
+.users-table tbody td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--gray-100);
+  font-size: var(--text-lg);
+  color: var(--gray-900);
+}
+.users-table tbody tr:hover {
+  background: var(--gray-50);
+}
+
+/* Minimize size of View Details button in Patients table */
+.users-table .btn.btn-sm {
+  padding: var(--space-1) var(--space-2) !important;
+  font-size: var(--text-xs) !important;
+  min-height: 28px !important;
+  border-radius: var(--radius-md);
+  gap: var(--space-1);
+}
+
+.header-user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.user-welcome {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.welcome-text {
+  font-size: var(--text-sm);
+  color: var(--gray-500);
+}
+.user-name {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--gray-900);
+}
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-lg);
+  background: white;
+  color: var(--gray-700);
+  cursor: pointer;
+}
+.logout-btn:hover {
+  background: var(--gray-100);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .receptionist-content {
+    grid-template-columns: 1fr;
+  }
+  .receptionist-sidebar {
+    width: 100%;
+  }
+  .sidebar-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: var(--space-3);
+  }
+  .nav-button {
+    flex-shrink: 0;
+    min-width: 140px;
+  }
+}
+@media (max-width: 768px) {
+  .receptionist-header {
+    flex-direction: column;
+    gap: var(--space-4);
+    text-align: center;
+  }
+  .brand-row {
+    flex-direction: column;
+    align-items: center;
+  }
+  .header-user-info {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .receptionist-main {
+    padding: var(--space-4) 0 var(--space-4) var(--space-4);
+  }
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+}

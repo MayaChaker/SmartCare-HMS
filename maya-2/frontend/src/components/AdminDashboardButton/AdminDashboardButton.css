@@ -1,0 +1,240 @@
+/* Scoped styles for AdminDashboardButton component */
+
+.dashboard-content {
+  width: 100%;
+  padding: var(--space-6);
+  background: var(--gray-50);
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-6);
+}
+
+.dashboard-header h2 {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--gray-900);
+}
+
+.dashboard-header p {
+  margin: 0;
+  color: var(--gray-600);
+}
+
+/* Align current time block to the left within admin dashboard header */
+.dashboard-header .current-time {
+  align-items: flex-start;
+}
+.dashboard-header .current-time .time-label,
+.dashboard-header .current-time .time-value {
+  text-align: left;
+}
+
+/* Stats */
+.dashboard-content .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.dashboard-content .stat-card {
+  background: white;
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  transition: all var(--transition-fast);
+}
+
+.dashboard-content .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.dashboard-content .stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xl);
+  background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
+  color: var(--primary-700);
+}
+
+.dashboard-content .stat-info h3 {
+  margin: 0 0 var(--space-1) 0;
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--gray-900);
+}
+
+.dashboard-content .stat-info p {
+  margin: 0;
+  color: var(--gray-600);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+/* Cards grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.dashboard-card {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  padding: var(--space-6);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--gray-900);
+}
+
+.card-content {
+  display: block;
+}
+
+/* Activity list */
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-icon {
+  font-size: var(--text-xl);
+  color: var(--gray-700);
+}
+
+.activity-info p {
+  margin: 0;
+  color: var(--gray-800);
+}
+
+.activity-info small {
+  color: var(--gray-500);
+}
+
+/* Status grid */
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-4);
+}
+
+.status-item {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+}
+
+.status-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gray-300);
+}
+
+.status-indicator.scheduled { background: var(--primary-300); }
+.status-indicator.completed { background: var(--success-400); }
+.status-indicator.cancelled { background: var(--error-400); }
+.status-indicator.pending { background: var(--warning-300); }
+
+.status-label {
+  color: var(--gray-800);
+  font-weight: var(--font-medium);
+}
+
+.status-count {
+  color: var(--gray-700);
+}
+
+/* Quick actions */
+.quick-actions {
+  margin-top: var(--space-6);
+}
+
+.quick-actions h3 {
+  margin: 0 0 var(--space-3) 0;
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--gray-900);
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+  background: white;
+  color: var(--gray-800);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.action-btn.primary { border-color: var(--primary-300); }
+.action-btn.secondary { border-color: var(--gray-300); }
+.action-btn.info { border-color: var(--primary-300); }
+
+.dashboard-content .btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .dashboard-content { padding: var(--space-4); }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .dashboard-content .stats-grid { grid-template-columns: 1fr; }
+}

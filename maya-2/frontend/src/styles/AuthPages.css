@@ -1,0 +1,459 @@
+/* Modern Authentication Pages Styling */
+
+.auth-container {
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  opacity: 0.3;
+  pointer-events: none; /* ensure overlay never blocks input interactions */
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  padding: 35px;
+  width: 100%;
+  max-width: 450px;
+  max-height: 88vh;
+  overflow: hidden;
+
+  position: relative;
+  z-index: 1;
+  animation: slideUp 0.6s ease-out;
+}
+
+.auth-card--wide {
+  max-width: 720px;
+}
+
+.auth-card__scroll {
+  max-height: calc(88vh - 70px);
+  overflow-y: auto;
+  border-radius: inherit;
+  direction: ltr; /* ensure scrollbar appears on the right */
+  padding-right: 16px; /* keep content inset */
+  margin-right: -16px; /* visually move scrollbar to card edge */
+}
+
+.auth-card__scroll::-webkit-scrollbar {
+  width: 10px;
+}
+.auth-card__scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 20px;
+}
+.auth-card__scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 20px;
+}
+.auth-card__scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+.auth-card__scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.auth-card--login {
+  max-width: 540px;
+  max-height: none;
+  overflow-y: visible;
+}
+
+.auth-card--login .auth-header {
+  margin-bottom: 20px;
+}
+
+.auth-card--login .auth-form {
+  gap: 14px;
+}
+
+.auth-card--login .auth-button {
+  margin-top: 8px;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-logo {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #3b82f6 0%, #14b8a6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+  letter-spacing: -1px;
+}
+
+.auth-title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 8px;
+}
+
+.auth-subtitle {
+  color: #718096;
+  font-size: 0.95rem;
+}
+
+.medical-history-note {
+  text-align: right;
+  color: #718096;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+.login-note {
+  text-align: right;
+  color: #718096;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+.auth-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.auth-link:hover {
+  color: #1d4ed8;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.form-input {
+  padding: 14px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #ffffff;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  transform: translateY(-1px);
+}
+
+.form-input::placeholder {
+  color: #a0aec0;
+}
+
+.form-textarea {
+  padding: 14px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #ffffff;
+  outline: none;
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* Right-align text inside the Medical History textarea */
+#medicalHistory {
+  text-align: left;
+}
+
+.form-textarea:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.auth-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.auth-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
+
+.auth-button:active {
+  transform: translateY(0);
+}
+
+.auth-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.auth-button:hover::before {
+  left: 100%;
+}
+
+/* Elegant loading spinner for auth buttons */
+.auth-button .loading-spinner {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: transparent; /* hide loading text but keep layout stable */
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  gap: 0;
+}
+
+.auth-button .loading-spinner .spinner {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.auth-button .loading-spinner .spinner .dot {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  animation: wave-pulse 1.6s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.auth-button .loading-spinner .spinner .dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.auth-button .loading-spinner .spinner .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.auth-button .loading-spinner .spinner .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes wave-pulse {
+  0%,
+  60%,
+  100% {
+    transform: scale(0.7) translateY(0);
+    opacity: 0.6;
+  }
+  30% {
+    transform: scale(1.3) translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.error-message {
+  background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+  border: 1px solid #fc8181;
+  color: #c53030;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.success-message {
+  background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+  border: 1px solid #68d391;
+  color: #2f855a;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+/* Medical Icons for form labels */
+.form-label.with-icon::after {
+  content: "👤";
+  margin-right: 5px;
+}
+
+.form-label[for="password"]::after {
+  content: "🔒";
+}
+
+.form-label[for="confirmPassword"]::after {
+  content: "🔒";
+}
+
+.form-label[for="dob"]::after {
+  content: "📅";
+}
+
+.form-label[for="contact"]::after {
+  content: "📞";
+}
+
+.form-label[for="medicalHistory"]::after {
+  content: "🏥";
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .auth-container {
+    padding: 15px;
+  }
+
+  .auth-card {
+    padding: 30px 25px;
+    border-radius: 15px;
+  }
+
+  .auth-logo {
+    font-size: 2rem;
+  }
+
+  .auth-title {
+    font-size: 2.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .form-input,
+  .form-textarea {
+    padding: 12px 14px;
+  }
+
+  .auth-button {
+    padding: 14px 20px;
+  }
+}
+
+/* Enhanced focus states for accessibility */
+.form-input:focus,
+.form-textarea:focus,
+.auth-button:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: all 0.2s ease;
+}
+
+/* Custom scrollbar for textarea */
+.form-textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.form-textarea::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.form-textarea::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.form-textarea::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Reverted: removed two-column auth layout and side image styles */

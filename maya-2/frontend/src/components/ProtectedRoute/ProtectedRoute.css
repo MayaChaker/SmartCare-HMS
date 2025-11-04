@@ -1,0 +1,345 @@
+/* ProtectedRoute Component Styles */
+
+.protected-route {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.protected-route-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f7fafc;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #3182ce;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  color: #4a5568;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.loading-subtext {
+  color: #718096;
+  font-size: 0.875rem;
+  text-align: center;
+  max-width: 300px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Authentication Error States */
+.auth-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f7fafc;
+  padding: 20px;
+}
+
+.auth-error-container {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.auth-error-icon {
+  width: 64px;
+  height: 64px;
+  background: #fed7d7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 2rem;
+  color: #e53e3e;
+}
+
+.auth-error-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 12px 0;
+}
+
+.auth-error-message {
+  color: #4a5568;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+.auth-error-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.auth-error-button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+}
+
+.auth-error-button.primary {
+  background: #3182ce;
+  color: white;
+  border: 2px solid #3182ce;
+}
+
+.auth-error-button.primary:hover {
+  background: #2c5aa0;
+  border-color: #2c5aa0;
+}
+
+.auth-error-button.secondary {
+  background: white;
+  color: #4a5568;
+  border: 2px solid #e2e8f0;
+}
+
+.auth-error-button.secondary:hover {
+  border-color: #cbd5e0;
+  background: #f7fafc;
+}
+
+/* Session Timeout */
+.session-timeout {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.session-timeout-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.session-timeout-icon {
+  width: 56px;
+  height: 56px;
+  background: #faf089;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 1.5rem;
+  color: #744210;
+}
+
+.session-timeout-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 12px 0;
+}
+
+.session-timeout-message {
+  color: #4a5568;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0 0 20px 0;
+}
+
+.session-timeout-timer {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #d69e2e;
+  margin: 16px 0;
+}
+
+.session-timeout-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* Role Access Denied */
+.access-denied {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f7fafc;
+  padding: 20px;
+}
+
+.access-denied-container {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.access-denied-icon {
+  width: 64px;
+  height: 64px;
+  background: #faf089;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 2rem;
+  color: #744210;
+}
+
+.access-denied-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 12px 0;
+}
+
+.access-denied-message {
+  color: #4a5568;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+.access-denied-details {
+  background: #f7fafc;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.access-denied-details h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 8px 0;
+}
+
+.access-denied-details ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #4a5568;
+  font-size: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .auth-error-container,
+  .access-denied-container {
+    padding: 24px;
+    margin: 20px;
+  }
+
+  .session-timeout-modal {
+    padding: 24px;
+    margin: 20px;
+  }
+
+  .auth-error-actions,
+  .session-timeout-actions {
+    flex-direction: column;
+  }
+
+  .auth-error-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .protected-route-loading {
+    background: #1a202c;
+  }
+
+  .loading-text {
+    color: #e2e8f0;
+  }
+
+  .loading-subtext {
+    color: #a0aec0;
+  }
+
+  .auth-error,
+  .access-denied {
+    background: #1a202c;
+  }
+
+  .auth-error-container,
+  .access-denied-container,
+  .session-timeout-modal {
+    background: #2d3748;
+  }
+
+  .auth-error-title,
+  .access-denied-title,
+  .session-timeout-title {
+    color: #f7fafc;
+  }
+
+  .auth-error-message,
+  .access-denied-message,
+  .session-timeout-message {
+    color: #cbd5e0;
+  }
+
+  .access-denied-details {
+    background: #4a5568;
+  }
+
+  .access-denied-details h4 {
+    color: #f7fafc;
+  }
+
+  .access-denied-details ul {
+    color: #cbd5e0;
+  }
+}

@@ -1,0 +1,171 @@
+/* Scoped styles for AdminDoctorsButton component (inherits shared nav styles) */
+
+.admin-doctors .admin-doctors-header {
+  margin-bottom: 30px;
+  display: flex !important;
+  flex-direction: row !important; /* ensure left-right layout */
+  justify-content: space-between !important;
+  align-items: center !important; /* vertically center */
+  width: 100% !important;
+  gap: 20px;
+}
+
+.admin-doctors .admin-doctors-header-left {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px;
+  align-items: flex-start !important;
+  text-align: left !important;
+  flex: 1 1 auto; /* occupy left side */
+}
+
+.admin-doctors .admin-doctors-header-right {
+  display: flex !important;
+  align-items: center !important;
+  flex: 0 0 auto;
+  margin-left: auto !important; /* push search to the right */
+}
+
+.admin-doctors .admin-doctors-header-left h2 {
+  margin: 0 !important;
+  text-align: left !important;
+}
+
+.admin-doctors .doctors-count {
+  font-size: 0.9em;
+  color: #666;
+  font-weight: 500;
+  margin-left: 20px;
+}
+
+.admin-doctors .search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* right-align input within header-right */
+}
+
+.admin-doctors .search-input {
+  padding: 10px 12px 10px 40px;
+  border: 2px solid #e0e0e0;
+  border-radius: 25px;
+  font-size: 0.9em;
+  width: 280px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.admin-doctors .search-input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.admin-doctors .search-input::placeholder {
+  color: #999;
+}
+
+.admin-doctors .search-icon {
+  position: absolute;
+  left: 14px;
+  color: #999;
+  font-size: 0.9em;
+  pointer-events: none;
+}
+
+/* Keep left-right layout on small screens as requested */
+
+/* Removed scoped card styles to keep CSS unchanged as requested */
+
+.doctor-description {
+  flex: 1;
+  width: 100%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* clearer separation between lines */
+  justify-content: flex-start;
+  background: transparent; /* keep clean look */
+  border-top: 1px solid #e9ecef; /* subtle separation under image */
+  line-height: 1.4;
+}
+
+.doctor-name {
+  font-size: 1.2em;
+  font-weight: 700;
+  margin-bottom: 0;
+  color: #2c3e50;
+  letter-spacing: 0.3px;
+  line-height: 1.3;
+}
+
+.doctor-specialization {
+  font-size: 1em;
+  font-weight: 600;
+  color: #3498db;
+  margin-bottom: 10px;
+  background: transparent; /* remove pill background */
+  padding: 0;
+  border-radius: 0;
+  align-self: flex-start;
+  border: none;
+}
+
+.doctor-experience {
+  font-size: 0.9em;
+  color: #27ae60;
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.doctor-phone {
+  font-size: 0.9em;
+  color: #34495e;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent; /* remove background */
+  padding: 0;
+  border-radius: 0;
+  align-self: flex-start;
+}
+
+/* Bold labels before content */
+.doctor-description .label {
+  font-weight: 700;
+  color: #1f2937; /* slate-800 */
+  margin-right: 6px;
+}
+.doctor-name,
+.doctor-specialization,
+.doctor-experience,
+.doctor-phone {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap; /* keep on one line */
+  overflow: hidden; /* enable ellipsis */
+  text-overflow: ellipsis;
+  min-width: 0; /* allow flex child to shrink for ellipsis */
+}
+
+.doctor-description .value {
+  font-weight: 500;
+  color: #374151; /* slate-700 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Actions area within doctor card */
+.doctor-actions {
+  margin-top: auto; /* push to bottom of description */
+}
+.doctor-actions .btn {
+  width: 100%;
+}
