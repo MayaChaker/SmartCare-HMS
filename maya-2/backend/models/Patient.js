@@ -57,6 +57,10 @@ const Patient = sequelize.define('Patient', {
     type: DataTypes.STRING,
     allowNull: true
   },
+  permanentMedicine: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
   // Legacy fields for backward compatibility
   dob: {
     type: DataTypes.DATEONLY,

@@ -16,7 +16,7 @@ const Appointment = sequelize.define('Appointment', {
     allowNull: true
   },
   status: {
-    type: DataTypes.ENUM('scheduled', 'completed', 'cancelled'),
+    type: DataTypes.ENUM('scheduled', 'checked-in', 'in-progress', 'completed', 'cancelled'),
     defaultValue: 'scheduled',
     allowNull: false
   },
@@ -33,6 +33,13 @@ const Appointment = sequelize.define('Appointment', {
     allowNull: true,
     defaultValue: 'Consultation'
   }
+}, {
+  indexes: [
+    {
+      unique: true,
+      fields: ['doctorId', 'appointmentDate', 'appointmentTime']
+    }
+  ]
 });
 
 module.exports = Appointment;

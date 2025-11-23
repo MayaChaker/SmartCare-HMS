@@ -1,4 +1,312 @@
-@import "../../styles/AuthPages.css";
-
 /* Page-specific overrides for Login can go below if needed */
 /* .auth-card--login { } */
+
+/* Attractive background for Login page */
+.auth-container--login {
+  background: linear-gradient(
+    135deg,
+    #f8fafc,
+    #eef2ff
+  ) !important; /* soft light gradient */
+}
+.auth-container--login::before,
+.auth-container--login::after {
+  content: "";
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+}
+.auth-container--login::before {
+  top: -20vh;
+  left: -15vw;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(
+    closest-side,
+    rgba(20, 184, 166, 0.25),
+    rgba(20, 184, 166, 0.05),
+    transparent 70%
+  );
+  filter: blur(80px);
+}
+.auth-container--login::after {
+  bottom: -25vh;
+  right: -20vw;
+  width: 65vw;
+  height: 65vw;
+  background: radial-gradient(
+    closest-side,
+    rgba(59, 130, 246, 0.25),
+    rgba(59, 130, 246, 0.05),
+    transparent 70%
+  );
+  filter: blur(90px);
+}
+
+/* Make login header div use Home feature gradient colors (scoped) */
+.auth-container--login .auth-header {
+  background: linear-gradient(135deg, #4f46e5, #16a34a);
+  border-radius: 12px;
+  padding: 16px;
+}
+.auth-container--login .auth-header .auth-title {
+  color: #505863; /* slate-700, matches image tone */
+}
+
+/* Login card two-column layout with image */
+.auth-card--login {
+  width: 100%;
+  max-width: 420px; /* compact single-column card */
+}
+.auth-container--login .login-card {
+  display: grid; /* two-column layout */
+  grid-template-columns: 1.1fr 1fr;
+  column-gap: 24px; /* space between image and form */
+  align-items: stretch;
+  max-height: 75vh; /* keep within viewport */
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+/* Ensure shared auth card width respects the narrower setting */
+.auth-container--login .auth-card.auth-card--login {
+  max-width: 420px !important;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 28px; /* tighter padding for minimal look */
+}
+.auth-container--login {
+  padding: 0; /* remove padding to avoid scroll */
+}
+
+/* Ensure login card wins over shared auth-card rule */
+.auth-container--login .auth-card {
+  width: 100% !important;
+}
+.auth-container--login .auth-card {
+  position: relative;
+  z-index: 1;
+}
+
+/* Base card styling scoped to Login */
+.auth-container--login .auth-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+.auth-container--login .login-media {
+  display: block;
+}
+.auth-container--login .login-image {
+  width: 100%;
+  height: auto; /* avoid cropping by fixed height */
+  max-height: 100%; /* keep within column/card height */
+  object-fit: contain; /* show entire image without cropping */
+  object-position: center; /* center the image in its box */
+  display: block;
+  border-radius: 16px; /* tidy rounded corners */
+  border: 1px solid #dbeafe; /* subtle border matching palette */
+}
+.auth-container--login .login-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* vertically center content to match image height */
+}
+
+.auth-container--login .auth-header {
+  background: none !important;
+  padding: 0;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.auth-container--login .auth-title {
+  font-size: 2rem;
+  letter-spacing: -0.01em;
+  color: #334155; /* slate-700 to match image */
+  margin-top: 12px; /* add top gap */
+}
+.auth-container--login .brand-logo {
+  margin: 0 auto 6px;
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+  font-size: 2.25rem;
+  line-height: 1.1;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #3b82f6, #14b8a6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+.auth-container--login .auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 16px;
+}
+.auth-container--login .form-group {
+  display: flex;
+  flex-direction: column;
+}
+.auth-container--login .form-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.auth-container--login .form-input {
+  font-size: 1rem;
+  padding: 12px 14px;
+  border-radius: 6px;
+}
+.auth-container--login .form-input {
+  border: 2px solid #e2e8f0;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.auth-container--login .form-input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  transform: translateY(-1px);
+}
+.auth-container--login .form-input::placeholder {
+  color: #a0aec0;
+}
+.auth-container--login .auth-button {
+  font-size: 1.05rem;
+  padding: 14px 18px;
+  border-radius: 6px;
+}
+.auth-container--login .auth-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  margin-top: 10px;
+}
+.auth-container--login .auth-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
+.auth-container--login .auth-button:active {
+  transform: translateY(0);
+}
+.auth-container--login .auth-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+.auth-container--login .auth-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+.auth-container--login .auth-button:hover::before {
+  left: 100%;
+}
+.auth-container--login .auth-button .loading-spinner {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: transparent;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  gap: 0;
+}
+.auth-container--login .auth-button .loading-spinner .spinner {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.auth-container--login .auth-button .loading-spinner .spinner .dot {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+.auth-container--login .login-note {
+  font-size: 0.95rem;
+  text-align: right;
+}
+.auth-container--login .auth-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+.auth-container--login .auth-link:hover {
+  color: #1d4ed8;
+}
+.auth-container--login .error-message {
+  background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+  border: 1px solid #fc8181;
+  color: #c53030;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+.auth-container--login .form-label.with-icon::after {
+  content: "👤";
+  margin-right: 5px;
+}
+.auth-container--login .form-label[for="password"]::after {
+  content: "🔒";
+}
+
+@media (max-width: 768px) {
+  .auth-container--login .auth-card--login {
+    max-width: 540px;
+  }
+  .auth-container--login .login-card {
+    grid-template-columns: 1fr;
+  }
+  .auth-container--login .login-media {
+    display: none;
+  }
+  .auth-container--login .brand-logo {
+    font-size: 1.85rem; /* slightly smaller on mobile */
+  }
+}
+.auth-container--login .auth-card.auth-card--login {
+  border-radius: 24px; /* softer corners */
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  max-width: 1080px !important; /* bigger card on desktop */
+  padding: 36px; /* more comfortable spacing */
+  background-color: #eef2ff; /* solid color to match image background */
+}
+
+/* Remove scroll on login page and fix footer at bottom */
+.auth-container--login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* prevent page scroll */
+}
+
+.auth-container--login .login-card {
+  max-height: calc(100vh - 140px); /* keep card above fixed footer */
+}

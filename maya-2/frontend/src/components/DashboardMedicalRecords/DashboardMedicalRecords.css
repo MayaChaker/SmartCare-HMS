@@ -1,0 +1,87 @@
+.patient-dashboard .medical-records .empty-state {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  color: #4b5563;
+}
+
+.patient-dashboard .medical-records .empty-state-icon {
+  font-size: 2.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.patient-dashboard .medical-records .empty-state-text {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.patient-dashboard .medical-records .empty-state-subtext {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.patient-dashboard .medical-records .records-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.patient-dashboard .medical-records .record-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.patient-dashboard .medical-records .record-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.patient-dashboard .medical-records .record-date {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.patient-dashboard .medical-records .record-doctor {
+  font-size: 0.875rem;
+  color: #111827;
+  font-weight: 600;
+}
+
+.patient-dashboard .medical-records .record-specialty {
+  font-size: 0.875rem;
+  color: #0369a1;
+  font-weight: 500;
+  flex: 1;
+  text-align: center;
+}
+
+.patient-dashboard .medical-records .record-section {
+  font-size: 0.875rem;
+  color: #1f2937;
+  margin: 0.5rem 0;
+}
+
+.patient-dashboard .medical-records .card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.patient-dashboard .medical-records .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.patient-dashboard .medical-records .card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}

@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { User, Patient } = require('../models');
 require('dotenv').config();
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
 
 // Login controller
 exports.login = async (req, res) => {
@@ -22,7 +23,7 @@ exports.login = async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -91,5 +92,60 @@ exports.registerPatient = async (req, res) => {
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Dev-only: seed a doctor user and profile for testing
+exports.seedDoctor = async (req, res) => {
+  try {
+    const { User, Doctor } = require('../models');
+    const username = 'doc';
+    const password = 'doc123';
+    const role = 'doctor';
+
+    const [user, created] = await User.findOrCreate({
+      where: { username },
+      defaults: { username, password, role },
+    });
+
+    let changed = false;
+    if (!created) {
+      if (user.role !== role) {
+        user.role = role;
+        changed = true;
+      }
+      if (password) {
+        user.password = password;
+        changed = true;
+      }
+      if (changed) {
+        await user.save();
+      }
+    }
+
+    let doctor = await Doctor.findOne({ where: { userId: user.id } });
+    if (!doctor) {
+      doctor = await Doctor.create({
+        firstName: 'Dr.',
+        lastName: 'Demo',
+        specialization: 'General Medicine',
+        email: username,
+        phone: '000-000-0000',
+        licenseNumber: 'DOC-DEMO',
+        experience: 3,
+        qualification: 'MD',
+        userId: user.id,
+      });
+    }
+
+    return res.status(201).json({
+      message: 'Doctor seeded',
+      credentials: { username, password },
+      user: { id: user.id, username: user.username, role: user.role },
+      doctor,
+    });
+  } catch (error) {
+    console.error('Error seeding doctor (authController):', error);
+    return res.status(500).json({ message: 'Server error seeding doctor' });
   }
 };

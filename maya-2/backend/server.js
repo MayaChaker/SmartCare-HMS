@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { sequelize, testConnection } = require('./config/db');
 require('dotenv').config();
 
@@ -20,6 +21,7 @@ try {
 // Initialize express app
 const app = express();
 const PORT = process.env.PORT || 5000;
+let server;
 
 // Middleware
 app.use(cors({
@@ -27,6 +29,7 @@ app.use(cors({
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:5175',
+    'http://localhost:5176',
     'http://localhost:4173',
     'http://localhost:3000'
   ],
@@ -47,11 +50,14 @@ app.use((req, res, next) => {
 });
 app.use(express.json());
 
+// Serve uploaded files statically at /uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Test database connection and sync models
 testConnection();
 
-// Sync database models
-sequelize.sync({ alter: true })
+// Sync database models - skip alter to avoid key conflicts
+sequelize.sync({ alter: false })
   .then(() => {
     console.log('Database models synchronized successfully.');
     // Create admin user after sync
@@ -59,29 +65,87 @@ sequelize.sync({ alter: true })
   })
   .then(() => {
     console.log('Admin user created successfully.');
+    return createDoctorUser();
+  })
+  .then(() => {
+    console.log('Dev doctor user ensured.');
+    // Start server only after database operations are complete
+    startServer();
   })
   .catch((error) => {
     console.error('Error synchronizing database models:', error);
+    // Start server even if database sync fails (for development)
+    startServer();
   });
 
 // Function to create admin user
 async function createAdminUser() {
   const { User } = require('./models');
-  const bcrypt = require('bcrypt');
-  
+
   try {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    // Provide plain password; User model hooks handle hashing
     await User.findOrCreate({
       where: { username: 'admin' },
       defaults: {
         username: 'admin',
-        password: hashedPassword,
+        password: 'admin123',
         role: 'admin'
       }
     });
   } catch (error) {
     console.error('Error creating admin user:', error);
   }
+}
+
+// Dev helper: ensure a doctor user exists for testing
+async function createDoctorUser() {
+  const { User, Doctor } = require('./models');
+  try {
+    const username = 'doc';
+    const password = 'doc123';
+    const role = 'doctor';
+    const [user, created] = await User.findOrCreate({
+      where: { username },
+      defaults: { username, password, role },
+    });
+    let changed = false;
+    if (!created) {
+      if (user.role !== role) {
+        user.role = role;
+        changed = true;
+      }
+      if (password) {
+        user.password = password;
+        changed = true;
+      }
+      if (changed) {
+        await user.save();
+      }
+    }
+    let doctor = await Doctor.findOne({ where: { userId: user.id } });
+    if (!doctor) {
+      await Doctor.create({
+        firstName: 'Dr.',
+        lastName: 'Demo',
+        specialization: 'General Medicine',
+        email: username,
+        phone: '000-000-0000',
+        licenseNumber: 'DOC-DEMO',
+        experience: 3,
+        qualification: 'MD',
+        userId: user.id,
+      });
+    }
+  } catch (error) {
+    console.error('Error ensuring dev doctor user:', error);
+  }
+}
+
+// Function to start the server
+function startServer() {
+  server = app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 }
 
 // Routes
@@ -111,6 +175,7 @@ app.get('/', (req, res) => {
 
 // 404 handler for API routes
 app.use('/api', (req, res) => {
+  console.warn('API 404:', req.method, req.originalUrl);
   res.status(404).json({ 
     error: 'API endpoint not found',
     path: req.path,
@@ -125,11 +190,6 @@ app.use((err, req, res, next) => {
     error: 'Internal server error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
   });
-});
-
-// Start server
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
 });
 
 // Keep server alive

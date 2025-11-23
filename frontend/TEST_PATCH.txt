@@ -1,2 +1,0 @@
-patch-test
-patch-test-updated

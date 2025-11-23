@@ -63,7 +63,8 @@ const AdminPanel = () => {
   const [settingsForm, setSettingsForm] = useState({
     maintenanceMode: false,
     allowRegistration: true,
-    maxAppointmentsPerDay: 50,
+    maxAppointmentsPerDay: 0,
+    unlimitedAppointments: true,
   });
 
   useEffect(() => {
@@ -184,13 +185,22 @@ const AdminPanel = () => {
         if (settingsResponse.ok) {
           const settingsData = await settingsResponse.json();
           setSystemSettings(settingsData);
+          const isUnlimited =
+            settingsData.maxAppointmentsPerDay === null ||
+            settingsData.maxAppointmentsPerDay === 0;
           setSettingsForm({
             maintenanceMode: settingsData.maintenanceMode || false,
             allowRegistration:
               settingsData.allowRegistration !== undefined
                 ? settingsData.allowRegistration
                 : true,
-            maxAppointmentsPerDay: settingsData.maxAppointmentsPerDay || 50,
+            maxAppointmentsPerDay:
+              isUnlimited
+                ? 0
+                : typeof settingsData.maxAppointmentsPerDay === "number"
+                ? settingsData.maxAppointmentsPerDay
+                : 50,
+            unlimitedAppointments: isUnlimited,
           });
         } else if (settingsResponse.status === 401) {
           setError("Session expired. Please login again.");
@@ -212,53 +222,70 @@ const AdminPanel = () => {
     }
   };
 
-  const handleCreateUser = async (e) => {
+  const handleSubmitUser = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/admin/users", {
-        method: "POST",
+      const isEdit = modalType === "editUser" && selectedItem?.id;
+      const url = isEdit ? `/api/admin/users/${selectedItem.id}` : "/api/admin/users";
+      const method = isEdit ? "PUT" : "POST";
+
+      const payload = { ...userForm };
+      // If editing and password left blank, do not send password to avoid conflict with validation
+      if (isEdit && !payload.password) {
+        delete payload.password;
+      }
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(userForm),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
-        setSuccess("User created successfully!");
+        setSuccess(isEdit ? "User updated successfully!" : "User created successfully!");
         await loadAdminData();
         closeModal();
       } else {
         const errorData = await response.json();
-        setError(errorData.message || "Failed to create user");
+        setError(errorData.message || (isEdit ? "Failed to update user" : "Failed to create user"));
       }
     } catch (error) {
-      console.error("Error creating user:", error);
-      setError("Failed to create user. Please try again.");
+      console.error("Error submitting user:", error);
+      setError(isEdit ? "Failed to update user. Please try again." : "Failed to create user. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteUser = async (userId) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
+  // Open confirmation modal instead of deleting immediately
+  const handleDeleteUser = (userId) => {
+    const user = users.find((u) => u.id === userId);
+    openModal("confirmDeleteUser", user);
+  };
 
+  // Perform deletion after user confirms in the modal
+  const confirmDeleteUser = async () => {
+    if (!selectedItem?.id) {
+      closeModal();
+      return;
+    }
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:5000/api/admin/users/${userId}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await fetch(`/api/admin/users/${selectedItem.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.ok) {
         setSuccess("User deleted successfully!");
         await loadAdminData();
+        closeModal();
       } else {
         const errorData = await response.json();
         setError(errorData.message || "Failed to delete user");
@@ -276,7 +303,7 @@ const AdminPanel = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/admin/settings", {
+      const response = await fetch("/api/admin/settings", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -330,6 +357,9 @@ const AdminPanel = () => {
         phone: item.phone || "",
         email: item.email || "",
       });
+    } else if (type === "confirmDeleteUser") {
+      // No form changes needed for delete confirmation
+      setUserForm((prev) => ({ ...prev }));
     }
   };
 
@@ -601,6 +631,98 @@ const AdminPanel = () => {
     </div>
   );
 
+  const renderReports = () => {
+    const doctorCounts = appointments.reduce((acc, a) => {
+      const key = a.Doctor ? `Dr. ${a.Doctor.firstName} ${a.Doctor.lastName}` : "Unknown";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+    const doctorSummary = Object.entries(doctorCounts).sort((a, b) => b[1] - a[1]);
+
+    return (
+      <div className="section-content admin-reports">
+        <div className="admin-reports-header">
+          <h2>Reports</h2>
+        </div>
+
+        <div className="stats-grid">
+          <div className="stat-card primary">
+            <div className="stat-icon">
+              <FaUsersCog />
+            </div>
+            <div className="stat-info">
+              <h3>{analytics.totalUsers}</h3>
+              <p>Total Users</p>
+            </div>
+          </div>
+          <div className="stat-card success">
+            <div className="stat-icon">
+              <FaUserDoctor color="green" />
+            </div>
+            <div className="stat-info">
+              <h3>{analytics.totalDoctors}</h3>
+              <p>Doctors</p>
+            </div>
+          </div>
+          <div className="stat-card info">
+            <div className="stat-icon">
+              <FaUserInjured />
+            </div>
+            <div className="stat-info">
+              <h3>{analytics.totalPatients}</h3>
+              <p>Patients</p>
+            </div>
+          </div>
+          <div className="stat-card warning">
+            <div className="stat-icon">
+              <GrBarChart color="orange" />
+            </div>
+            <div className="stat-info">
+              <h3>{analytics.todayAppointments}</h3>
+              <p>Today's Appointments</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="dashboard-card">
+          <div className="card-header">
+            <h3>Appointment Status</h3>
+          </div>
+          <div className="card-content">
+            <div className="status-grid">
+              {Object.entries(analytics.appointmentsByStatus || {}).map(([status, count]) => (
+                <div key={status} className="status-item">
+                  <div className={`status-indicator ${String(status).toLowerCase()}`}></div>
+                  <span className="status-label">{status}</span>
+                  <span className="status-count">{count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="table-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Doctor</th>
+                <th>Total Appointments</th>
+              </tr>
+            </thead>
+            <tbody>
+              {doctorSummary.map(([doctorName, count]) => (
+                <tr key={doctorName}>
+                  <td>{doctorName}</td>
+                  <td>{count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   const renderSettings = () => (
     <div className="section-content admin-settings">
       <div className="admin-settings-header">
@@ -653,19 +775,20 @@ const AdminPanel = () => {
               <label>Maximum Appointments Per Day</label>
               <input
                 type="number"
-                value={settingsForm.maxAppointmentsPerDay}
+                value={settingsForm.unlimitedAppointments ? "" : settingsForm.maxAppointmentsPerDay}
                 onChange={(e) =>
                   setSettingsForm({
                     ...settingsForm,
-                    maxAppointmentsPerDay: parseInt(e.target.value),
+                    unlimitedAppointments: e.target.value === "",
+                    maxAppointmentsPerDay:
+                      e.target.value === "" ? 0 : parseInt(e.target.value),
                   })
                 }
                 className="form-control"
-                min="1"
-                max="100"
+                placeholder="Unlimited"
               />
               <small>
-                Set the maximum number of appointments allowed per day
+                Leave blank to set Unlimited, or enter a number for a limit.
               </small>
             </div>
 
@@ -724,6 +847,7 @@ const AdminPanel = () => {
             <h3>
               {modalType === "createUser" && "Create New User"}
               {modalType === "editUser" && "Edit User"}
+              {modalType === "confirmDeleteUser" && "Confirm Delete"}
             </h3>
             <button className="modal-close" onClick={closeModal}>
               ×
@@ -735,7 +859,36 @@ const AdminPanel = () => {
             {success && <div className="alert alert-success">{success}</div>}
 
             {(modalType === "createUser" || modalType === "editUser") && (
-              <form onSubmit={handleCreateUser} className="user-form">
+              <form onSubmit={handleSubmitUser} className="user-form">
+                {/* First name, Last name */}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>First Name</label>
+                    <input
+                      type="text"
+                      value={userForm.firstName}
+                      onChange={(e) =>
+                        setUserForm({ ...userForm, firstName: e.target.value })
+                      }
+                      className="form-control"
+                      placeholder="Enter first name"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Last Name</label>
+                    <input
+                      type="text"
+                      value={userForm.lastName}
+                      onChange={(e) =>
+                        setUserForm({ ...userForm, lastName: e.target.value })
+                      }
+                      className="form-control"
+                      placeholder="Enter last name"
+                    />
+                  </div>
+                </div>
+
+                {/* Username, Password */}
                 <div className="form-row">
                   <div className="form-group">
                     <label>Username</label>
@@ -747,6 +900,7 @@ const AdminPanel = () => {
                       }
                       className="form-control"
                       required
+                      placeholder="Enter a unique username"
                     />
                   </div>
                   <div className="form-group">
@@ -762,38 +916,26 @@ const AdminPanel = () => {
                       placeholder={
                         modalType === "editUser"
                           ? "Leave blank to keep current password"
-                          : ""
+                          : "Set a secure password"
                       }
                     />
                   </div>
                 </div>
 
+                {/* Phone, Role */}
                 <div className="form-row">
                   <div className="form-group">
-                    <label>First Name</label>
+                    <label>Phone</label>
                     <input
-                      type="text"
-                      value={userForm.firstName}
+                      type="tel"
+                      value={userForm.phone}
                       onChange={(e) =>
-                        setUserForm({ ...userForm, firstName: e.target.value })
+                        setUserForm({ ...userForm, phone: e.target.value })
                       }
                       className="form-control"
+                      placeholder="Enter phone number"
                     />
                   </div>
-                  <div className="form-group">
-                    <label>Last Name</label>
-                    <input
-                      type="text"
-                      value={userForm.lastName}
-                      onChange={(e) =>
-                        setUserForm({ ...userForm, lastName: e.target.value })
-                      }
-                      className="form-control"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
                   <div className="form-group">
                     <label>Role</label>
                     <select
@@ -809,32 +951,11 @@ const AdminPanel = () => {
                       <option value="admin">Admin</option>
                     </select>
                   </div>
-                  <div className="form-group">
-                    <label>Email</label>
-                    <input
-                      type="email"
-                      value={userForm.email}
-                      onChange={(e) =>
-                        setUserForm({ ...userForm, email: e.target.value })
-                      }
-                      className="form-control"
-                    />
-                  </div>
                 </div>
 
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Phone</label>
-                    <input
-                      type="tel"
-                      value={userForm.phone}
-                      onChange={(e) =>
-                        setUserForm({ ...userForm, phone: e.target.value })
-                      }
-                      className="form-control"
-                    />
-                  </div>
-                  {userForm.role === "doctor" && (
+                {/* Specialization (doctor only) */}
+                {userForm.role === "doctor" && (
+                  <div className="form-row">
                     <div className="form-group">
                       <label>Specialization</label>
                       <input
@@ -850,8 +971,8 @@ const AdminPanel = () => {
                         placeholder="e.g., Cardiology, Pediatrics"
                       />
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 <div className="form-actions">
                   <button
@@ -874,6 +995,33 @@ const AdminPanel = () => {
                   </button>
                 </div>
               </form>
+            )}
+
+            {modalType === "confirmDeleteUser" && (
+              <div className="confirm-delete">
+                <p>
+                  Are you sure you want to delete user
+                  {" "}
+                  <strong>{selectedItem?.username}</strong>?
+                </p>
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={closeModal}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={confirmDeleteUser}
+                    disabled={loading}
+                  >
+                    {loading ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -941,6 +1089,7 @@ const AdminPanel = () => {
             />
           )}
           {activeSection === "appointments" && renderAppointments()}
+          {activeSection === "reports" && renderReports()}
           {activeSection === "settings" && renderSettings()}
         </main>
       </div>

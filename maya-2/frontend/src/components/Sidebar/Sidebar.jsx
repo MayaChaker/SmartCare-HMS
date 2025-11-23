@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 import { useAuth } from '../../context/AuthContext';
+import LogoutButton from "../ui/LogoutButton/LogoutButton";
 import NotificationSystem from '../NotificationSystem/NotificationSystem';
 
 const Sidebar = ({ menuItems, title }) => {
@@ -101,14 +102,9 @@ const Sidebar = ({ menuItems, title }) => {
 
         {/* Logout Button */}
         <div className="sidebar-footer">
-          <button 
-            className="logout-btn"
-            onClick={handleLogout}
-            title={isCollapsed ? 'Logout' : ''}
-          >
-            <i className="fas fa-sign-out-alt"></i>
+          <LogoutButton variant="sidebar">
             {!isCollapsed && <span>Logout</span>}
-          </button>
+          </LogoutButton>
         </div>
       </div>
 

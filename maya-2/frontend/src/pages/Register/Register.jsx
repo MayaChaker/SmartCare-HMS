@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./Register.css";
-// reverted: removed right-side illustration import
+import loginImage from "../../assets/login.jpg";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -13,13 +13,17 @@ const Register = () => {
     lastName: "",
     dob: "",
     contact: "",
-    medicalHistory: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [entered, setEntered] = useState(false);
+
+  useEffect(() => {
+    setEntered(true);
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -65,155 +69,149 @@ const Register = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card auth-card--wide">
-        <div className="auth-card__scroll">
-              <div className="auth-header">
-                <h1 className="auth-title">Create Your Account</h1>
-              </div>
+    <div className="auth-container auth-container--register">
+      <div className={`auth-card auth-card--register${entered ? " entered" : ""}`}>
+        <div className="register-card">
+          <div className="register-media">
+            <img
+              src={loginImage}
+              alt="Doctor with patient"
+              className="register-image"
+            />
+          </div>
 
-              {error && <div className="error-message">{error}</div>}
+          <div className="register-body">
+            <div className="auth-header">
+              <Link to="/" className="brand-logo">
+                SmartCare HMS
+              </Link>
+            </div>
 
-              <form className="auth-form" onSubmit={handleSubmit}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="firstName">First Name</label>
-                    <input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      required
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      className="form-input"
-                      placeholder="First name"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="lastName">Last Name</label>
-                    <input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      required
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      className="form-input"
-                      placeholder="Last name"
-                    />
-                  </div>
-                </div>
+            <div className={`error-message${error ? " visible" : ""}`}>{error}</div>
 
+            <form className="auth-form" onSubmit={handleSubmit}>
+              <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="username">Username</label>
+                  <label htmlFor="firstName">First Name</label>
                   <input
-                    id="username"
-                    name="username"
+                    id="firstName"
+                    name="firstName"
                     type="text"
                     required
-                    value={formData.username}
+                    value={formData.firstName}
                     onChange={handleChange}
                     className="form-input"
-                    placeholder="Choose a username"
+                    placeholder="First name"
                   />
                 </div>
-
                 <div className="form-group">
-                  <label htmlFor="password">Password</label>
+                  <label htmlFor="lastName">Last Name</label>
                   <input
-                    id="password"
-                    name="password"
-                    type="password"
+                    id="lastName"
+                    name="lastName"
+                    type="text"
                     required
-                    value={formData.password}
+                    value={formData.lastName}
                     onChange={handleChange}
                     className="form-input"
-                    placeholder="Enter password (min 6 characters)"
+                    placeholder="Last name"
                   />
                 </div>
+              </div>
 
+              <div className="form-group">
+                <label htmlFor="username">Username</label>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  required
+                  value={formData.username}
+                  onChange={handleChange}
+                  className="form-input"
+                  placeholder="Choose a username"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="password">Password</label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="form-input"
+                  placeholder="Enter password (min 6 characters)"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="confirmPassword">Confirm Password</label>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="form-input"
+                  placeholder="Confirm your password"
+                />
+              </div>
+
+              <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="confirmPassword">Confirm Password</label>
+                  <label htmlFor="dob">Date of Birth</label>
                   <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
+                    id="dob"
+                    name="dob"
+                    type="date"
                     required
-                    value={formData.confirmPassword}
+                    value={formData.dob}
                     onChange={handleChange}
                     className="form-input"
-                    placeholder="Confirm your password"
                   />
                 </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="dob">Date of Birth</label>
-                    <input
-                      id="dob"
-                      name="dob"
-                      type="date"
-                      required
-                      value={formData.dob}
-                      onChange={handleChange}
-                      className="form-input"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="contact">Contact Number</label>
-                    <input
-                      id="contact"
-                      name="contact"
-                      type="tel"
-                      required
-                      value={formData.contact}
-                      onChange={handleChange}
-                      className="form-input"
-                      placeholder="Your phone number"
-                    />
-                  </div>
-                </div>
-
                 <div className="form-group">
-                  <label htmlFor="medicalHistory">
-                    Medical History (Optional)
-                  </label>
-                  <textarea
-                    id="medicalHistory"
-                    name="medicalHistory"
-                    rows={3}
-                    value={formData.medicalHistory}
+                  <label htmlFor="contact">Contact Number</label>
+                  <input
+                    id="contact"
+                    name="contact"
+                    type="tel"
+                    required
+                    value={formData.contact}
                     onChange={handleChange}
-                    className="form-textarea"
-                    placeholder="Any relevant medical history..."
+                    className="form-input"
+                    placeholder="Your phone number"
                   />
-                  <p className="medical-history-note">
-                    Already have an account?{" "}
-                    <Link to="/login" className="auth-link">
-                      Sign in
-                    </Link>
-                  </p>
                 </div>
+              </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="auth-button"
-                >
-                  {loading ? (
-                    <div className="loading-spinner">
-                      <div className="spinner">
-                        <div className="dot"></div>
-                        <div className="dot"></div>
-                        <div className="dot"></div>
-                      </div>
-                      Creating account...
+              <p className="medical-history-note">
+                Already have an account?{" "}
+                <Link to="/login" className="auth-link">
+                  Sign in
+                </Link>
+              </p>
+
+              <button type="submit" disabled={loading} className={`auth-button${loading ? " loading" : ""}`}>
+                {loading ? (
+                  <div className="loading-spinner">
+                    <div className="spinner">
+                      <div className="dot"></div>
+                      <div className="dot"></div>
+                      <div className="dot"></div>
                     </div>
-                  ) : (
-                    "Create Account"
-                  )}
-                </button>
-              </form>
+                    Creating account...
+                  </div>
+                ) : (
+                  "Create Account"
+                )}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

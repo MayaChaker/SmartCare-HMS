@@ -18,6 +18,8 @@ router.get('/analytics', adminController.getAnalytics);
 router.get('/doctors', adminController.getAllDoctors);
 router.get('/patients', adminController.getAllPatients);
 router.get('/appointments', adminController.getAllAppointments);
+// Bulk doctor availability
+router.put('/doctors/availability', adminController.makeAllDoctorsAvailable);
 
 // System settings
 router.get('/settings', adminController.getSystemSettings);

@@ -2,12 +2,6 @@ import React, { useState, useMemo } from "react";
 import { FaUserDoctor } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import "./AdminDoctorsButton.css";
-import img1 from "../../assets/59239756731e80105879a4f15abefbab.jpg";
-import img2 from "../../assets/6635f88e3ee5f110f84ab4bfe8b3348c.jpg";
-import img3 from "../../assets/6b3fb44e59834adc67596dfece91e9ea.jpg";
-import img4 from "../../assets/6dfaa9ca9823ddf1db998afe0fa894a1.jpg";
-import img5 from "../../assets/76849d0f31b25beb912daa192a7b8351.jpg";
-import img6 from "../../assets/bc57f308d01acd9160a8c49bb246b3d1.jpg";
 
 const AdminDoctorsButton = ({
   activeSection,
@@ -20,7 +14,17 @@ const AdminDoctorsButton = ({
 }) => {
   const isActive = activeSection === "doctors";
   const [searchTerm, setSearchTerm] = useState("");
-  const doctorImages = [img1, img2, img3, img4, img5, img6];
+  const excludedNames = new Set(["john doe"]);
+
+  // Resolve stored photo URL to an absolute URL when it's a backend-served path
+  const resolveDoctorImage = (doctor) => {
+    const candidate = doctor.profileImage || doctor.photoUrl || '';
+    if (candidate && candidate.startsWith('/uploads/')) {
+      return `http://localhost:5000${candidate}`;
+    }
+    if (candidate) return candidate;
+    return '';
+  };
 
   // Filter doctors based on search term
   const filteredDoctors = useMemo(() => {
@@ -37,6 +41,12 @@ const AdminDoctorsButton = ({
              phone.includes(search);
     });
   }, [doctors, searchTerm]);
+  const visibleDoctors = useMemo(() => {
+    return filteredDoctors.filter(d => {
+      const name = `${(d.firstName || '').trim()} ${(d.lastName || '').trim()}`.trim().toLowerCase();
+      return !excludedNames.has(name);
+    });
+  }, [filteredDoctors]);
   
   return (
     <>
@@ -59,7 +69,7 @@ const AdminDoctorsButton = ({
               <div className="admin-doctors-header-left">
                 <h2>Doctors Management</h2>
                 <span className="doctors-count">
-                  {doctors.length} doctor{doctors.length !== 1 ? 's' : ''} in SmartCare
+                  {visibleDoctors.length} doctor{visibleDoctors.length !== 1 ? 's' : ''} in SmartCare
                 </span>
               </div>
               <div className="admin-doctors-header-right">
@@ -77,25 +87,54 @@ const AdminDoctorsButton = ({
             </div>
 
             <div className="cards-grid">
-              {filteredDoctors && filteredDoctors.length > 0 ? (
-                filteredDoctors.map((doctor, idx) => (
+              {visibleDoctors && visibleDoctors.length > 0 ? (
+                visibleDoctors.map((doctor, idx) => (
                   <div
                     key={doctor.id}
                     className="doctor-card"
                     style={{ display: "flex", flexDirection: "column" }}
                   >
-                    <div className="doctor-image" style={{ height: "180px", width: "100%", overflow: "hidden" }}>
-                      <img
-                        src={
-                          doctor.profileImage ||
-                          doctor.photoUrl ||
-                          doctorImages[idx % doctorImages.length] ||
-                          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(`${doctor.firstName || ''}-${doctor.lastName || ''}`)}&background=%23ffffff&radius=50`
+                    <div
+                      className="doctor-image"
+                      style={{
+                        width: "100%",
+                        height: 220,
+                        background: "transparent",
+                        overflow: "hidden",
+                        borderTopLeftRadius: 20,
+                        borderTopRightRadius: 20,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {(() => {
+                        const src = resolveDoctorImage(doctor);
+                        if (src) {
+                          return (
+                            <img
+                              src={src}
+                              alt={`${doctor.firstName} ${doctor.lastName}`}
+                              className="doctor-photo"
+                              loading="lazy"
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "contain",
+                                objectPosition: "center top",
+                                display: "block",
+                                borderTopLeftRadius: 20,
+                                borderTopRightRadius: 20,
+                              }}
+                            />
+                          );
                         }
-                        alt={`${doctor.firstName} ${doctor.lastName}`}
-                        className="doctor-photo"
-                        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
-                      />
+                        return (
+                          <span className="doctor-photo-icon" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
+                            <FaUserDoctor style={{ fontSize: 96, color: "#6b7280" }} />
+                          </span>
+                        );
+                      })()}
                     </div>
                     <div
                       className="doctor-description"
@@ -142,6 +181,7 @@ const AdminDoctorsButton = ({
                           </button>
                         </div>
                       )}
+
                     </div>
                   </div>
                 ))

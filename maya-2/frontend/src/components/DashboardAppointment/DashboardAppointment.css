@@ -1,0 +1,125 @@
+.patient-dashboard .alert {
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+}
+.patient-dashboard .alert-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+.patient-dashboard .alert-success {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.patient-dashboard .loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.patient-dashboard .spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #0284c7;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.patient-dashboard .empty-state {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  color: #4b5563;
+}
+.patient-dashboard .empty-state-icon {
+  font-size: 2.25rem;
+  margin-bottom: 0.5rem;
+}
+.patient-dashboard .empty-state-text {
+  font-size: 1rem;
+  font-weight: 500;
+}
+.patient-dashboard .empty-state-subtext {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.patient-dashboard .appointments-list {
+  display: grid;
+  gap: 1rem;
+}
+.patient-dashboard .appointment-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: all 150ms ease-in-out;
+  position: relative;
+}
+.patient-dashboard .appointment-item:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  transform: translateY(-1px);
+}
+.patient-dashboard .appointment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.patient-dashboard .appointment-doctor {
+  font-weight: 600;
+  color: #111827;
+  font-size: 1.5rem;
+}
+.patient-dashboard .appointment-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.patient-dashboard .appointment-actions .btn {
+  min-width: 120px;
+}
+
+.patient-dashboard .appointment-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.patient-dashboard .status-scheduled {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.patient-dashboard .status-completed {
+  background: #dcfce7;
+  color: #15803d;
+}
+.patient-dashboard .status-cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.patient-dashboard .status-rescheduled {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.patient-dashboard .tab-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: #f3f4f6;
+  color: #374151;
+  font-weight: 500;
+  transition: all 150ms ease-in-out;
+}
+
+.patient-dashboard .tab-button.active {
+  background: #0284c7;
+  color: white;
+}

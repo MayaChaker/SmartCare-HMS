@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./ReceptionistPanel.css";
 import { FaUserTie } from "react-icons/fa6";
-import { IoIosLogOut } from "react-icons/io";
+import LogoutButton from "../../components/ui/LogoutButton/LogoutButton";
 import { GrBarChart } from "react-icons/gr";
 import { FaUserInjured, FaUserDoctor } from "react-icons/fa6";
 import { GoChecklist } from "react-icons/go";
@@ -13,9 +13,10 @@ import { FaUsers } from "react-icons/fa";
 import { FaClipboardList } from "react-icons/fa";
 import { FaPen } from "react-icons/fa";
 import { MdVisibility } from "react-icons/md";
+import { parseWorkingHours, generateTimeSlots } from "../../utils/schedule";
 
 const ReceptionistPanel = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [loading, setLoading] = useState(false);
@@ -26,7 +27,15 @@ const ReceptionistPanel = () => {
   const [patients, setPatients] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [doctors, setDoctors] = useState([]);
+
+  // Debug: Log doctors state whenever it changes
+  useEffect(() => {
+    console.log("Doctors state updated:", doctors);
+  }, [doctors]);
   const [todayAppointments, setTodayAppointments] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [queueStatus, setQueueStatus] = useState({
     totalInQueue: 0,
     appointments: [],
@@ -43,22 +52,54 @@ const ReceptionistPanel = () => {
     password: "",
     firstName: "",
     lastName: "",
-    email: "",
     phone: "",
     dateOfBirth: "",
     medicalHistory: "",
+    bloodType: "",
   });
 
   const [appointmentForm, setAppointmentForm] = useState({
     patientId: "",
     doctorId: "",
     appointmentDate: "",
+    appointmentTime: "",
     reason: "",
   });
+  const [availableTimesForSchedule, setAvailableTimesForSchedule] = useState(
+    []
+  );
 
   useEffect(() => {
     loadReceptionistData();
   }, []);
+
+  useEffect(() => {
+    if (activeSection === "appointments") {
+      loadReceptionistData();
+    }
+  }, [activeSection]);
+
+  useEffect(() => {
+    const fetchByDate = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(
+          `http://localhost:5000/api/receptionist/appointments/day?date=${encodeURIComponent(
+            selectedDate
+          )}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const data = res.ok ? await res.json() : [];
+        setTodayAppointments(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error(e);
+        setTodayAppointments([]);
+      }
+    };
+    fetchByDate();
+  }, [selectedDate]);
 
   const loadReceptionistData = async () => {
     setLoading(true);
@@ -66,21 +107,39 @@ const ReceptionistPanel = () => {
       const token = localStorage.getItem("token");
 
       // Load all data in parallel
-      const [patientsRes, doctorsRes, todayAppointmentsRes, queueRes] =
-        await Promise.all([
-          fetch("/api/receptionist/patients", {
+      const [
+        patientsRes,
+        doctorsRes,
+        dayAppointmentsRes,
+        allAppointmentsRes,
+        queueRes,
+      ] = await Promise.all([
+        fetch("http://localhost:5000/api/receptionist/patients", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("http://localhost:5000/api/receptionist/doctors", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(
+          `http://localhost:5000/api/receptionist/appointments/day?date=${encodeURIComponent(
+            selectedDate
+          )}`,
+          {
             headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch("/api/receptionist/doctors", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch("/api/receptionist/appointments/today", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch("/api/receptionist/queue", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+          }
+        ),
+        fetch("http://localhost:5000/api/receptionist/appointments", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch("http://localhost:5000/api/receptionist/queue", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+      console.log("Doctors response status:", doctorsRes.status);
+      console.log("Doctors response ok:", doctorsRes.ok);
+      if (!doctorsRes.ok) {
+        console.log("Doctors response not ok, trying fallback endpoints");
+      }
 
       if (patientsRes.ok) {
         const patientsData = await patientsRes.json();
@@ -89,12 +148,99 @@ const ReceptionistPanel = () => {
 
       if (doctorsRes.ok) {
         const doctorsData = await doctorsRes.json();
-        setDoctors(doctorsData);
+        console.log("Doctors data received:", doctorsData);
+        if (Array.isArray(doctorsData) && doctorsData.length > 0) {
+          setDoctors(doctorsData);
+        } else {
+          const schedRes = await fetch("/api/receptionist/schedules", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (schedRes.ok) {
+            const schedules = await schedRes.json();
+            const uniq = new Map();
+            (Array.isArray(schedules) ? schedules : []).forEach((s) => {
+              if (s && s.doctor && s.doctor.id && !uniq.has(s.doctor.id)) {
+                uniq.set(s.doctor.id, s.doctor);
+              }
+            });
+            let derived = Array.from(uniq.values());
+            if (
+              (!derived || derived.length === 0) &&
+              todayAppointments &&
+              todayAppointments.length > 0
+            ) {
+              const fromToday = new Map();
+              todayAppointments.forEach((a) => {
+                if (
+                  a &&
+                  a.Doctor &&
+                  a.Doctor.id &&
+                  !fromToday.has(a.Doctor.id)
+                ) {
+                  fromToday.set(a.Doctor.id, {
+                    id: a.Doctor.id,
+                    firstName: a.Doctor.firstName,
+                    lastName: a.Doctor.lastName,
+                    specialization: a.Doctor.specialization,
+                  });
+                }
+              });
+              derived = Array.from(fromToday.values());
+            }
+            setDoctors(derived);
+          } else {
+            setDoctors([]);
+          }
+        }
+      } else {
+        console.log("Primary doctors endpoint failed, trying admin endpoint");
+        const adminRes = await fetch(
+          "http://localhost:5000/api/admin/doctors",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        console.log("Admin doctors response status:", adminRes.status);
+        if (adminRes.ok) {
+          const adminDoctors = await adminRes.json();
+          console.log("Admin doctors data:", adminDoctors);
+          setDoctors(Array.isArray(adminDoctors) ? adminDoctors : []);
+        } else {
+          console.log("Admin endpoint failed, trying public endpoint");
+          const publicRes = await fetch("http://localhost:5000/api/doctors");
+          console.log("Public doctors response status:", publicRes.status);
+          if (publicRes.ok) {
+            const publicDoctors = await publicRes.json();
+            console.log("Public doctors data:", publicDoctors);
+            setDoctors(Array.isArray(publicDoctors) ? publicDoctors : []);
+          } else {
+            console.log("All endpoints failed, setting empty doctors array");
+            setDoctors([]);
+          }
+        }
       }
 
-      if (todayAppointmentsRes.ok) {
-        const todayData = await todayAppointmentsRes.json();
+      if (dayAppointmentsRes.ok) {
+        const todayData = await dayAppointmentsRes.json();
         setTodayAppointments(todayData);
+      }
+
+      console.log(
+        "All appointments response status:",
+        allAppointmentsRes.status,
+        "ok:",
+        allAppointmentsRes.ok
+      );
+      if (allAppointmentsRes.ok) {
+        const allData = await allAppointmentsRes.json();
+        console.log(
+          "Loaded appointments:",
+          Array.isArray(allData) ? allData.length : 0
+        );
+        setAppointments(allData);
+      } else {
+        console.warn("Failed to load all appointments, setting empty list");
+        setAppointments([]);
       }
 
       if (queueRes.ok) {
@@ -114,14 +260,17 @@ const ReceptionistPanel = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/receptionist/patients", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(patientForm),
-      });
+      const response = await fetch(
+        "http://localhost:5000/api/receptionist/patients",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(patientForm),
+        }
+      );
 
       if (response.ok) {
         setSuccess("Patient registered successfully!");
@@ -144,17 +293,29 @@ const ReceptionistPanel = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/receptionist/appointments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(appointmentForm),
-      });
+      const payload = {
+        ...appointmentForm,
+        appointmentTime: appointmentForm.appointmentTime
+          ? `${String(appointmentForm.appointmentTime).slice(0, 5)}:00`
+          : undefined,
+      };
+      const response = await fetch(
+        "http://localhost:5000/api/receptionist/appointments",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (response.ok) {
         setSuccess("Appointment scheduled successfully!");
+        const scheduledDate =
+          payload.appointmentDate || new Date().toISOString().split("T")[0];
+        setSelectedDate(scheduledDate);
         await loadReceptionistData();
         closeModal();
       } else {
@@ -174,7 +335,7 @@ const ReceptionistPanel = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `/api/receptionist/checkin/${appointmentId}`,
+        `http://localhost:5000/api/receptionist/checkin/${appointmentId}`,
         {
           method: "PUT",
           headers: {
@@ -198,7 +359,38 @@ const ReceptionistPanel = () => {
     }
   };
 
+  const handleUpdateAppointmentStatus = async (appointmentId, status) => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:5000/api/receptionist/appointments/${appointmentId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status }),
+        }
+      );
+      if (response.ok) {
+        setSuccess("Appointment status updated successfully!");
+        await loadReceptionistData();
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || "Failed to update appointment status");
+      }
+    } catch (error) {
+      console.error("Error updating appointment status:", error);
+      setError("Failed to update appointment status. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const openModal = (type, item = null) => {
+    console.log("openModal called with type:", type, "item:", item);
     setModalType(type);
     setSelectedItem(item);
     setShowModal(true);
@@ -211,7 +403,6 @@ const ReceptionistPanel = () => {
         password: "",
         firstName: "",
         lastName: "",
-        email: "",
         phone: "",
         dateOfBirth: "",
         medicalHistory: "",
@@ -221,10 +412,157 @@ const ReceptionistPanel = () => {
         patientId: "",
         doctorId: "",
         appointmentDate: "",
+        appointmentTime: "",
         reason: "",
       });
+      setAvailableTimesForSchedule([]);
+      // Ensure doctors are loaded when opening the modal
+      console.log(
+        "Checking if doctors need to be loaded. Current doctors:",
+        doctors,
+        "Length:",
+        doctors?.length
+      );
+      if (!doctors || doctors.length === 0) {
+        (async () => {
+          try {
+            setLoading(true);
+            const token = localStorage.getItem("token");
+            console.log("Attempting to load doctors with token:", !!token);
+            const res = await fetch("/api/receptionist/doctors", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            console.log(
+              "Modal fallback - receptionist doctors response:",
+              res.status
+            );
+            if (res.ok) {
+              const data = await res.json();
+              console.log("Modal fallback - receptionist doctors data:", data);
+              setDoctors(Array.isArray(data) ? data : []);
+            } else {
+              console.log("Modal fallback - trying admin endpoint");
+              const adminRes = await fetch(
+                "http://localhost:5000/api/admin/doctors",
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                }
+              );
+              console.log(
+                "Modal fallback - admin doctors response:",
+                adminRes.status
+              );
+              if (adminRes.ok) {
+                const adminData = await adminRes.json();
+                console.log("Modal fallback - admin doctors data:", adminData);
+                setDoctors(Array.isArray(adminData) ? adminData : []);
+              } else {
+                console.log("Modal fallback - all endpoints failed");
+              }
+            }
+          } catch (err) {
+            console.error("Modal fallback - error loading doctors:", err);
+            // leave error banner to modal
+          } finally {
+            setLoading(false);
+          }
+        })();
+      }
     }
   };
+
+  const parseWorkingDays = (wh) => {
+    const defaultDays = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+    if (!wh || typeof wh !== "string") return defaultDays;
+    const daysPart = wh.split(/\d{2}:\d{2}/)[0]?.trim() || "";
+    if (!daysPart) return defaultDays;
+    const map = {
+      Sunday: "Sun",
+      Monday: "Mon",
+      Tuesday: "Tue",
+      Wednesday: "Wed",
+      Thursday: "Thu",
+      Friday: "Fri",
+      Saturday: "Sat",
+      Sun: "Sun",
+      Mon: "Mon",
+      Tue: "Tue",
+      Wed: "Wed",
+      Thu: "Thu",
+      Fri: "Fri",
+      Sat: "Sat",
+    };
+    if (/^Mon\s*-\s*Fri$/i.test(daysPart)) return defaultDays;
+    const parts = daysPart
+      .split(/,\s*/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+    const days = parts
+      .map((p) => map[p] || p)
+      .filter((d) =>
+        ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].includes(d)
+      );
+    return days.length ? days : defaultDays;
+  };
+  const isDateAllowedForDoctor = (dateStr, doctor) => {
+    if (!dateStr || !doctor) return false;
+    const days = parseWorkingDays(doctor?.workingHours);
+    const idx = new Date(dateStr).getDay();
+    const idxMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    return days.includes(idxMap[idx]);
+  };
+
+  const getAvailableDatesForDoctor = (doctor, daysAhead = 30) => {
+    if (!doctor) return [];
+    const availableDays = parseWorkingDays(doctor.workingHours);
+    const availableDates = [];
+    const today = new Date();
+
+    for (let i = 0; i < daysAhead; i++) {
+      const checkDate = new Date(today);
+      checkDate.setDate(today.getDate() + i);
+      const dayName = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
+        checkDate.getDay()
+      ];
+
+      if (availableDays.includes(dayName)) {
+        availableDates.push(checkDate.toISOString().split("T")[0]);
+      }
+    }
+    return availableDates;
+  };
+  const formatWorkingDaysLabel = (days) => days.join(", ");
+
+  useEffect(() => {
+    const fetchTimes = async () => {
+      try {
+        setAvailableTimesForSchedule([]);
+        const { doctorId, appointmentDate } = appointmentForm;
+        if (!doctorId || !appointmentDate) return;
+        const doc = doctors.find((d) => String(d.id) === String(doctorId));
+        const { start, end } = parseWorkingHours(doc?.workingHours);
+        const token = localStorage.getItem("token");
+        const res = await fetch(
+          `http://localhost:5000/api/receptionist/doctors/${doctorId}/booked-times?date=${encodeURIComponent(
+            appointmentDate
+          )}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const data = res.ok ? await res.json() : { bookedTimes: [] };
+        const windowTimes = generateTimeSlots(start, end);
+        const available = windowTimes.filter(
+          (t) => !(data.bookedTimes || []).includes(t)
+        );
+        setAvailableTimesForSchedule(available);
+      } catch (e) {
+        console.error(e);
+        setAvailableTimesForSchedule([]);
+      }
+    };
+    fetchTimes();
+  }, [appointmentForm.doctorId, appointmentForm.appointmentDate, doctors]);
 
   const closeModal = () => {
     setShowModal(false);
@@ -256,8 +594,8 @@ const ReceptionistPanel = () => {
             <FaCalendarDay />
           </div>
           <div className="stat-content">
-            <h3>{todayAppointments.length}</h3>
             <p>Today's Appointments</p>
+            <h3>{todayAppointments.length}</h3>
             <span className="stat-trend">+2 from yesterday</span>
           </div>
         </div>
@@ -267,8 +605,8 @@ const ReceptionistPanel = () => {
             <MdQueue color="green" />
           </div>
           <div className="stat-content">
-            <h3>{queueStatus.totalInQueue}</h3>
             <p>Patients in Queue</p>
+            <h3>{queueStatus.totalInQueue}</h3>
             <span className="stat-trend">Active now</span>
           </div>
         </div>
@@ -278,8 +616,8 @@ const ReceptionistPanel = () => {
             <FaUsers />
           </div>
           <div className="stat-content">
-            <h3>{patients.length}</h3>
             <p>Total Patients</p>
+            <h3>{patients.length}</h3>
             <span className="stat-trend">Registered</span>
           </div>
         </div>
@@ -289,8 +627,8 @@ const ReceptionistPanel = () => {
             <FaUserDoctor color="orange" />
           </div>
           <div className="stat-content">
-            <h3>{doctors.length}</h3>
             <p>Available Doctors</p>
+            <h3>{doctors.length}</h3>
             <span className="stat-trend">On duty</span>
           </div>
         </div>
@@ -333,11 +671,21 @@ const ReceptionistPanel = () => {
       <div className="dashboard-table-section">
         <div className="table-header">
           <h4 className="table-title">Today's Appointments</h4>
-          <div className="table-filters">
+          <div
+            className="table-filters"
+            style={{ display: "flex", gap: 8, alignItems: "center" }}
+          >
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="filter-select"
+            />
             <select className="filter-select">
               <option>All Status</option>
               <option>Scheduled</option>
               <option>Checked-in</option>
+              <option>In-progress</option>
               <option>Completed</option>
             </select>
           </div>
@@ -362,7 +710,7 @@ const ReceptionistPanel = () => {
               </tr>
             </thead>
             <tbody>
-              {todayAppointments.length > 0 ? (
+              {(todayAppointments || []).length > 0 ? (
                 todayAppointments.map((appointment) => (
                   <tr key={appointment.id} className="appointment-row">
                     <td className="doctor-cell">
@@ -389,12 +737,14 @@ const ReceptionistPanel = () => {
                     </td>
                     <td className="time-cell">
                       <span className="appointment-time">
-                        {new Date(
-                          appointment.appointmentDate
-                        ).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {appointment.appointmentTime
+                          ? String(appointment.appointmentTime).slice(0, 5)
+                          : new Date(
+                              appointment.appointmentDate
+                            ).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                       </span>
                     </td>
                     <td className="actions-cell">
@@ -417,6 +767,31 @@ const ReceptionistPanel = () => {
                         >
                           <MdVisibility />
                         </button>
+                        {appointment.status === "scheduled" && (
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={() => handleCheckIn(appointment.id)}
+                            title="Quick Check In"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            Check In
+                          </button>
+                        )}
+                        {appointment.status === "checked-in" && (
+                          <button
+                            className="btn btn-sm btn-secondary"
+                            onClick={() =>
+                              handleUpdateAppointmentStatus(
+                                appointment.id,
+                                "in-progress"
+                              )
+                            }
+                            title="Take Appointment"
+                            style={{ marginLeft: "8px" }}
+                          >
+                            Take
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -456,10 +831,10 @@ const ReceptionistPanel = () => {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Email</th>
               <th>Phone</th>
+              <th>Registered At</th>
               <th>Date of Birth</th>
-              <th>Actions</th>
+              <th>Blood Type</th>
             </tr>
           </thead>
           <tbody>
@@ -468,17 +843,17 @@ const ReceptionistPanel = () => {
                 <td>
                   {patient.firstName} {patient.lastName}
                 </td>
-                <td>{patient.email}</td>
                 <td>{patient.phone}</td>
-                <td>{patient.dateOfBirth}</td>
                 <td>
-                  <button
-                    className="btn btn-sm btn-primary"
-                    onClick={() => openModal("viewPatient", patient)}
-                  >
-                    View Details
-                  </button>
+                  {patient.createdAt
+                    ? new Date(patient.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : ""}
                 </td>
+                <td>{patient.dateOfBirth}</td>
+                <td>{patient.bloodType || ""}</td>
               </tr>
             ))}
           </tbody>
@@ -511,52 +886,120 @@ const ReceptionistPanel = () => {
             </tr>
           </thead>
           <tbody>
-            {todayAppointments.map((appointment) => (
-              <tr key={appointment.id}>
-                <td>
-                  {appointment.Patient
-                    ? `${appointment.Patient.firstName} ${appointment.Patient.lastName}`
-                    : "N/A"}
-                </td>
-                <td>
-                  {appointment.Doctor
-                    ? `Dr. ${appointment.Doctor.firstName} ${appointment.Doctor.lastName}`
-                    : "N/A"}
-                </td>
-                <td>
-                  <div>
+            {(appointments && appointments.length > 0
+              ? appointments
+              : todayAppointments
+            ).length > 0 ? (
+              (appointments && appointments.length > 0
+                ? appointments
+                : todayAppointments
+              ).map((appointment) => (
+                <tr key={appointment.id}>
+                  <td>
+                    {appointment.Patient
+                      ? `${appointment.Patient.firstName} ${appointment.Patient.lastName}`
+                      : "N/A"}
+                  </td>
+                  <td>
+                    {appointment.Doctor
+                      ? `Dr. ${appointment.Doctor.firstName} ${appointment.Doctor.lastName}`
+                      : "N/A"}
+                  </td>
+                  <td>
                     <div>
-                      {new Date(
-                        appointment.appointmentDate
-                      ).toLocaleDateString()}
+                      <div>
+                        {new Date(
+                          appointment.appointmentDate
+                        ).toLocaleDateString()}
+                      </div>
+                      <div style={{ fontSize: "12px", color: "#666" }}>
+                        {appointment.appointmentTime
+                          ? String(appointment.appointmentTime).slice(0, 5)
+                          : new Date(
+                              appointment.appointmentDate
+                            ).toLocaleTimeString()}
+                      </div>
                     </div>
-                    <div style={{ fontSize: "12px", color: "#666" }}>
-                      {new Date(
-                        appointment.appointmentDate
-                      ).toLocaleTimeString()}
-                    </div>
-                  </div>
-                </td>
-                <td>{appointment.reason || "General consultation"}</td>
-                <td>
-                  <span
-                    className={`status-badge status-${appointment.status.toLowerCase()}`}
-                  >
-                    {appointment.status}
-                  </span>
-                </td>
-                <td>
-                  {appointment.status === "scheduled" && (
-                    <button
-                      className="btn btn-sm btn-primary"
-                      onClick={() => handleCheckIn(appointment.id)}
+                  </td>
+                  <td>{appointment.reason || "General consultation"}</td>
+                  <td>
+                    <span
+                      className={`status-badge status-${String(
+                        appointment.status || ""
+                      ).toLowerCase()}`}
                     >
-                      Check In
-                    </button>
-                  )}
+                      {appointment.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        alignItems: "center",
+                      }}
+                    >
+                      <select
+                        value={appointment.status}
+                        onChange={(e) =>
+                          handleUpdateAppointmentStatus(
+                            appointment.id,
+                            e.target.value
+                          )
+                        }
+                        className="status-select"
+                        disabled={loading}
+                      >
+                        <option value="scheduled">Scheduled</option>
+                        <option value="checked-in">Checked-in</option>
+                        <option value="in-progress">In-progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                      {appointment.status === "scheduled" && (
+                        <button
+                          className="btn btn-sm btn-primary"
+                          onClick={() => handleCheckIn(appointment.id)}
+                          title="Quick Check In"
+                        >
+                          Check In
+                        </button>
+                      )}
+                      {appointment.status === "checked-in" && (
+                        <button
+                          className="btn btn-sm btn-secondary"
+                          onClick={() =>
+                            handleUpdateAppointmentStatus(
+                              appointment.id,
+                              "in-progress"
+                            )
+                          }
+                          title="Take Appointment"
+                        >
+                          Take
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan="6"
+                  style={{ textAlign: "center", padding: "16px" }}
+                >
+                  No appointments found.{" "}
+                  <button
+                    className="btn btn-sm btn-secondary"
+                    onClick={loadReceptionistData}
+                    style={{ marginLeft: 8 }}
+                  >
+                    Refresh
+                  </button>
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
@@ -607,6 +1050,12 @@ const ReceptionistPanel = () => {
   );
 
   const renderModal = () => {
+    console.log(
+      "renderModal called. showModal:",
+      showModal,
+      "modalType:",
+      modalType
+    );
     if (!showModal) return null;
 
     return (
@@ -633,6 +1082,7 @@ const ReceptionistPanel = () => {
                   <input
                     type="text"
                     value={patientForm.username}
+                    placeholder="Enter username"
                     onChange={(e) =>
                       setPatientForm({
                         ...patientForm,
@@ -648,6 +1098,7 @@ const ReceptionistPanel = () => {
                   <input
                     type="password"
                     value={patientForm.password}
+                    placeholder="Enter password"
                     onChange={(e) =>
                       setPatientForm({
                         ...patientForm,
@@ -663,6 +1114,7 @@ const ReceptionistPanel = () => {
                   <input
                     type="text"
                     value={patientForm.firstName}
+                    placeholder="Enter first name"
                     onChange={(e) =>
                       setPatientForm({
                         ...patientForm,
@@ -678,6 +1130,7 @@ const ReceptionistPanel = () => {
                   <input
                     type="text"
                     value={patientForm.lastName}
+                    placeholder="Enter last name"
                     onChange={(e) =>
                       setPatientForm({
                         ...patientForm,
@@ -689,25 +1142,40 @@ const ReceptionistPanel = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Email</label>
-                  <input
-                    type="email"
-                    value={patientForm.email}
+                  <label>Blood Type</label>
+                  <select
+                    value={patientForm.bloodType}
                     onChange={(e) =>
-                      setPatientForm({ ...patientForm, email: e.target.value })
+                      setPatientForm({
+                        ...patientForm,
+                        bloodType: e.target.value,
+                      })
                     }
                     className="form-control"
-                  />
+                    required
+                  >
+                    <option value="">Select blood type</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                  </select>
                 </div>
                 <div className="form-group">
                   <label>Phone</label>
                   <input
                     type="tel"
                     value={patientForm.phone}
+                    placeholder="Enter phone number"
                     onChange={(e) =>
                       setPatientForm({ ...patientForm, phone: e.target.value })
                     }
                     className="form-control"
+                    required
                   />
                 </div>
                 <div className="form-group">
@@ -715,6 +1183,7 @@ const ReceptionistPanel = () => {
                   <input
                     type="date"
                     value={patientForm.dateOfBirth}
+                    placeholder="YYYY-MM-DD"
                     onChange={(e) =>
                       setPatientForm({
                         ...patientForm,
@@ -722,12 +1191,14 @@ const ReceptionistPanel = () => {
                       })
                     }
                     className="form-control"
+                    required
                   />
                 </div>
                 <div className="form-group">
                   <label>Medical History</label>
                   <textarea
                     value={patientForm.medicalHistory}
+                    placeholder="Medical history (optional)"
                     onChange={(e) =>
                       setPatientForm({
                         ...patientForm,
@@ -759,6 +1230,16 @@ const ReceptionistPanel = () => {
 
             {modalType === "scheduleAppointment" && (
               <form onSubmit={handleScheduleAppointment}>
+                {console.log(
+                  "Rendering scheduleAppointment form. Doctors:",
+                  doctors,
+                  "Length:",
+                  doctors.length,
+                  "Token exists:",
+                  !!localStorage.getItem("token"),
+                  "Selected date:",
+                  appointmentForm.appointmentDate
+                )}
                 <div className="form-group">
                   <label>Patient</label>
                   <select
@@ -781,41 +1262,181 @@ const ReceptionistPanel = () => {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Doctor</label>
+                  <div className="profile-field">
+                    <span className="profile-label">Email</span>
+                    <span className="profile-value">{selectedItem.email}</span>
+                  </div>
+                  {console.log(
+                    "Rendering doctor select. Doctors array:",
+                    doctors,
+                    "Length:",
+                    doctors.length,
+                    "Selected date:",
+                    appointmentForm.appointmentDate
+                  )}
                   <select
                     value={appointmentForm.doctorId}
                     onChange={(e) =>
                       setAppointmentForm({
                         ...appointmentForm,
                         doctorId: e.target.value,
+                        appointmentDate: "", // Reset date when doctor changes
+                        appointmentTime: "",
                       })
                     }
                     className="form-control"
                     required
                   >
                     <option value="">Select Doctor</option>
+                    {doctors.length === 0 && (
+                      <option value="" disabled>
+                        No doctors available or insufficient permission
+                      </option>
+                    )}
                     {doctors.map((doctor) => (
                       <option key={doctor.id} value={doctor.id}>
-                        Dr. {doctor.firstName} {doctor.lastName} -{" "}
-                        {doctor.specialization}
+                        Dr. {doctor.firstName} {doctor.lastName} (
+                        {doctor.specialization || "General"})
                       </option>
                     ))}
                   </select>
+                  {appointmentForm.doctorId && (
+                    <small className="availability-hint">
+                      {(() => {
+                        const doc = doctors.find(
+                          (d) =>
+                            String(d.id) === String(appointmentForm.doctorId)
+                        );
+                        const { start, end } = parseWorkingHours(
+                          doc?.workingHours
+                        );
+                        const daysLabel = formatWorkingDaysLabel(
+                          parseWorkingDays(doc?.workingHours)
+                        );
+                        return (
+                          <small>
+                            {`Days: ${daysLabel} • Hours: ${start} - ${end}`}
+                          </small>
+                        );
+                      })()}
+                    </small>
+                  )}
                 </div>
                 <div className="form-group">
-                  <label>Date & Time</label>
-                  <input
-                    type="datetime-local"
+                  <label>Date</label>
+                  <select
                     value={appointmentForm.appointmentDate}
+                    onChange={(e) => {
+                      const selectedDate = e.target.value;
+                      setAppointmentForm({
+                        ...appointmentForm,
+                        appointmentDate: selectedDate,
+                        appointmentTime: "",
+                      });
+                    }}
+                    className="form-control"
+                    disabled={!appointmentForm.doctorId}
+                    required
+                  >
+                    <option value="">Select Date</option>
+                    {!appointmentForm.doctorId && (
+                      <option value="" disabled>
+                        Please select a doctor first
+                      </option>
+                    )}
+                    {appointmentForm.doctorId &&
+                      (() => {
+                        const doc = doctors.find(
+                          (d) =>
+                            String(d.id) === String(appointmentForm.doctorId)
+                        );
+                        const availableDates = getAvailableDatesForDoctor(
+                          doc,
+                          30
+                        ); // Next 30 days
+                        return availableDates.map((date) => {
+                          const dateObj = new Date(date);
+                          const dayName = dateObj.toLocaleDateString(
+                            undefined,
+                            { weekday: "short" }
+                          );
+                          const formattedDate = dateObj.toLocaleDateString(
+                            undefined,
+                            { month: "short", day: "numeric" }
+                          );
+                          return (
+                            <option key={date} value={date}>
+                              {dayName}, {formattedDate}
+                            </option>
+                          );
+                        });
+                      })()}
+                  </select>
+                  {appointmentForm.doctorId && (
+                    <div className="availability-hint">
+                      {console.log(
+                        "Rendering availability hint for doctor:",
+                        appointmentForm.doctorId,
+                        "on date:",
+                        appointmentForm.appointmentDate
+                      )}
+                      {(() => {
+                        const doc = doctors.find(
+                          (d) =>
+                            String(d.id) === String(appointmentForm.doctorId)
+                        );
+                        const { start, end } = parseWorkingHours(
+                          doc?.workingHours
+                        );
+                        const daysLabel = formatWorkingDaysLabel(
+                          parseWorkingDays(doc?.workingHours)
+                        );
+                        const availableDates = getAvailableDatesForDoctor(
+                          doc,
+                          30
+                        ); // Next 30 days
+
+                        return (
+                          <small>
+                            {`Working days: ${daysLabel} • Hours: ${start} - ${end}`}
+                            {` • ${availableDates.length} available dates in next 30 days`}
+                          </small>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label>Time</label>
+                  <select
+                    value={appointmentForm.appointmentTime}
                     onChange={(e) =>
                       setAppointmentForm({
                         ...appointmentForm,
-                        appointmentDate: e.target.value,
+                        appointmentTime: e.target.value,
                       })
                     }
                     className="form-control"
                     required
-                  />
+                    disabled={
+                      !appointmentForm.doctorId ||
+                      !appointmentForm.appointmentDate ||
+                      !isDateAllowedForDoctor(
+                        appointmentForm.appointmentDate,
+                        doctors.find(
+                          (d) =>
+                            String(d.id) === String(appointmentForm.doctorId)
+                        )
+                      )
+                    }
+                  >
+                    <option value="">Select Time</option>
+                    {availableTimesForSchedule.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="form-group">
                   <label>Reason</label>
@@ -860,10 +1481,7 @@ const ReceptionistPanel = () => {
                       {selectedItem.firstName} {selectedItem.lastName}
                     </span>
                   </div>
-                  <div className="profile-field">
-                    <span className="profile-label">Email</span>
-                    <span className="profile-value">{selectedItem.email}</span>
-                  </div>
+
                   <div className="profile-field">
                     <span className="profile-label">Phone</span>
                     <span className="profile-value">{selectedItem.phone}</span>
@@ -916,12 +1534,7 @@ const ReceptionistPanel = () => {
           </div>
         </div>
         <div className="header-user-info">
-          <button onClick={logout} className="btn btn-outline">
-            <span className="btn-icon">
-              <IoIosLogOut />
-            </span>
-            Logout
-          </button>
+          <LogoutButton variant="outline">Logout</LogoutButton>
         </div>
       </div>
 

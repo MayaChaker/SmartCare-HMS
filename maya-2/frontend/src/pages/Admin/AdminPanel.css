@@ -126,3 +126,13 @@
 .dashboard-header .current-time .time-value {
   text-align: left;
 }
+
+.admin-reports .data-table thead th {
+  padding-top: calc(var(--space-4) + 8px);
+}
+
+.admin-reports .dashboard-card {
+  margin-bottom: var(--space-8);
+}
+@import '../../index.css';
+@import '../../App.css';

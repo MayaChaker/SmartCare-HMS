@@ -26,6 +26,7 @@ exports.getProfile = async (req, res) => {
       allergies: patient.allergies || "",
       insurance: patient.insurance || "",
       medicalHistory: patient.medicalHistory || "",
+      permanentMedicine: patient.permanentMedicine || "",
     });
   } catch (error) {
     console.error("Error fetching patient profile:", error);
@@ -51,6 +52,7 @@ exports.updateProfile = async (req, res) => {
       allergies,
       insurance,
       medicalHistory,
+      permanentMedicine,
     } = req.body;
 
     const patient = await Patient.findOne({ where: { userId } });
@@ -81,6 +83,7 @@ exports.updateProfile = async (req, res) => {
     if (allergies) patient.allergies = allergies;
     if (insurance) patient.insurance = insurance;
     if (medicalHistory) patient.medicalHistory = medicalHistory;
+    if (permanentMedicine) patient.permanentMedicine = permanentMedicine;
 
     await patient.save();
 
@@ -154,6 +157,26 @@ exports.createAppointment = async (req, res) => {
       return res.status(404).json({ message: "Patient profile not found" });
     }
 
+    // Prevent double booking: pre-check for an existing active appointment with same doctor/date/time
+    try {
+      const { Op } = require("sequelize");
+      if (doctorId && appointmentDate && appointmentTime) {
+        const existing = await Appointment.findOne({
+          where: {
+            doctorId,
+            appointmentDate,
+            appointmentTime,
+            status: { [Op.not]: "cancelled" },
+          },
+        });
+        if (existing) {
+          return res.status(409).json({ message: "Selected date/time is already booked for this doctor" });
+        }
+      }
+    } catch (err) {
+      console.warn("Pre-check for slot conflict failed", err);
+    }
+
     const appointment = await Appointment.create({
       patientId: patient.id,
       doctorId,
@@ -168,6 +191,9 @@ exports.createAppointment = async (req, res) => {
       appointment,
     });
   } catch (error) {
+    if (error && String(error.name).includes("UniqueConstraintError")) {
+      return res.status(409).json({ message: "Selected date/time is already booked for this doctor" });
+    }
     console.error("Error scheduling appointment:", error);
     res.status(500).json({ message: "Server error" });
   }
@@ -178,7 +204,7 @@ exports.updateAppointment = async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
-    const { appointmentDate, status } = req.body;
+    const { appointmentDate, appointmentTime, status } = req.body;
 
     const patient = await Patient.findOne({ where: { userId } });
     if (!patient) {
@@ -194,6 +220,7 @@ exports.updateAppointment = async (req, res) => {
     }
 
     if (appointmentDate) appointment.appointmentDate = appointmentDate;
+    if (appointmentTime !== undefined) appointment.appointmentTime = appointmentTime || null;
     if (status) appointment.status = status;
 
     await appointment.save();
@@ -241,6 +268,7 @@ exports.cancelAppointment = async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
+    const hard = String(req.query.hard || '').toLowerCase() === 'true';
 
     const patient = await Patient.findOne({ where: { userId } });
     if (!patient) {
@@ -255,13 +283,14 @@ exports.cancelAppointment = async (req, res) => {
       return res.status(404).json({ message: "Appointment not found" });
     }
 
-    appointment.status = "cancelled";
-    await appointment.save();
-
-    res.json({
-      message: "Appointment cancelled successfully",
-      appointment,
-    });
+    if (hard) {
+      await appointment.destroy();
+      return res.json({ message: "Appointment deleted successfully" });
+    } else {
+      appointment.status = "cancelled";
+      await appointment.save();
+      return res.json({ message: "Appointment cancelled successfully", appointment });
+    }
   } catch (error) {
     console.error("Error cancelling appointment:", error);
     res.status(500).json({ message: "Server error" });
@@ -388,6 +417,10 @@ exports.getAllDoctors = async (req, res) => {
         "specialization",
         "availability",
         "workingHours",
+        "photoUrl",
+        "phone",
+        "qualification",
+        "experience",
       ],
     });
 

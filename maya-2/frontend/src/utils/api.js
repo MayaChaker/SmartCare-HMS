@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -88,6 +88,14 @@ export const patientAPI = {
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, message: error.response?.data?.message || 'Failed to cancel appointment' };
+    }
+  },
+  deleteAppointment: async (appointmentId) => {
+    try {
+      const response = await api.delete(`/patient/appointments/${appointmentId}`, { params: { hard: true } });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Failed to delete appointment' };
     }
   },
   
@@ -270,7 +278,7 @@ export const doctorAPI = {
   
   updateAppointmentStatus: async (appointmentId, status) => {
     try {
-      const response = await api.put(`/doctor/appointments/${appointmentId}/status`, { status });
+      const response = await api.put(`/doctor/appointments/${appointmentId}`, { status });
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, message: error.response?.data?.message || 'Failed to update appointment status' };
@@ -279,7 +287,7 @@ export const doctorAPI = {
   
   addMedicalRecord: async (recordData) => {
     try {
-      const response = await api.post('/doctor/medical-records', recordData);
+      const response = await api.post('/doctor/records', recordData);
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, message: error.response?.data?.message || 'Failed to add medical record' };
@@ -288,7 +296,8 @@ export const doctorAPI = {
   
   getMedicalRecords: async (patientId) => {
     try {
-      const response = await api.get(`/doctor/medical-records/${patientId}`);
+      // Backend does not expose /doctor/medical-records/:id; use patient details endpoint
+      const response = await api.get(`/doctor/patients/${patientId}`);
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, message: error.response?.data?.message || 'Failed to fetch medical records' };

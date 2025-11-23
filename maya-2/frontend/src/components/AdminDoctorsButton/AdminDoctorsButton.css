@@ -90,6 +90,28 @@
   line-height: 1.4;
 }
 
+/* Consistent image container sizing and centering */
+.doctor-image {
+  height: 180px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* keep layout tight and avoid spill */
+  background: #fff;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.doctor-photo {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain; /* show full image so faces aren’t cropped */
+  object-position: center;
+  display: block;
+}
+
 .doctor-name {
   font-size: 1.2em;
   font-weight: 700;

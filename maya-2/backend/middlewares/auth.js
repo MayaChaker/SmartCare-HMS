@@ -1,16 +1,14 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-// Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
-  
   if (!token) {
     return res.status(401).json({ message: 'No token provided' });
   }
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const secret = process.env.JWT_SECRET || 'dev-secret';
+    const decoded = jwt.verify(token, secret);
     req.user = decoded;
     next();
   } catch (error) {
@@ -18,17 +16,14 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// Middleware to check user role
 const checkRole = (roles) => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
-
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({ message: 'Forbidden: Insufficient permissions' });
     }
-
     next();
   };
 };

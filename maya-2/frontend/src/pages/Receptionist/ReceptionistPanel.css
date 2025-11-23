@@ -5,6 +5,14 @@
   background: var(--gray-50);
 }
 
+/* Availability count styling */
+.availability-count {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--gray-600);
+  font-size: 0.875rem;
+}
+
 .receptionist-header {
   background: white;
   padding: var(--space-6);
@@ -530,3 +538,5 @@
     gap: var(--space-4);
   }
 }
+@import '../../index.css';
+@import '../../App.css';

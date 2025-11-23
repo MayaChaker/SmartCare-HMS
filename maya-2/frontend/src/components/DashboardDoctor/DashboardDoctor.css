@@ -1,0 +1,220 @@
+.patient-dashboard .tab-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: #f3f4f6;
+  color: #374151;
+  font-weight: 500;
+  transition: all 150ms ease-in-out;
+}
+
+.patient-dashboard .tab-button.active {
+  background: #0284c7;
+  color: white;
+}
+
+.patient-dashboard .admin-doctors .admin-doctors-header {
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 20px;
+}
+
+.patient-dashboard .admin-doctors .admin-doctors-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  text-align: left;
+  flex: 1 1 auto;
+}
+
+.patient-dashboard .admin-doctors .admin-doctors-header-right {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.patient-dashboard .admin-doctors .doctors-count {
+  font-size: 0.9em;
+  color: #666;
+  font-weight: 500;
+  margin-left: 20px;
+}
+
+.patient-dashboard .admin-doctors .search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.patient-dashboard .admin-doctors .search-input {
+  padding: 10px 12px 10px 40px;
+  border: 2px solid #e0e0e0;
+  border-radius: 25px;
+  font-size: 0.9em;
+  width: 280px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.patient-dashboard .admin-doctors .search-input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.patient-dashboard .admin-doctors .search-input::placeholder {
+  color: #999;
+}
+
+.patient-dashboard .admin-doctors .search-icon {
+  position: absolute;
+  left: 14px;
+  color: #999;
+  font-size: 0.9em;
+  pointer-events: none;
+}
+
+.patient-dashboard .cards-grid {
+}
+
+.patient-dashboard .doctor-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.patient-dashboard .doctor-image {
+  height: 220px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: transparent;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.patient-dashboard .doctor-photo {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center top;
+  display: block;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+.patient-dashboard .doctor-photo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.patient-dashboard .doctor-description {
+  flex: 1;
+  width: 100%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: flex-start;
+  background: transparent;
+  border-top: 1px solid #e9ecef;
+  line-height: 1.4;
+}
+
+.patient-dashboard .doctor-name {
+  font-size: 1.2em;
+  font-weight: 700;
+  margin-bottom: 0;
+  color: #2c3e50;
+  letter-spacing: 0.3px;
+  line-height: 1.3;
+}
+
+.patient-dashboard .doctor-specialization {
+  font-size: 1em;
+  font-weight: 600;
+  color: #3498db;
+  margin-bottom: 10px;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  align-self: flex-start;
+  border: none;
+}
+
+.patient-dashboard .doctor-experience {
+  font-size: 0.9em;
+  color: #27ae60;
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.patient-dashboard .doctor-phone {
+  font-size: 0.9em;
+  color: #34495e;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  align-self: flex-start;
+}
+
+.patient-dashboard .doctor-description .label {
+  font-weight: 700;
+  color: #1f2937;
+  margin-right: 6px;
+}
+
+.patient-dashboard .doctor-name,
+.patient-dashboard .doctor-specialization,
+.patient-dashboard .doctor-experience,
+.patient-dashboard .doctor-phone {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.patient-dashboard .doctor-description .value {
+  font-weight: 500;
+  color: #374151;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.patient-dashboard .doctor-actions {
+  margin-top: auto;
+}
+
+.patient-dashboard .doctor-actions .btn {
+  width: 100%;
+}

@@ -93,7 +93,7 @@
   margin-bottom: var(--space-4);
 }
 .patient-dashboard .card-title {
-  font-size: var(--text-lg);
+  font-size: var(--text-3xl);
   font-weight: var(--font-semibold);
   color: var(--gray-900);
   margin: 0;
@@ -178,6 +178,7 @@
 .patient-dashboard .appointment-doctor {
   font-weight: var(--font-semibold);
   color: var(--gray-900);
+  font-size: var(--text-2xl);
 }
 .patient-dashboard .appointment-details {
   display: grid;
@@ -214,25 +215,7 @@
   color: var(--warning-700);
 }
 
-.patient-dashboard .profile-grid {
-  display: grid;
-  gap: var(--space-4);
-}
-.patient-dashboard .profile-item {
-  display: grid;
-  grid-template-columns: 180px 1fr;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border-radius: var(--radius-lg);
-  background: var(--gray-50);
-}
-.patient-dashboard .profile-label {
-  color: var(--gray-600);
-}
-.patient-dashboard .profile-value {
-  color: var(--gray-900);
-  font-weight: var(--font-medium);
-}
+/* Profile styles are scoped within DashboardProfile.css */
 
 .patient-dashboard .modal-overlay {
   position: fixed;
@@ -241,7 +224,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: var(--z-modal);
+  z-index: 9999;
 }
 .patient-dashboard .modal {
   background: white;
@@ -250,6 +233,7 @@
   max-width: 700px;
   width: 100%;
   padding: var(--space-6);
+  z-index: 10000;
 }
 .patient-dashboard .modal-header {
   display: flex;
@@ -312,3 +296,5 @@
     align-items: flex-start;
   }
 }
+@import '../../index.css';
+@import '../../App.css';

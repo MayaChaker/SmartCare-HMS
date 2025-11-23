@@ -40,3 +40,5 @@
   border-radius: 5px;
   word-break: break-word;
 }
+@import '../../index.css';
+@import '../../App.css';

@@ -138,3 +138,54 @@ Create a clean, responsive, and simple-to-use UI. Use React Router for navigatio
     * A table displaying all doctor and receptionist users.
     * A form to create a new user (doctor/receptionist) and assign their role.
     * Buttons to edit or delete existing users.
+
+---
+
+## Repository Structure
+
+- `frontend/` — React + Vite app (runs on `http://localhost:5174`).
+- `backend/` — Express + Sequelize API (default `PORT=5000`).
+- `backend/.env` — local secrets (ignored by Git); use `backend/.env.example` as a template.
+
+## Getting Started
+
+1) Install dependencies
+
+```
+cd backend && npm install
+cd ../frontend && npm install
+```
+
+2) Configure environment
+
+- Copy `backend/.env.example` to `backend/.env` and set values:
+  - `PORT=5000`
+  - `NODE_ENV=development`
+  - `JWT_SECRET=<generate a secure random string>`
+  - `DB_NAME=smartcare_db`, `DB_USER=root`, `DB_PASSWORD=`, `DB_HOST=localhost`, `DB_PORT=3306`, `DB_DIALECT=mysql`
+- Ensure MySQL is running and the database exists (e.g., `smartcare_db`).
+
+3) Run development servers (in separate terminals)
+
+```
+# Backend (Express + Nodemon)
+cd backend && npm run dev
+
+# Frontend (Vite)
+cd frontend && npm run dev
+```
+
+## Development Notes
+
+- API base URL is typically `http://localhost:5000/api`.
+- Seed and utility scripts (in `backend/`):
+  - `createTables.js` — initializes tables.
+  - `createTestData.js` — inserts demo data.
+  - `resetAdmin.js` — ensures an admin exists.
+  - `clearAllDataKeepAdmin.js` — clears data while retaining admin.
+- Authentication uses JWT (`process.env.JWT_SECRET` in `middlewares/auth.js`).
+
+## Production
+
+- Set `NODE_ENV=production` and secure environment variables.
+- Use a production database and configure ports and CORS accordingly.

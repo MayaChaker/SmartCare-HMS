@@ -3,6 +3,16 @@ const { sequelize } = require('../config/db');
 const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 
+// In-memory system settings (placeholder persistence)
+let systemSettings = {
+  systemName: 'SmartCare Medical System',
+  version: '1.0.0',
+  maintenanceMode: false,
+  allowRegistration: true,
+  maxAppointmentsPerDay: null, // null denotes unlimited
+  unlimitedAppointments: true,
+};
+
 // Get all users (doctors, receptionists, patients)
 exports.getAllUsers = async (req, res) => {
   try {
@@ -250,19 +260,32 @@ exports.getAllAppointments = async (req, res) => {
   }
 };
 
+// Bulk: mark all doctors available (optionally set a default workingHours)
+exports.makeAllDoctorsAvailable = async (req, res) => {
+  try {
+    const { workingHours } = req.body || {};
+    const updateValues = { availability: true };
+    if (typeof workingHours === 'string' && workingHours.trim().length > 0) {
+      updateValues.workingHours = workingHours.trim();
+    }
+
+    const [updatedCount] = await Doctor.update(updateValues, { where: {} });
+
+    res.json({
+      message: 'All doctors marked available',
+      updatedCount
+    });
+  } catch (error) {
+    console.error('Error updating doctors availability:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 // System settings (placeholder for future implementation)
 exports.getSystemSettings = async (req, res) => {
   try {
-    // This would typically fetch from a settings table
-    const settings = {
-      systemName: 'SmartCare Medical System',
-      version: '1.0.0',
-      maintenanceMode: false,
-      allowRegistration: true,
-      maxAppointmentsPerDay: 50
-    };
-    
-    res.json(settings);
+    // Return current settings
+    res.json(systemSettings);
   } catch (error) {
     console.error('Error fetching system settings:', error);
     res.status(500).json({ message: 'Server error' });
@@ -272,20 +295,32 @@ exports.getSystemSettings = async (req, res) => {
 // Update system settings (placeholder for future implementation)
 exports.updateSystemSettings = async (req, res) => {
   try {
-    const { maintenanceMode, allowRegistration, maxAppointmentsPerDay } = req.body;
-    
-    // This would typically update a settings table
-    const updatedSettings = {
-      systemName: 'SmartCare Medical System',
-      version: '1.0.0',
-      maintenanceMode: maintenanceMode || false,
-      allowRegistration: allowRegistration !== undefined ? allowRegistration : true,
-      maxAppointmentsPerDay: maxAppointmentsPerDay || 50
+    // Log incoming payload for debugging
+    console.log('Received settings update payload:', req.body);
+    const { maintenanceMode, allowRegistration, maxAppointmentsPerDay, unlimitedAppointments } = req.body;
+
+    // Normalize inputs
+    const unlimited = unlimitedAppointments === true || maxAppointmentsPerDay === 0;
+    const maxPerDay = unlimited
+      ? null
+      : typeof maxAppointmentsPerDay === 'number' && maxAppointmentsPerDay > 0
+      ? maxAppointmentsPerDay
+      : systemSettings.maxAppointmentsPerDay ?? 50;
+
+    // Persist to in-memory settings
+    systemSettings = {
+      ...systemSettings,
+      maintenanceMode: Boolean(maintenanceMode),
+      allowRegistration: allowRegistration !== undefined ? Boolean(allowRegistration) : systemSettings.allowRegistration,
+      maxAppointmentsPerDay: maxPerDay,
+      unlimitedAppointments: unlimited,
     };
-    
+    // Log persisted settings for verification
+    console.log('Updated system settings:', systemSettings);
+
     res.json({
       message: 'System settings updated successfully',
-      settings: updatedSettings
+      settings: systemSettings,
     });
   } catch (error) {
     console.error('Error updating system settings:', error);

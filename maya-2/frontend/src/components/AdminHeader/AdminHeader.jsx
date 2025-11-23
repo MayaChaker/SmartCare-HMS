@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { RiAdminLine } from "react-icons/ri";
-import { IoIosLogOut } from "react-icons/io";
+import LogoutButton from "../ui/LogoutButton/LogoutButton";
 import "./AdminHeader.css";
 
 const AdminHeader = ({ user, logout }) => {
@@ -33,12 +33,7 @@ const AdminHeader = ({ user, logout }) => {
           <div className="admin-user-info">
             <span className="user-role">Administrator</span>
           </div>
-          <button onClick={logout} className="btn btn-outline">
-            <span className="btn-icon">
-              <IoIosLogOut />
-            </span>
-            Logout
-          </button>
+          <LogoutButton variant="outline">Logout</LogoutButton>
         </div>
       </div>
     </div>

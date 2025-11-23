@@ -510,7 +510,7 @@
 .doctor-panel .appointment-item:hover {
   border-color: var(--gray-300);
   box-shadow: var(--shadow-sm);
-  background: #fff;
+  background: var(--gray-50);
 }
 
 .doctor-panel .appointment-avatar .avatar-icon {
@@ -643,7 +643,16 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
+  min-height: 100px;
   gap: var(--space-3);
+}
+
+/* Specialization text: larger and prominent */
+.status-specialization {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  line-height: 1.2;
 }
 
 /* Scoped stat trend gap: use dedicated class instead of global */
@@ -704,45 +713,21 @@
   color: var(--gray-700);
 }
 
-/* Update Status button styling to match dashboard theme */
-.btn-status-update {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--primary-600);
-  border-radius: var(--radius-md);
-  background: white;
-  color: var(--primary-700);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  box-shadow: var(--shadow-xs);
-  font-size: 0.9rem;
-  line-height: 1.2;
-}
-.btn-status-update:hover {
-  background: var(--primary-50);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-.btn-status-update:focus {
-  outline: 2px solid var(--primary-500);
-  outline-offset: 2px;
-}
-.btn-status-update .btn-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn-status-update .btn-icon svg {
-  font-size: 1em;
-}
+/* Removed .btn-status-update styles (button no longer used) */
 
 .card-header {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
+}
+.doctor-panel .card {
+  margin-right: var(--space-4);
+}
+.card-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 .card-icon {
   width: 48px;
@@ -938,10 +923,12 @@
   align-items: center;
   justify-content: center;
   color: inherit;
-  background: transparent;
+  background: none !important;
+  box-shadow: none !important;
 }
 .doctor-section .action-btn .btn-icon svg {
-  background: transparent;
+  background: none !important;
+  box-shadow: none !important;
 }
 .doctor-section .action-btn .btn-icon svg {
   font-size: 1.1em;
@@ -1089,9 +1076,11 @@
   gap: var(--space-4);
 }
 .doctor-panel .doctor-modal-content .detail-item {
-  display: flex;
-  align-items: flex-start;
+  display: inline-flex;
+  align-items: center;
   gap: var(--space-2);
+  flex-wrap: nowrap;
+  white-space: nowrap;
   padding: var(--space-2);
   background: var(--gray-50);
   border: 1px solid var(--gray-200);
@@ -1117,21 +1106,53 @@
 .doctor-panel .doctor-modal-content .detail-icon svg {
   font-size: 1.1em;
 }
+.doctor-panel .doctor-modal-content .detail-item .detail-icon {
+  flex: 0 0 auto;
+}
 .doctor-panel .doctor-modal-content .detail-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
+  white-space: nowrap;
+}
+.doctor-panel .doctor-modal-content .detail-content.inline {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+.doctor-panel .doctor-modal-content .detail-item .detail-content {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+}
+.doctor-panel .doctor-modal-content .detail-content.inline .detail-label {
+  white-space: nowrap;
+}
+.doctor-panel .doctor-modal-content .detail-content.inline .detail-value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .doctor-panel .doctor-modal-content .detail-label {
   font-size: var(--text-xs);
   color: var(--gray-600);
+  white-space: nowrap;
 }
 .doctor-panel .doctor-modal-content .detail-value {
   font-size: var(--text-sm);
   color: var(--gray-900);
   font-weight: var(--font-medium);
   word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Empty value helper */
@@ -1178,10 +1199,14 @@
   }
   .doctor-panel .doctor-modal-content .modal-actions {
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-end;
+    align-items: flex-end;
   }
   .doctor-panel .doctor-modal-content .modal-actions .btn {
-    width: 100%;
+    width: 180px !important;
+    height: 40px !important;
+    min-width: 180px !important;
+    min-height: 40px !important;
   }
 }
 .action-btn:focus {
@@ -1353,8 +1378,8 @@
 .doctor-modal .modal-actions {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  justify-content: flex-end;
+  align-items: flex-end;
   gap: var(--space-2);
   margin-top: var(--space-4);
   padding-top: var(--space-3);
@@ -1365,10 +1390,11 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-1);
-  padding: var(--space-2) var(--space-4);
-  min-height: 36px;
-  min-width: 140px;
-  width: 200px;
+  padding: 10px 20px;
+  width: 180px;
+  height: 40px;
+  min-width: 180px;
+  min-height: 40px;
   border-radius: var(--radius-lg);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
@@ -1376,6 +1402,7 @@
   border: 1px solid transparent;
   box-shadow: var(--shadow-xs);
   transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 .doctor-modal .modal-actions .btn-icon {
   display: inline-flex;
@@ -1518,6 +1545,93 @@
   font-size: var(--text-sm);
   color: var(--gray-800);
   line-height: 1.5;
+}
+
+/* New Medical Records Card Layout */
+.medical-records-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: stretch;
+}
+
+.medical-record-card {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  width: 100%;
+}
+
+.medical-record-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--gray-300);
+}
+
+.record-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.record-doctor-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.record-date {
+  font-weight: var(--font-semibold);
+  color: var(--gray-900);
+}
+
+.record-doctor {
+  color: var(--primary-600);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+}
+
+.record-specialization {
+  font-size: var(--text-xs);
+  color: var(--gray-600);
+  font-weight: var(--font-medium);
+}
+
+.record-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.record-field {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.record-label {
+  font-weight: var(--font-medium);
+  color: var(--gray-700);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.record-value {
+  color: var(--gray-900);
+  flex: 1;
+  word-break: break-word;
+}
+
+/* Responsive layout for medical records cards */
+@media (max-width: 768px) {
+  .medical-record-card {
+    width: 100%;
+  }
 }
 
 /* Enhanced Forms */
@@ -2101,3 +2215,403 @@
 .doctor-modal {
   max-width: 760px;
 }
+
+/* Profile section layout */
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--primary-50, #eef2ff);
+  color: var(--primary-600, #4f46e5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.profile-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+}
+
+.profile-specialization {
+  font-size: var(--text-base);
+  color: var(--gray-600);
+}
+
+.profile-details-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .profile-details-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.details-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.details-group-title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--gray-600);
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.detail-label {
+  font-weight: var(--font-medium);
+  color: var(--gray-600);
+}
+
+.detail-value {
+  color: var(--gray-900);
+}
+.photo-gallery {
+  padding: var(--space-3);
+}
+
+.photo-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.photo-item {
+  display: inline-block;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+
+.photo-item:hover .photo-thumb {
+  transform: scale(1.03);
+}
+
+.photo-thumb {
+  width: 100%;
+  height: 96px;
+  object-fit: cover;
+  transition: transform 0.12s ease-in-out;
+}
+
+.photo-gallery-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.doctor-panel .status-badge svg {
+  background: none !important;
+  box-shadow: none !important;
+}
+.doctor-panel svg {
+  background: none !important;
+  box-shadow: none !important;
+}
+.doctor-modal-content {
+  display: grid;
+  row-gap: 16px;
+}
+
+.doctor-modal-content .patient-profile {
+  display: grid;
+  row-gap: 20px;
+}
+
+.doctor-modal-content .detail-section {
+  display: grid;
+  row-gap: 12px;
+  background: var(--gray-50, #f9fafb);
+  border: 1px solid var(--gray-200, #e5e7eb);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.doctor-modal-content .section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-700, #374151);
+}
+
+.doctor-modal-content .detail-stack {
+  display: grid;
+  row-gap: 10px;
+}
+
+.doctor-modal-content .detail-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid var(--gray-200, #e5e7eb);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+}
+
+.doctor-modal-content .detail-item:hover {
+  background: var(--gray-25, #fafafa);
+  border-color: var(--gray-300, #d1d5db);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.doctor-modal-content .detail-item.full-width {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-wrap: nowrap !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.doctor-modal-content .detail-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--gray-700, #374151);
+  background: none;
+}
+
+.doctor-modal-content .detail-content {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.doctor-modal-content .detail-label {
+  font-weight: 600;
+  color: var(--gray-800, #1f2937);
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  min-width: fit-content !important;
+  margin-right: 8px !important;
+}
+
+.doctor-modal-content .detail-value {
+  display: inline-flex !important;
+  color: var(--gray-700, #374151);
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  align-items: center !important;
+  margin-left: 8px !important;
+}
+
+/* Global override to prevent any wrapping in modal detail items */
+.doctor-modal-content .detail-item,
+.doctor-modal-content .detail-content,
+.doctor-modal-content .detail-label,
+.doctor-modal-content .detail-value {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  flex-wrap: nowrap !important;
+}
+
+/* Ensure icon, label, and value stay in one line with proper spacing */
+.doctor-modal-content .detail-item > * {
+  flex-shrink: 0 !important;
+}
+
+.doctor-modal-content .detail-item > .detail-value {
+  flex-shrink: 1 !important;
+}
+
+/* Add consistent spacing between icon, label, and value */
+.doctor-modal-content .detail-item > .detail-icon {
+  margin-right: 12px !important;
+}
+
+.doctor-modal-content .detail-item > .detail-label {
+  margin-right: 8px !important;
+}
+
+/* Remove background from detail items to make them appear as single line */
+.doctor-modal-content .detail-stack .detail-item {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 4px 0 !important;
+}
+
+/* Styles for patient details at the top */
+.doctor-modal-content .patient-details-top {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--gray-50, #f9fafb);
+  border-radius: 12px;
+  border: 1px solid var(--gray-200, #e5e7eb);
+}
+
+/* Styles for medical records section at the top */
+.doctor-modal-content .medical-records-section-top {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--gray-50, #f9fafb);
+  border-radius: 12px;
+  border: 1px solid var(--gray-200, #e5e7eb);
+}
+
+/* Ensure modal action buttons are the same size and stacked vertically */
+.doctor-modal-content .modal-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--gray-200);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.doctor-modal-content .modal-actions .btn {
+  width: 180px !important;
+  height: 40px !important;
+  min-width: 180px !important;
+  min-height: 40px !important;
+  padding: 10px 20px !important;
+  font-size: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.doctor-modal-content .patient-details-top .detail-item {
+  background: white !important;
+  border: 1px solid var(--gray-200, #e5e7eb) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Medical records list cards */
+.doctor-modal-content .detail-section .detail-item.full-width .detail-content {
+  background: var(--gray-50, #f9fafb) !important;
+  border: 1px solid var(--gray-200, #e5e7eb) !important;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.doctor-modal-content .detail-section .detail-item.full-width .detail-label,
+.doctor-modal-content .detail-section .detail-item.full-width .detail-value {
+  display: inline-flex !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  align-items: center !important;
+}
+
+.doctor-modal-content .detail-section .detail-item.full-width .detail-label {
+  font-size: 13px;
+  color: var(--gray-800, #1f2937);
+}
+
+.doctor-modal-content .detail-section .detail-item.full-width .detail-value {
+  font-size: 13px;
+  color: var(--gray-700, #374151);
+}
+
+.doctor-modal-content .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--gray-200);
+  width: 100%;
+  box-sizing: border-box;
+}
+.doctor-modal-content .patient-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.doctor-modal-content .patient-profile .profile-details { 
+  width: 100%; 
+}
+
+.doctor-modal-content .medical-records-section-full {
+  width: 100%;
+  margin-top: 20px;
+}
+.doctor-panel .secondary-item {
+  display: flex;
+  align-items: baseline;
+  column-gap: 8px;
+}
+.doctor-panel .secondary-label {
+  font-weight: 600;
+  color: var(--gray-800, #1f2937);
+}
+.doctor-panel .secondary-value {
+  color: var(--gray-700, #374151);
+}
+@import '../../index.css';
+@import '../../App.css';

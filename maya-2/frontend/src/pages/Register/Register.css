@@ -1,4 +1,293 @@
-@import "../../styles/AuthPages.css";
+/* Scoped Register styles only (no shared imports) */
 
-/* Page-specific overrides for Register can go below if needed */
-/* .auth-card { } */
+/* Register page: mirror Login page UI exactly */
+
+.auth-container--register {
+  background: linear-gradient(135deg, #f8fafc, #eef2ff) !important;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden; /* prevent horizontal scroll */
+  overflow-y: auto; /* allow vertical scroll when content exceeds viewport */
+  padding: 0; /* match Login container */
+}
+
+.auth-container--register::before,
+.auth-container--register::after {
+  content: "";
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+}
+.auth-container--register::before {
+  top: -20vh;
+  left: -15vw;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(
+    closest-side,
+    rgba(20, 184, 166, 0.25),
+    rgba(20, 184, 166, 0.05),
+    transparent 70%
+  );
+  filter: blur(80px);
+}
+.auth-container--register::after {
+  bottom: -25vh;
+  right: -20vw;
+  width: 65vw;
+  height: 65vw;
+  background: radial-gradient(
+    closest-side,
+    rgba(59, 130, 246, 0.25),
+    rgba(59, 130, 246, 0.05),
+    transparent 70%
+  );
+  filter: blur(90px);
+}
+
+.auth-container--register .auth-card.auth-card--register {
+  border-radius: 24px; /* softer corners */
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  max-width: 1080px !important; /* bigger card on desktop */
+  padding: 36px; /* comfortable spacing */
+  background-color: #eef2ff; /* solid color to match image background */
+  position: relative;
+  z-index: 1;
+  width: 100% !important;
+  max-height: none; /* ensure content isn't capped by base auth-card */
+  overflow: visible; /* allow full form to be seen and page to scroll */
+  transform: translateY(30px);
+  opacity: 0;
+  transition: transform 0.6s ease-out, opacity 0.6s ease-out;
+}
+
+.auth-container--register .auth-card.auth-card--register.entered {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.auth-container--register .register-card {
+  display: grid; /* two-column layout */
+  grid-template-columns: 1.1fr 1fr;
+  column-gap: 24px; /* space between image and form */
+  align-items: stretch;
+  max-height: none; /* remove cap so full form is visible */
+  overflow: visible; /* do not clip content */
+  margin: 0 auto;
+}
+
+/* Removed desktop height cap to ensure full form visibility */
+
+.auth-container--register .register-media {
+  display: flex; /* allow child image to stretch vertically */
+  height: 100%; /* ensure the media column fills the card height */
+}
+.auth-container--register .register-image {
+  width: 100%;
+  height: 100%; /* stretch to match column height */
+  object-fit: cover; /* fill column and crop overflow for full-bleed look */
+  object-position: center; /* center the image in its box */
+  display: block;
+  border-radius: 16px; /* tidy rounded corners */
+  border: 1px solid #dbeafe; /* subtle border matching palette */
+}
+.auth-container--register .register-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* vertically center content to match image height */
+  height: 100%; /* ensure column stretches to full grid row height */
+}
+
+.auth-container--register .auth-header {
+  background: none !important;
+  padding: 0;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.auth-container--register .brand-logo {
+  margin: 0 auto 6px;
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+  font-size: 2.25rem;
+  line-height: 1.1;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #3b82f6, #14b8a6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+.auth-container--register .auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* minimize spacing between fields */
+  margin-top: 16px; /* keep top offset */
+}
+.auth-container--register .form-group label {
+  font-size: 1rem;
+  color: #374151;
+}
+.auth-container--register .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.auth-container--register .form-input {
+  font-size: 1rem;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 2px solid #e2e8f0;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.auth-container--register .form-input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  transform: translateY(-1px);
+}
+.auth-container--register .form-input::placeholder {
+  color: #a0aec0;
+}
+.auth-container--register .auth-button {
+  font-size: 1.05rem;
+  padding: 14px 18px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  margin-top: 10px;
+}
+.auth-container--register .auth-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
+.auth-container--register .auth-button:active {
+  transform: translateY(0);
+}
+.auth-container--register .auth-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+.auth-container--register .auth-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+.auth-container--register .auth-button:hover::before {
+  left: 100%;
+}
+.auth-container--register .auth-button .loading-spinner {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: transparent;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  gap: 0;
+}
+.auth-container--register .auth-button .loading-spinner .spinner {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.auth-container--register .auth-button .loading-spinner .spinner .dot {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+  transform: scale(0.7);
+  transition: transform 0.6s ease-in-out;
+}
+.auth-container--register .auth-button.loading .loading-spinner .spinner .dot {
+  transform: scale(1);
+}
+.auth-container--register .auth-button.loading .loading-spinner .spinner .dot:nth-child(1) {
+  transition-delay: 0s;
+}
+.auth-container--register .auth-button.loading .loading-spinner .spinner .dot:nth-child(2) {
+  transition-delay: 0.2s;
+}
+.auth-container--register .auth-button.loading .loading-spinner .spinner .dot:nth-child(3) {
+  transition-delay: 0.4s;
+}
+.auth-container--register .error-message {
+  background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+  border: 1px solid #fc8181;
+  color: #c53030;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  opacity: 0;
+  transform: translateX(-5px);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.auth-container--register .error-message.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.auth-container--register .medical-history-note {
+  text-align: right;
+  color: #718096;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+.auth-container--register .auth-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+.auth-container--register .auth-link:hover {
+  color: #1d4ed8;
+}
+
+
+@media (max-width: 768px) {
+  .auth-container--register .auth-card--register {
+    max-width: 540px;
+  }
+  .auth-container--register {
+    overflow-y: auto; /* allow scrolling on small screens */
+    align-items: flex-start; /* prevent vertical centering that can clip content */
+    padding: 16px; /* add safe space around the card on mobile */
+  }
+  .auth-container--register .register-card {
+    grid-template-columns: 1fr;
+    max-height: none; /* remove height cap so full form is visible */
+    height: auto;
+    overflow: visible; /* do not clip form content */
+  }
+  .auth-container--register .auth-card.auth-card--register {
+    max-height: none; /* override base 88vh cap */
+    overflow: visible; /* allow content to extend within card */
+  }
+  .auth-container--register .register-media {
+    display: none;
+  }
+  .auth-container--register .brand-logo {
+    font-size: 1.85rem; /* slightly smaller on mobile */
+  }
+}

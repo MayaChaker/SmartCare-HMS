@@ -29,8 +29,25 @@ const Doctor = sequelize.define("Doctor", {
     type: DataTypes.STRING,
     allowNull: true,
   },
-  email: {
+  photoUrl: {
     type: DataTypes.STRING,
+    allowNull: true,
+  },
+  // Availability details (normalized)
+  availableDay: {
+    type: DataTypes.STRING, // e.g., "Mon-Fri" or single day like "Monday"
+    allowNull: true,
+  },
+  availableStartTime: {
+    type: DataTypes.STRING, // store 24h format like "09:00"
+    allowNull: true,
+  },
+  availableEndTime: {
+    type: DataTypes.STRING, // store 24h format like "17:00"
+    allowNull: true,
+  },
+  availableDate: {
+    type: DataTypes.DATEONLY, // optional specific date for availability
     allowNull: true,
   },
   licenseNumber: {

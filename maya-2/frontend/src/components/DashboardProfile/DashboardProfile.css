@@ -1,0 +1,29 @@
+.patient-dashboard .dashboard-profile .profile-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
+}
+
+.patient-dashboard .dashboard-profile .profile-field {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4);
+  background: var(--gray-50);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+}
+
+.patient-dashboard .dashboard-profile .profile-label {
+  color: var(--gray-600);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  margin-bottom: var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.patient-dashboard .dashboard-profile .profile-value {
+  color: var(--gray-900);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+}
