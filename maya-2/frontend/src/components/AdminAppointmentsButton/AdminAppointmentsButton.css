@@ -1,1 +1,32 @@
 /* Scoped styles for AdminAppointmentsButton component (inherits shared nav styles) */
+
+/* Appointments section header (scoped) */
+.admin-appointments .admin-appointments-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.admin-appointments .admin-appointments-header h2 {
+  margin: 0;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Table container & sizing (scoped to appointments section) */
+.admin-appointments .table-container {
+  overflow-x: auto;
+}
+
+.admin-appointments .data-table {
+  min-width: 720px;
+}
+
+@media (max-width: 768px) {
+  .admin-appointments .data-table th,
+  .admin-appointments .data-table td {
+    white-space: normal;
+    word-break: break-word;
+  }
+}

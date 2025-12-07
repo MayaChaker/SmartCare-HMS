@@ -39,20 +39,20 @@
 }
 
 .patient-dashboard .medical-records .record-date {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: #374151;
   font-weight: 500;
   margin-left: auto;
 }
 
 .patient-dashboard .medical-records .record-doctor {
-  font-size: 0.875rem;
+  font-size: 1.125rem;
   color: #111827;
   font-weight: 600;
 }
 
 .patient-dashboard .medical-records .record-specialty {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: #0369a1;
   font-weight: 500;
   flex: 1;
@@ -60,7 +60,7 @@
 }
 
 .patient-dashboard .medical-records .record-section {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: #1f2937;
   margin: 0.5rem 0;
 }
@@ -81,7 +81,7 @@
 }
 
 .patient-dashboard .medical-records .card-title {
-  font-size: 1.125rem;
+  font-size: 1.875rem;
   font-weight: 600;
   color: #111827;
 }

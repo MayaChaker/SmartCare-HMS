@@ -1,29 +1,63 @@
 .patient-dashboard .dashboard-profile .profile-info {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 2rem;
 }
 
 .patient-dashboard .dashboard-profile .profile-field {
   display: flex;
   flex-direction: column;
-  padding: var(--space-4);
-  background: var(--gray-50);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--gray-200);
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  min-height: 80px;
 }
 
 .patient-dashboard .dashboard-profile .profile-label {
-  color: var(--gray-600);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  margin-bottom: var(--space-1);
+  color: #4b5563;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .patient-dashboard .dashboard-profile .profile-value {
-  color: var(--gray-900);
-  font-size: var(--text-base);
-  font-weight: var(--font-medium);
+  color: #111827;
+  font-size: 1rem;
+  font-weight: 500;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.patient-dashboard .dashboard-profile .card-header .edit-btn {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.patient-dashboard .dashboard-profile.card {
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
+}
+
+/* Make the profile card h3 bigger within patient dashboard */
+.patient-dashboard .dashboard-profile .card-title {
+  font-size: 2.75rem;
+  line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+  .patient-dashboard .dashboard-profile.card {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .patient-dashboard .dashboard-profile .profile-info {
+    grid-template-columns: repeat(2, minmax(420px, 1fr));
+  }
 }

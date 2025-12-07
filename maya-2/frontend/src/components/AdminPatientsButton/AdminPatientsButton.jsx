@@ -3,7 +3,11 @@ import { FaUserInjured } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import "./AdminPatientsButton.css";
 
-const AdminPatientsButton = ({ activeSection, setActiveSection, renderContent = false }) => {
+const AdminPatientsButton = ({
+  activeSection,
+  setActiveSection,
+  renderContent = false,
+}) => {
   const [patients, setPatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const isActive = activeSection === "patients";
@@ -17,14 +21,11 @@ const AdminPatientsButton = ({ activeSection, setActiveSection, renderContent = 
   const fetchPatients = async () => {
     try {
       const token = localStorage.getItem("token");
-      const patientsResponse = await fetch(
-        "/api/admin/patients",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const patientsResponse = await fetch("/api/admin/patients", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (patientsResponse.ok) {
         const patientsData = await patientsResponse.json();
@@ -65,7 +66,6 @@ const AdminPatientsButton = ({ activeSection, setActiveSection, renderContent = 
           <thead>
             <tr>
               <th>Name</th>
-              <th>Email</th>
               <th>Phone</th>
               <th>Date of Birth</th>
               <th>Registered</th>
@@ -77,22 +77,21 @@ const AdminPatientsButton = ({ activeSection, setActiveSection, renderContent = 
                 const q = searchQuery.trim().toLowerCase();
                 if (!q) return true;
                 return (
-                  `${p.firstName || ""} ${p.lastName || ""}`.toLowerCase().includes(q) ||
-                  (p.email || "").toLowerCase().includes(q) ||
-                  (p.phone || "").toLowerCase().includes(q)
+                  `${p.firstName || ""} ${p.lastName || ""}`
+                    .toLowerCase()
+                    .includes(q) || (p.phone || "").toLowerCase().includes(q)
                 );
               })
               .map((patient) => (
-              <tr key={patient.id}>
-                <td>
-                  {patient.firstName} {patient.lastName}
-                </td>
-                <td>{patient.email}</td>
-                <td>{patient.phone}</td>
-                <td>{patient.dateOfBirth}</td>
-                <td>{new Date(patient.createdAt).toLocaleDateString()}</td>
-              </tr>
-            ))}
+                <tr key={patient.id}>
+                  <td>
+                    {patient.firstName} {patient.lastName}
+                  </td>
+                  <td>{patient.phone}</td>
+                  <td>{patient.dateOfBirth}</td>
+                  <td>{new Date(patient.createdAt).toLocaleDateString()}</td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>

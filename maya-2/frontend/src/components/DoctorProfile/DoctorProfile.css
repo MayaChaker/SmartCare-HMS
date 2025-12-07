@@ -1,0 +1,86 @@
+.doctor-profile .card {
+  padding-top: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.doctor-profile .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (max-width: 768px) {
+  .doctor-profile .card-header {
+    padding: 0.75rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+  }
+}
+
+.doctor-profile .card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.doctor-profile .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.doctor-profile .card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0;
+}
+
+.doctor-profile .profile-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding-top: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (max-width: 1024px) {
+  .doctor-profile .profile-info {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .doctor-profile .profile-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+.doctor-profile .profile-field {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+.doctor-profile .profile-label {
+  color: #4b5563;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.doctor-profile .profile-value {
+  color: #111827;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.doctor-profile .edit-btn {
+  padding: 0.6rem 1.6rem;
+  font-size: 0.95rem;
+  min-height: 40px;
+}

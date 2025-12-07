@@ -1,56 +1,51 @@
-import React, { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../../context/AuthContext";
+import React, { useState, useEffect } from "react";
 import "./NotificationSystem.css";
 
 const NotificationSystem = () => {
-  const { user } = useContext(AuthContext);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Mock notifications data
-  const mockNotifications = [
-    {
-      id: 1,
-      type: "appointment",
-      title: "Appointment Reminder",
-      message: "You have an appointment with Dr. Smith tomorrow at 10:00 AM",
-      time: "2 hours ago",
-      read: false,
-      icon: "📅",
-    },
-    {
-      id: 2,
-      type: "medical",
-      title: "Lab Results Available",
-      message:
-        "Your blood test results are now available in your medical records",
-      time: "1 day ago",
-      read: false,
-      icon: "🧪",
-    },
-    {
-      id: 3,
-      type: "system",
-      title: "Profile Updated",
-      message: "Your profile information has been successfully updated",
-      time: "3 days ago",
-      read: true,
-      icon: "✅",
-    },
-    {
-      id: 4,
-      type: "appointment",
-      title: "Appointment Confirmed",
-      message:
-        "Your appointment with Dr. Johnson has been confirmed for next week",
-      time: "1 week ago",
-      read: true,
-      icon: "✅",
-    },
-  ];
-
   useEffect(() => {
-    // Simulate loading notifications
+    const mockNotifications = [
+      {
+        id: 1,
+        type: "appointment",
+        title: "Appointment Reminder",
+        message: "You have an appointment with Dr. Smith tomorrow at 10:00 AM",
+        time: "2 hours ago",
+        read: false,
+        icon: "📅",
+      },
+      {
+        id: 2,
+        type: "medical",
+        title: "Lab Results Available",
+        message:
+          "Your blood test results are now available in your medical records",
+        time: "1 day ago",
+        read: false,
+        icon: "🧪",
+      },
+      {
+        id: 3,
+        type: "system",
+        title: "Profile Updated",
+        message: "Your profile information has been successfully updated",
+        time: "3 days ago",
+        read: true,
+        icon: "✅",
+      },
+      {
+        id: 4,
+        type: "appointment",
+        title: "Appointment Confirmed",
+        message:
+          "Your appointment with Dr. Johnson has been confirmed for next week",
+        time: "1 week ago",
+        read: true,
+        icon: "✅",
+      },
+    ];
     setNotifications(mockNotifications);
   }, []);
 

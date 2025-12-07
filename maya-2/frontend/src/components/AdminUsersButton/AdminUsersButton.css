@@ -1,8 +1,9 @@
 /* Scoped styles for AdminUsersButton and UserManagementSection components */
 
 /* Section layout */
-.section-content {
+.admin-users .section-content {
   background: #fff;
+  border: 1px solid #ffffff;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -10,7 +11,7 @@
 
 /* In User Management, remove left/right padding so header touches card edges */
 
-.section-header {
+.admin-users .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -24,19 +25,64 @@
   margin-left: 0;
   margin-right: 0;
   text-align: left;
+  padding-bottom: 1.5rem;
 }
 
 /* Ensure header aligns with content card padding when outside the card */
 /* Header sits inside the card; rely on card padding */
 
-.section-header h2 {
-  font-size: 1.25rem;
+.admin-users .section-header h2 {
+  font-size: 1.875rem;
   padding-left: 20px;
   margin: 0; /* remove default heading margins to align flush */
 }
 
+.admin-users .section-header .btn .btn-icon {
+  font-size: 1em;
+}
+
+.admin-users .section-header .btn {
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.admin-users-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+  font-size: 0.875rem;
+  font-weight: 500;
+  justify-content: center;
+  margin-right: 1rem;
+}
+
+.admin-users-add-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.admin-users-add-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-users-add-btn .btn-icon,
+.admin-users-add-btn .btn-icon svg {
+  color: #ffffff;
+  font-size: 1.25em;
+}
+
 /* Table container */
-.table-container {
+.admin-users .table-container {
   overflow-x: auto;
 }
 
@@ -51,41 +97,41 @@
 }
 
 /* Data table */
-.data-table {
+.admin-users .data-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.data-table thead th {
+.admin-users .data-table thead th {
   text-align: left;
   padding: 10px 12px;
   border-bottom: 2px solid #e6e6e6;
 }
 
-.data-table tbody td {
+.admin-users .data-table tbody td {
   padding: 10px 12px;
   border-bottom: 1px solid #f0f0f0;
   vertical-align: middle;
 }
 
 /* Username column top alignment and flush left */
-.data-table thead th:first-child,
-.data-table tbody td:first-child {
+.admin-users .data-table thead th:first-child,
+.admin-users .data-table tbody td:first-child {
   text-align: left;
   vertical-align: top;
 }
 
-.data-table tbody td:first-child .user-info {
+.admin-users .data-table tbody td:first-child .user-info {
   display: flex;
   align-items: flex-start;
 }
 
-.data-table tbody td:first-child .user-name {
+.admin-users .data-table tbody td:first-child .user-name {
   margin-left: 0;
 }
 
 /* Role badge */
-.role-badge {
+.admin-users .role-badge {
   display: inline-block;
   padding: 4px 10px;
   border-radius: 999px;
@@ -94,30 +140,34 @@
   color: #374151;
 }
 
-.role-badge.admin {
+.admin-users .role-badge.admin {
   background: #fee2e2;
   color: #991b1b;
 }
-.role-badge.doctor {
+.admin-users .role-badge.doctor {
   background: #dbeafe;
   color: #1e40af;
 }
-.role-badge.reception {
+.admin-users .role-badge.reception {
   background: #e0e7ff;
   color: #3730a3;
 }
-.role-badge.patient {
+.admin-users .role-badge.receptionist {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.admin-users .role-badge.patient {
   background: #dcfce7;
   color: #166534;
 }
 
 /* Action buttons */
-.action-buttons {
+.admin-users .action-buttons {
   display: flex;
   gap: 8px;
 }
 
-.btn-icon {
+.admin-users .btn-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -129,9 +179,9 @@
   cursor: pointer;
 }
 
-.btn-icon.edit {
+.admin-users .btn-icon.edit {
   color: #1d4ed8;
 }
-.btn-icon.delete {
+.admin-users .btn-icon.delete {
   color: #b91c1c;
 }

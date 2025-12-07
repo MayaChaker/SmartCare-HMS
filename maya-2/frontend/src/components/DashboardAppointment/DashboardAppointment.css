@@ -20,14 +20,6 @@
   justify-content: center;
   padding: 2rem;
 }
-.patient-dashboard .spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #e5e7eb;
-  border-top-color: #0284c7;
-  border-radius: 50%;
-  will-change: transform;
-}
 
 .patient-dashboard .empty-state {
   text-align: center;
@@ -122,4 +114,10 @@
 .patient-dashboard .tab-button.active {
   background: #0284c7;
   color: white;
+}
+
+/* Larger title for My Appointments card */
+.patient-dashboard .appointments-card .card-title {
+  font-size: 2.5rem;
+  line-height: 1.2;
 }

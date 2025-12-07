@@ -11,7 +11,6 @@ import AdminPanel from './pages/Admin/AdminPanel';
 import DoctorPanel from './pages/Doctor/DoctorPanel';
 import ReceptionistPanel from './pages/Receptionist/ReceptionistPanel';
 import TestConnection from './pages/TestConnection/TestConnection';
-import './App.css';
 
 function App() {
   return (

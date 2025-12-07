@@ -108,15 +108,31 @@ export const rescheduleAppointment = async (
 ) => {
   setLoading(true);
   try {
-    const newTime = String(newSlotData || "").slice(0, 5);
-    if (!newTime) {
+    let payload = {};
+    if (typeof newSlotData === "string") {
+      const newTime = String(newSlotData || "").slice(0, 5);
+      if (!newTime) {
+        setError("Please select a time");
+        setLoading(false);
+        return;
+      }
+      payload.appointmentTime = `${newTime}:00`;
+    } else if (newSlotData && typeof newSlotData === "object") {
+      const tRaw = newSlotData.appointmentTime || newSlotData.time || "";
+      const dRaw = newSlotData.appointmentDate || newSlotData.date || "";
+      const newTime = String(tRaw || "").slice(0, 5);
+      if (newTime) payload.appointmentTime = `${newTime}:00`;
+      if (dRaw) payload.appointmentDate = String(dRaw);
+      if (!payload.appointmentTime && !payload.appointmentDate) {
+        setError("Please select a time");
+        setLoading(false);
+        return;
+      }
+    } else {
       setError("Please select a time");
       setLoading(false);
       return;
     }
-    const payload = {
-      appointmentTime: `${newTime}:00`,
-    };
     const response = await patientAPI.rescheduleAppointment(
       appointmentId,
       payload

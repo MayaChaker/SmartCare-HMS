@@ -19,10 +19,6 @@ const MedicalRecord = sequelize.define('MedicalRecord', {
     type: DataTypes.TEXT,
     allowNull: true
   },
-  prescription: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  },
   notes: {
     type: DataTypes.TEXT,
     allowNull: true

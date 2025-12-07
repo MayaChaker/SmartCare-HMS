@@ -1,25 +1,31 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { FaUserDoctor } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
+import { FaUserDoctor } from "react-icons/fa6";
 import { patientAPI } from "../../utils/api";
 import { parseWorkingHours, generateTimeSlots } from "../../utils/schedule";
 import "./DashboardDoctor.css";
+import { usePatientDashboard } from "../../context/PatientContext";
 
 const DashboardDoctor = ({
   variant = "content",
   active = false,
   onClick = () => {},
-  openModal,
   showBookButton = true,
-  onSelectDoctor = () => {},
-  onDoctorsLoaded = () => {},
-  selectedDoctorId,
-  setAvailableDates,
 }) => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [doctors, setDoctors] = useState([]);
-  const excludedNames = new Set(["john doe"]);
+  const {
+    doctors,
+    setDoctors,
+    selectedDoctorId,
+    setSelectedDoctorId,
+    setAvailableDates,
+    openModal,
+  } = usePatientDashboard();
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [brokenImageIds, setBrokenImageIds] = useState(new Set());
+  const excludedNames = useMemo(() => new Set(["john doe"]), []);
+
+  // Load doctors
   useEffect(() => {
     const loadDoctors = async () => {
       try {
@@ -27,59 +33,37 @@ const DashboardDoctor = ({
         if (result.success) {
           const list = Array.isArray(result.data) ? result.data : [];
           setDoctors(list);
-          onDoctorsLoaded(list);
         } else {
           setDoctors([]);
-          onDoctorsLoaded([]);
         }
       } catch (e) {
         console.error(e);
         setDoctors([]);
-        onDoctorsLoaded([]);
       }
     };
+
     if (variant === "content" && active && doctors.length === 0) {
       loadDoctors();
     }
-  }, [variant, active, doctors.length, onDoctorsLoaded]);
+  }, [variant, active, doctors.length, setDoctors]);
 
-  useEffect(() => {
-    const loadDoctors = async () => {
-      try {
-        const result = await patientAPI.getDoctors();
-        if (result.success) {
-          const list = Array.isArray(result.data) ? result.data : [];
-          setDoctors(list);
-          onDoctorsLoaded(list);
-        } else {
-          setDoctors([]);
-          onDoctorsLoaded([]);
-        }
-      } catch (e) {
-        console.error(e);
-        setDoctors([]);
-        onDoctorsLoaded([]);
-      }
-    };
-    if (active && doctors.length === 0) {
-      loadDoctors();
-    }
-  }, [active, doctors.length, onDoctorsLoaded]);
-
-  const resolveDoctorImage = (doctorObj, fallbackName) => {
+  const resolveDoctorImage = (doctorObj) => {
     const candidate = (
       doctorObj?.profileImage ||
       doctorObj?.photoUrl ||
       ""
     ).trim();
-    if (candidate && candidate.startsWith("/uploads/")) {
+    if (!candidate) return "";
+    if (candidate.startsWith("/uploads/")) {
       return `http://localhost:5000${candidate}`;
     }
-    if (candidate) return candidate;
-    const seed = (fallbackName && fallbackName.trim()) || "Doctor";
-    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-      seed
-    )}&background=%23ffffff&radius=50`;
+    return candidate;
+  };
+
+  const computeFee = (doctorObj) => {
+    const fees = [20, 25, 30, 35, 40, 45, 50, 60, 75, 80, 100];
+    const idx = (parseInt(doctorObj?.id ?? 0, 10) || 0) % fees.length;
+    return fees[idx];
   };
 
   const filteredDoctors = useMemo(() => {
@@ -106,6 +90,7 @@ const DashboardDoctor = ({
     });
   }, [filteredDoctors, excludedNames]);
 
+  // Compute available dates for selected doctor
   useEffect(() => {
     const computeAvailable = async () => {
       try {
@@ -113,13 +98,16 @@ const DashboardDoctor = ({
           setAvailableDates && setAvailableDates([]);
           return;
         }
-        const doctor = doctors.find((d) => d.id === parseInt(selectedDoctorId));
+        const doctor = doctors.find(
+          (d) => d.id === parseInt(selectedDoctorId, 10)
+        );
         const { days: workingDays } = parseWorkingHours(
           doctor?.workingHours || ""
         );
         const days = [];
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+
         for (let i = 0; i < 30; i++) {
           const d = new Date(today);
           d.setDate(today.getDate() + i);
@@ -128,6 +116,7 @@ const DashboardDoctor = ({
           )
             .toISOString()
             .split("T")[0];
+
           if (Array.isArray(workingDays) && workingDays.length > 0) {
             const weekday = d.toLocaleDateString(undefined, {
               weekday: "long",
@@ -137,17 +126,20 @@ const DashboardDoctor = ({
             days.push(dateStr);
           }
         }
+
         setAvailableDates && setAvailableDates(days);
       } catch (e) {
         console.warn("Failed to compute available dates", e);
         setAvailableDates && setAvailableDates([]);
       }
     };
+
     if (typeof setAvailableDates === "function") {
       computeAvailable();
     }
   }, [selectedDoctorId, doctors, setAvailableDates]);
 
+  // Tab button
   if (variant === "tabButton") {
     return (
       <button
@@ -159,15 +151,12 @@ const DashboardDoctor = ({
     );
   }
 
-  if (!active) {
-    return null;
-  }
+  if (!active) return null;
 
+  // Content
   return (
     <div className="card">
-      <div className="card-header">
-        <h3 className="card-title">Doctors</h3>
-      </div>
+      <div className="card-header doctor-header"></div>
       <div className="admin-doctors">
         <div className="section-content">
           <div className="admin-doctors-header">
@@ -198,15 +187,22 @@ const DashboardDoctor = ({
                 <div key={doctor.id} className="doctor-card">
                   <div className="doctor-image">
                     {(() => {
-                      const displayName = `${doctor.firstName} ${doctor.lastName}`;
-                      const src = resolveDoctorImage(doctor, displayName);
-                      if (src) {
+                      const src = resolveDoctorImage(doctor);
+                      const broken = brokenImageIds.has(doctor.id);
+                      if (src && !broken) {
                         return (
                           <img
                             src={src}
                             alt={`${doctor.firstName} ${doctor.lastName}`}
                             className="doctor-photo"
                             loading="lazy"
+                            onError={() =>
+                              setBrokenImageIds((prev) => {
+                                const next = new Set(prev);
+                                next.add(doctor.id);
+                                return next;
+                              })
+                            }
                           />
                         );
                       }
@@ -224,21 +220,27 @@ const DashboardDoctor = ({
                         {doctor.firstName} {doctor.lastName}
                       </span>
                     </div>
-                    <div className="doctor-specialization">
-                      <span className="label">Specialization:</span>
-                      <span className="value">{doctor.specialization}</span>
-                    </div>
-                    <div className="doctor-experience">
-                      <span className="label">Experience:</span>
-                      <span className="value">
-                        {doctor.experience !== undefined
-                          ? `${doctor.experience} years`
-                          : "Experienced"}
-                      </span>
-                    </div>
-                    <div className="doctor-phone">
-                      <span className="label">Numbers:</span>
-                      <span className="value">{doctor.phone}</span>
+                    <div className="doctor-info-grid">
+                      <div className="info-row specialization-row">
+                        <span className="label">Specialization:</span>
+                        <span className="value">{doctor.specialization}</span>
+                      </div>
+                      <div className="info-row">
+                        <span className="label">Experience:</span>
+                        <span className="value">
+                          {doctor.experience !== undefined
+                            ? `${doctor.experience} years`
+                            : "Experienced"}
+                        </span>
+                      </div>
+                      <div className="info-row">
+                        <span className="label">Fee:</span>
+                        <span className="value">{computeFee(doctor)} $</span>
+                      </div>
+                      <div className="info-row">
+                        <span className="label">Phone:</span>
+                        <span className="value">{doctor.phone}</span>
+                      </div>
                     </div>
                     {showBookButton && (
                       <div className="doctor-actions">
@@ -246,10 +248,8 @@ const DashboardDoctor = ({
                           className="btn btn-primary"
                           type="button"
                           onClick={() => {
-                            onSelectDoctor(doctor.id);
-                            if (typeof openModal === "function") {
-                              openModal("book");
-                            }
+                            setSelectedDoctorId(doctor.id);
+                            openModal("book");
                           }}
                         >
                           Book Appointment
@@ -278,6 +278,7 @@ const DashboardDoctor = ({
 
 export default DashboardDoctor;
 
+// Keep BookAppointmentModal export as before
 export const BookAppointmentModal = ({
   selectedDoctorId,
   setSelectedDoctorId,
@@ -291,17 +292,26 @@ export const BookAppointmentModal = ({
   setAvailableTimes,
   handleBookAppointment,
   closeModal,
+  doctors = [],
 }) => {
-  const selectedDoctor = availableSlots.find(
-    (d) => d.id === parseInt(selectedDoctorId)
+  const doctorList =
+    Array.isArray(doctors) && doctors.length > 0
+      ? doctors
+      : Array.isArray(availableSlots)
+      ? availableSlots
+      : [];
+
+  const selectedDoctor = doctorList.find(
+    (d) => d.id === parseInt(selectedDoctorId, 10)
   );
+
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
         const appointmentData = {
-          doctorId: parseInt(formData.get("doctorId")),
+          doctorId: parseInt(formData.get("doctorId"), 10),
           appointmentDate: formData.get("appointmentDate"),
           appointmentTime: formData.get("appointmentTime")
             ? `${formData.get("appointmentTime")}:00`
@@ -346,7 +356,7 @@ export const BookAppointmentModal = ({
             required
           >
             <option value="">Choose a doctor</option>
-            {availableSlots.map((doctor) => (
+            {doctorList.map((doctor) => (
               <option key={doctor.id} value={doctor.id}>
                 Dr. {doctor.firstName} {doctor.lastName} -{" "}
                 {doctor.specialization}
@@ -378,6 +388,7 @@ export const BookAppointmentModal = ({
           </div>
         )}
       </div>
+
       <div className="form-group">
         <label>Appointment Date</label>
         {selectedDoctorId ? (
@@ -392,6 +403,16 @@ export const BookAppointmentModal = ({
                 setSelectedTimeForBooking("");
                 if (d) {
                   try {
+                    const doc = doctorList.find(
+                      (x) => x.id === parseInt(selectedDoctorId, 10)
+                    );
+                    const { start, end } = parseWorkingHours(
+                      doc?.workingHours || ""
+                    );
+                    const slots = generateTimeSlots(start, end);
+                    if (slots.length > 0) {
+                      setAvailableTimes(slots);
+                    }
                     const resp = await patientAPI.getDoctorBookedTimes(
                       selectedDoctorId,
                       d
@@ -399,13 +420,6 @@ export const BookAppointmentModal = ({
                     const bookedTimes = resp.success
                       ? resp.data?.bookedTimes || []
                       : [];
-                    const doc = availableSlots.find(
-                      (x) => x.id === parseInt(selectedDoctorId)
-                    );
-                    const { start, end } = parseWorkingHours(
-                      doc?.workingHours || ""
-                    );
-                    const slots = generateTimeSlots(start, end);
                     const available = slots.filter(
                       (t) => !bookedTimes.includes(t)
                     );
@@ -437,6 +451,7 @@ export const BookAppointmentModal = ({
           </div>
         )}
       </div>
+
       <div className="form-group">
         <label>Appointment Time</label>
         {selectedDoctorId && selectedDateForBooking ? (
@@ -445,8 +460,8 @@ export const BookAppointmentModal = ({
               <div className="form-hint" style={{ marginBottom: 6 }}>
                 Available window:{" "}
                 {(() => {
-                  const doc = availableSlots.find(
-                    (x) => x.id === parseInt(selectedDoctorId)
+                  const doc = doctorList.find(
+                    (x) => x.id === parseInt(selectedDoctorId, 10)
                   );
                   const { start, end } = parseWorkingHours(
                     doc?.workingHours || ""
@@ -494,6 +509,7 @@ export const BookAppointmentModal = ({
           </div>
         )}
       </div>
+
       <div className="form-group">
         <label>Reason for Visit</label>
         <select name="reason" className="form-control" required>
@@ -511,6 +527,7 @@ export const BookAppointmentModal = ({
           <option value="Other">Other</option>
         </select>
       </div>
+
       <div className="modal-actions">
         <button type="button" className="btn btn-outline" onClick={closeModal}>
           Cancel

@@ -66,7 +66,7 @@ const Doctor = sequelize.define("Doctor", {
   availability: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
-    defaultValue: false,
+    defaultValue: true,
   },
   workingHours: {
     type: DataTypes.STRING,

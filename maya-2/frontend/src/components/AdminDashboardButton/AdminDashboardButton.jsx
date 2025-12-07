@@ -45,7 +45,11 @@ const AdminDashboardButton = ({
             <div className="current-time">
               <span className="time-label">Current Time</span>
               <span className="time-value">
-                {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                {currentTime.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })}
               </span>
             </div>
           </div>
@@ -56,17 +60,17 @@ const AdminDashboardButton = ({
                 <FaUsersCog />
               </div>
               <div className="stat-info">
-                <h3>{analytics.totalUsers || 0}</h3>
                 <p>Total Users</p>
+                <h3>{analytics.totalUsers || 0}</h3>
               </div>
             </div>
             <div className="stat-card success">
               <div className="stat-icon">
-                <FaUserDoctor color="green" />
+                <FaUserDoctor />
               </div>
               <div className="stat-info">
-                <h3>{analytics.totalDoctors || 0}</h3>
                 <p>Doctors</p>
+                <h3>{analytics.totalDoctors || 0}</h3>
               </div>
             </div>
             <div className="stat-card info">
@@ -74,17 +78,17 @@ const AdminDashboardButton = ({
                 <FaUserInjured />
               </div>
               <div className="stat-info">
-                <h3>{analytics.totalPatients || 0}</h3>
                 <p>Patients</p>
+                <h3>{analytics.totalPatients || 0}</h3>
               </div>
             </div>
             <div className="stat-card warning">
               <div className="stat-icon">
-                <GrBarChart color="orange" />
+                <GrBarChart />
               </div>
               <div className="stat-info">
-                <h3>{analytics.todayAppointments || 0}</h3>
                 <p>Today's Appointments</p>
+                <h3>{analytics.todayAppointments || 0}</h3>
               </div>
             </div>
           </div>
@@ -97,10 +101,12 @@ const AdminDashboardButton = ({
               <div className="card-content">
                 <div className="activity-item">
                   <span className="activity-icon">
-                    <GrBarChart color="orange" />
+                    <GrBarChart />
                   </span>
                   <div className="activity-info">
-                    <p>Total Appointments: {analytics.totalAppointments || 0}</p>
+                    <p>
+                      Total Appointments: {analytics.totalAppointments || 0}
+                    </p>
                     <small>System-wide</small>
                   </div>
                 </div>
@@ -109,7 +115,9 @@ const AdminDashboardButton = ({
                     <FaUser />
                   </span>
                   <div className="activity-info">
-                    <p>New Registrations: {analytics.recentRegistrations || 0}</p>
+                    <p>
+                      New Registrations: {analytics.recentRegistrations || 0}
+                    </p>
                     <small>Last 30 days</small>
                   </div>
                 </div>
@@ -119,7 +127,10 @@ const AdminDashboardButton = ({
                   </span>
                   <div className="activity-info">
                     <p>
-                      System Status: {systemSettings.maintenanceMode ? "Maintenance" : "Active"}
+                      System Status:{" "}
+                      {systemSettings.maintenanceMode
+                        ? "Maintenance"
+                        : "Active"}
                     </p>
                     <small>Current status</small>
                   </div>
@@ -136,7 +147,9 @@ const AdminDashboardButton = ({
                   {Object.entries(analytics.appointmentsByStatus || {}).map(
                     ([status, count]) => (
                       <div key={status} className="status-item">
-                        <div className={`status-indicator ${status.toLowerCase()}`}></div>
+                        <div
+                          className={`status-indicator ${status.toLowerCase()}`}
+                        ></div>
                         <span className="status-label">{status}</span>
                         <span className="status-count">{count}</span>
                       </div>
@@ -150,21 +163,21 @@ const AdminDashboardButton = ({
           <div className="quick-actions">
             <h3>Quick Actions</h3>
             <div className="action-buttons">
-              <button className="action-btn primary" onClick={() => openModal && openModal("createUser")}>
+              <button
+                className="action-btn primary"
+                onClick={() => openModal && openModal("createUser")}
+              >
                 <span className="btn-icon">
-                  <FaUser color="blue" />
+                  <FaUser />
                 </span>
                 Add New User
               </button>
-              <button className="action-btn secondary" onClick={() => setActiveSection("settings")}>
+              <button
+                className="action-btn info"
+                onClick={() => setActiveSection("reports")}
+              >
                 <span className="btn-icon">
-                  <CiSettings />
-                </span>
-                System Settings
-              </button>
-              <button className="action-btn info" onClick={() => setActiveSection("reports")}>
-                <span className="btn-icon">
-                  <GrBarChart color="orange" />
+                  <GrBarChart />
                 </span>
                 View Reports
               </button>

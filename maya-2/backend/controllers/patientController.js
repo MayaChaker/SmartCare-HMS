@@ -18,7 +18,7 @@ exports.getProfile = async (req, res) => {
       lastName: patient.lastName,
       email: patient.email || "",
       phone: patient.phone || patient.contact || "",
-      dateOfBirth: patient.dateOfBirth || patient.dob || "",
+      dateOfBirth: patient.dateOfBirth || "",
       gender: patient.gender || "",
       address: patient.address || "",
       emergencyContact: patient.emergencyContact || "",
@@ -74,7 +74,6 @@ exports.updateProfile = async (req, res) => {
     if (phone) patient.phone = phone;
     if (dateOfBirth) {
       patient.dateOfBirth = dateOfBirth;
-      patient.dob = dateOfBirth; // Keep legacy field in sync
     }
     if (gender) patient.gender = gender;
     if (address) patient.address = address;

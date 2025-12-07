@@ -1,21 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import './Sidebar.css';
-import { useAuth } from '../../context/AuthContext';
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import "./Sidebar.css";
+import { useAuth } from "../../context/useAuth";
 import LogoutButton from "../ui/LogoutButton/LogoutButton";
-import NotificationSystem from '../NotificationSystem/NotificationSystem';
+import NotificationSystem from "../NotificationSystem/NotificationSystem";
 
-const Sidebar = ({ menuItems, title }) => {
+const Sidebar = ({ menuItems }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const { logout, user } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  const { user } = useAuth();
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
@@ -28,19 +22,23 @@ const Sidebar = ({ menuItems, title }) => {
   // Close mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (isMobileOpen && !event.target.closest('.sidebar') && !event.target.closest('.mobile-menu-btn')) {
+      if (
+        isMobileOpen &&
+        !event.target.closest(".sidebar") &&
+        !event.target.closest(".mobile-menu-btn")
+      ) {
         setIsMobileOpen(false);
       }
     };
 
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, [isMobileOpen]);
 
   return (
     <>
       {/* Mobile Menu Button */}
-      <button 
+      <button
         className="mobile-menu-btn"
         onClick={toggleMobileSidebar}
         aria-label="Toggle mobile menu"
@@ -51,20 +49,28 @@ const Sidebar = ({ menuItems, title }) => {
       </button>
 
       {/* Sidebar */}
-      <div className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''}`}>
+      <div
+        className={`sidebar ${isCollapsed ? "collapsed" : ""} ${
+          isMobileOpen ? "mobile-open" : ""
+        }`}
+      >
         {/* Header */}
         <div className="sidebar-header">
           <div className="sidebar-logo">
             {!isCollapsed && <h2>MayaCare</h2>}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             {!isCollapsed && <NotificationSystem />}
-            <button 
+            <button
               className="sidebar-toggle"
               onClick={toggleSidebar}
               aria-label="Toggle sidebar"
             >
-              <i className={`fas ${isCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`}></i>
+              <i
+                className={`fas ${
+                  isCollapsed ? "fa-chevron-right" : "fa-chevron-left"
+                }`}
+              ></i>
             </button>
           </div>
         </div>
@@ -76,8 +82,8 @@ const Sidebar = ({ menuItems, title }) => {
           </div>
           {!isCollapsed && (
             <div className="user-info">
-              <h4>{user?.name || 'User'}</h4>
-              <p>{user?.role || 'Role'}</p>
+              <h4>{user?.name || "User"}</h4>
+              <p>{user?.role || "Role"}</p>
             </div>
           )}
         </div>
@@ -87,10 +93,10 @@ const Sidebar = ({ menuItems, title }) => {
           <ul>
             {menuItems.map((item, index) => (
               <li key={index}>
-                <Link 
+                <Link
                   to={item.path}
-                  className={location.pathname === item.path ? 'active' : ''}
-                  title={isCollapsed ? item.label : ''}
+                  className={location.pathname === item.path ? "active" : ""}
+                  title={isCollapsed ? item.label : ""}
                 >
                   <i className={item.icon}></i>
                   {!isCollapsed && <span>{item.label}</span>}
@@ -102,14 +108,19 @@ const Sidebar = ({ menuItems, title }) => {
 
         {/* Logout Button */}
         <div className="sidebar-footer">
-          <LogoutButton variant="sidebar">
+          <LogoutButton>
             {!isCollapsed && <span>Logout</span>}
           </LogoutButton>
         </div>
       </div>
 
       {/* Mobile Overlay */}
-      {isMobileOpen && <div className="sidebar-overlay" onClick={() => setIsMobileOpen(false)}></div>}
+      {isMobileOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setIsMobileOpen(false)}
+        ></div>
+      )}
     </>
   );
 };

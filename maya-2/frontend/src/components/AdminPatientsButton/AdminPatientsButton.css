@@ -47,7 +47,7 @@
   margin-left: 12px;
 }
 
-.patients-count {
+.admin-patients .patients-count {
   font-size: 0.9em;
   color: #666;
   font-weight: 500;
@@ -71,13 +71,13 @@
   align-items: center;
 }
 
-.search-icon {
+.admin-patients .search-icon {
   position: absolute;
   left: 12px;
   color: #888;
 }
 
-.search-input {
+.admin-patients .search-input {
   padding: 10px 12px 10px 38px;
   border: 2px solid #e0e0e0;
   border-radius: 25px;
@@ -87,7 +87,7 @@
   background: #fff;
 }
 
-.search-input:focus {
+.admin-patients .search-input:focus {
   outline: none;
   border-color: #3498db;
 }
@@ -124,4 +124,52 @@
 
 .admin-patients-data-table tr:hover {
   background-color: #f9fafb;
+}
+
+@media (max-width: 1024px) {
+  .admin-patients-header-left {
+    padding-left: 1rem;
+  }
+  .admin-patients-header-right {
+    padding-right: 1rem;
+  }
+  .admin-patients .search-input {
+    width: 360px;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-patients-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .admin-patients-header-left {
+    padding-left: 0;
+  }
+  .admin-patients-header-right {
+    padding-right: 0;
+  }
+  .admin-patients-header-right .search-container,
+  .admin-patients-search {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .admin-patients .search-input {
+    width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .admin-patients-header {
+    gap: 0.75rem;
+  }
+  .admin-patients .search-input {
+    padding: 8px 10px 8px 34px;
+    font-size: 0.875rem;
+  }
+  .admin-patients .search-icon {
+    left: 10px;
+    font-size: 0.75rem;
+  }
 }

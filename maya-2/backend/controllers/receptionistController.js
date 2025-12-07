@@ -113,11 +113,9 @@ exports.createAppointment = async (req, res) => {
         .json({ message: "Appointment scheduled successfully", appointment });
     } catch (err) {
       if (err?.name === "SequelizeUniqueConstraintError") {
-        return res
-          .status(409)
-          .json({
-            message: "Selected time slot is already booked for this doctor",
-          });
+        return res.status(409).json({
+          message: "Selected time slot is already booked for this doctor",
+        });
       }
       throw err;
     }
@@ -139,7 +137,19 @@ exports.updateAppointment = async (req, res) => {
     }
 
     if (appointmentDate) appointment.appointmentDate = appointmentDate;
-    if (status) appointment.status = status;
+    if (status) {
+      const next = String(status).toLowerCase();
+      const current = String(appointment.status).toLowerCase();
+      if (
+        (next === "completed" || next === "cancelled") &&
+        !(current === "checked-in" || current === "in-progress")
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Not allowed to finalize before check-in" });
+      }
+      appointment.status = next;
+    }
 
     await appointment.save();
 
@@ -255,12 +265,26 @@ exports.getTodayAppointments = async (req, res) => {
 
 exports.getAppointmentsByDate = async (req, res) => {
   try {
-    const date = req.query.date || new Date().toISOString().split("T")[0];
+    const date =
+      req.query.date ||
+      (() => {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, "0");
+        const d = String(now.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      })();
     const appointments = await Appointment.findAll({
       where: { appointmentDate: date },
       include: [
-        { model: Patient, attributes: ["id", "firstName", "lastName", "phone"] },
-        { model: Doctor, attributes: ["id", "firstName", "lastName", "specialization"] },
+        {
+          model: Patient,
+          attributes: ["id", "firstName", "lastName", "phone"],
+        },
+        {
+          model: Doctor,
+          attributes: ["id", "firstName", "lastName", "specialization"],
+        },
       ],
       order: [["appointmentTime", "ASC"]],
     });
@@ -292,35 +316,6 @@ exports.getAllAppointments = async (req, res) => {
     res.json(appointments);
   } catch (error) {
     console.error("Error fetching all appointments:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// Get queue status
-exports.getQueueStatus = async (req, res) => {
-  try {
-    const today = new Date().toISOString().split("T")[0];
-    console.log(`[getQueueStatus] Fetching queue for today: ${today}`);
-
-    const queue = await Appointment.findAll({
-      where: {
-        appointmentDate: today,
-        status: ["scheduled", "checked-in", "in-progress"],
-      },
-      include: [
-        { model: Patient, attributes: ["firstName", "lastName"] },
-        { model: Doctor, attributes: ["firstName", "lastName"] },
-      ],
-      order: [["appointmentTime", "ASC"]],
-    });
-
-    console.log(`[getQueueStatus] Found ${queue.length} appointments in queue`);
-    res.json({
-      totalInQueue: queue.length,
-      appointments: queue,
-    });
-  } catch (error) {
-    console.error("Error fetching queue status:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

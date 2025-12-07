@@ -161,18 +161,14 @@ exports.getAnalytics = async (req, res) => {
     const totalAppointments = await Appointment.count();
     
     // Get today's appointments
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    const todayYmd = `${y}-${m}-${d}`;
+
     const todayAppointments = await Appointment.count({
-      where: {
-        appointmentDate: {
-          [Op.gte]: today,
-          [Op.lt]: tomorrow
-        }
-      }
+      where: { appointmentDate: todayYmd }
     });
     
     // Get appointments by status

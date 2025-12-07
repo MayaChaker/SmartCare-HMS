@@ -306,7 +306,7 @@
 }
 
 .btn-primary {
-  background: #3182ce;
+  background: #3182cece;
   border: 2px solid #3182ce;
   color: white;
 }
@@ -321,36 +321,21 @@
   cursor: not-allowed;
 }
 
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .appointment-booking {
     padding: 16px;
     margin: 16px;
   }
-  
+
   .doctor-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .time-slots {
     grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   }
-  
+
   .form-actions {
     flex-direction: column;
   }

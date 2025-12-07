@@ -13,7 +13,7 @@
   background-repeat: no-repeat;
   color: white;
   padding: 1.75rem 0 2.5rem;
-  min-height: clamp(700px, calc(100vh - 72px), 900px);
+  min-height: clamp(700px, calc(100vh - 88px), 900px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -119,7 +119,12 @@
   bottom: -4px;
   height: 2px;
   border-radius: 2px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.85) 50%, rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
   transform: scaleX(0);
   transform-origin: left;
   opacity: 0.5;
@@ -314,5 +319,17 @@
   /* Hide floating cards on small screens to keep the hero compact */
   .home-hero .floating-cards {
     display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero.home-hero {
+    min-height: clamp(820px, calc(100vh - 88px), 1080px);
+  }
+}
+
+@media (min-width: 1440px) {
+  .hero.home-hero {
+    min-height: clamp(900px, calc(100vh - 88px), 1200px);
   }
 }

@@ -67,7 +67,6 @@ exports.registerPatient = async (req, res) => {
       email: email || username, // Use email if provided, otherwise use username
       phone: phone || contact || '', // Use phone if provided, otherwise use contact
       dateOfBirth: dob || null,
-      dob: dob || null, // Keep legacy field for backward compatibility
       contact: contact || '',
       medicalHistory: medicalHistory || '',
       userId: user.id

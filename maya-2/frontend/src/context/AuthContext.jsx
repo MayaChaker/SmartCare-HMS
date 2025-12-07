@@ -1,53 +1,39 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI } from '../utils/api';
+import React, { createContext, useState } from "react";
+import { authAPI } from "../utils/api";
 
 const AuthContext = createContext();
-export { AuthContext };
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Check if user is logged in on app start
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
+  const [user, setUser] = useState(() => {
+    const token = localStorage.getItem("token");
+    const userData = localStorage.getItem("user");
     if (token && userData) {
       try {
-        setUser(JSON.parse(userData));
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        return JSON.parse(userData);
+      } catch {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
       }
     }
-    setLoading(false);
-  }, []);
+    return null;
+  });
+  const loading = false;
 
   const login = async (credentials) => {
     try {
       const response = await authAPI.login(credentials);
       const { token, user: userData } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
-      
+
       return { success: true, data: response.data };
     } catch (error) {
-      console.error('Login error:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Login failed' 
+      console.error("Login error:", error);
+      return {
+        success: false,
+        error: error.response?.data?.message || "Login failed",
       };
     }
   };
@@ -55,24 +41,34 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await authAPI.registerPatient(userData);
+      const username = userData?.username || "";
+      const password = userData?.password || "";
+      if (username && password) {
+        const loginResp = await authAPI.login({ username, password });
+        const { token, user: loggedInUser } = loginResp.data;
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(loggedInUser));
+        setUser(loggedInUser);
+        return { success: true, data: loginResp.data };
+      }
       return { success: true, data: response.data };
     } catch (error) {
-      console.error('Registration error:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Registration failed' 
+      console.error("Registration error:", error);
+      return {
+        success: false,
+        error: error.response?.data?.message || "Registration failed",
       };
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
   };
 
   const isAuthenticated = () => {
-    return !!user && !!localStorage.getItem('token');
+    return !!user && !!localStorage.getItem("token");
   };
 
   // Helper function to check user role
@@ -96,11 +92,7 @@ export const AuthProvider = ({ children }) => {
     getUserRole,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export default AuthContext;

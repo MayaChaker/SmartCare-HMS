@@ -1,18 +1,13 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import "./RoleBasedRoute.css";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 
 const RoleBasedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading...</p>
-      </div>
-    );
+    return null;
   }
 
   if (!user) {

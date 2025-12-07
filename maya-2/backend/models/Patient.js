@@ -62,10 +62,6 @@ const Patient = sequelize.define('Patient', {
     allowNull: true
   },
   // Legacy fields for backward compatibility
-  dob: {
-    type: DataTypes.DATEONLY,
-    allowNull: true
-  },
   contact: {
     type: DataTypes.STRING,
     allowNull: true

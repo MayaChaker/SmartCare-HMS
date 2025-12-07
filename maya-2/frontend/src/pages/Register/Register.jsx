@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import "./Register.css";
 import loginImage from "../../assets/login.jpg";
 
@@ -51,17 +51,16 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const { confirmPassword, ...registrationData } = formData;
+      const { confirmPassword: CONFIRM_PASSWORD, ...registrationData } =
+        formData;
       const result = await register(registrationData);
 
       if (result.success) {
-        navigate("/login", {
-          state: { message: "Registration successful! Please log in." },
-        });
+        navigate("/dashboard");
       } else {
         setError(result.error);
       }
-    } catch (error) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);
@@ -70,7 +69,9 @@ const Register = () => {
 
   return (
     <div className="auth-container auth-container--register">
-      <div className={`auth-card auth-card--register${entered ? " entered" : ""}`}>
+      <div
+        className={`auth-card auth-card--register${entered ? " entered" : ""}`}
+      >
         <div className="register-card">
           <div className="register-media">
             <img
@@ -87,7 +88,9 @@ const Register = () => {
               </Link>
             </div>
 
-            <div className={`error-message${error ? " visible" : ""}`}>{error}</div>
+            <div className={`error-message${error ? " visible" : ""}`}>
+              {error}
+            </div>
 
             <form className="auth-form" onSubmit={handleSubmit}>
               <div className="form-row">
@@ -196,19 +199,12 @@ const Register = () => {
                 </Link>
               </p>
 
-              <button type="submit" disabled={loading} className={`auth-button${loading ? " loading" : ""}`}>
-                {loading ? (
-                  <div className="loading-spinner">
-                    <div className="spinner">
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                    </div>
-                    Creating account...
-                  </div>
-                ) : (
-                  "Create Account"
-                )}
+              <button
+                type="submit"
+                disabled={loading}
+                className={`auth-button${loading ? " loading" : ""}`}
+              >
+                Create Account
               </button>
             </form>
           </div>

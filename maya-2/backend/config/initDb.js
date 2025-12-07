@@ -42,7 +42,7 @@ const initializeDatabase = async () => {
     await Patient.create({
       firstName: 'Jane',
       lastName: 'Smith',
-      dob: '1990-01-01',
+      dateOfBirth: '1990-01-01',
       contact: '555-123-4567',
       medicalHistory: 'No significant medical history',
       UserId: patientUser.id

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import EditButton from "../../components/ui/EditButton/EditButton";
 import {
   FaUserMd,
   FaStethoscope,
@@ -29,7 +30,6 @@ import {
   FiRefreshCcw,
   FiPieChart,
   FiUsers,
-  FiLoader,
   FiXCircle,
 } from "react-icons/fi";
 import { FiEdit, FiImage } from "react-icons/fi";
@@ -40,10 +40,17 @@ import img4 from "../../assets/Mahmoud-choucair.jpg";
 import img5 from "../../assets/Michel-Nawfal.jpeg";
 import img6 from "../../assets/riad-azar.jpg";
 import { TbMicroscope } from "react-icons/tb";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import "../../utils/api";
 import "./DoctorPanel.css";
+import DoctorDashboard from "../../components/DoctorDashboard/DoctorDashboard";
 import { parseWorkingHours } from "../../utils/schedule";
+import DoctorPatient from "../../components/DoctorPatient/DoctorPatient";
+import "../../components/DoctorPatient/DoctorPatient.css";
+import DoctorAppointments from "../../components/DoctorAppointment/DoctorAppointments";
+import "../../components/DoctorAppointment/DoctorAppointments.css";
+import DoctorProfile from "../../components/DoctorProfile/DoctorProfile";
+import "../../components/DoctorProfile/DoctorProfile.css";
 
 const DoctorPanel = () => {
   const { user } = useAuth();
@@ -440,35 +447,6 @@ const DoctorPanel = () => {
     }
   }, [showModal, modalType]);
 
-  const startEditProfile = () => {
-    if (doctorProfile) {
-      const { days, time } = parseWorkingHours(
-        doctorProfile.workingHours || ""
-      );
-      const { start, end } = splitTimeRange(time);
-      setProfileForm({
-        firstName: doctorProfile.firstName || "",
-        lastName: doctorProfile.lastName || "",
-        email: doctorProfile.email || "",
-        phone: doctorProfile.phone || "",
-        photoUrl: doctorProfile.photoUrl || "",
-        specialization: doctorProfile.specialization || "",
-        availability:
-          typeof doctorProfile.availability === "boolean"
-            ? doctorProfile.availability
-            : false,
-        workingHours: doctorProfile.workingHours || "",
-        availableDay: days.join(", ") || "",
-        startTime: start || "",
-        endTime: end || "",
-        licenseNumber: doctorProfile.licenseNumber || "",
-        experience: doctorProfile.experience || 0,
-        qualification: doctorProfile.qualification || "",
-      });
-    }
-    setEditingProfile(true);
-  };
-
   const cancelEditProfile = () => {
     setEditingProfile(false);
   };
@@ -603,18 +581,21 @@ const DoctorPanel = () => {
   };
 
   // Resolve stored photoUrl to an absolute URL when it's a backend-served path
-  const resolvePhotoUrl = (url, fallbackName) => {
-    if (!url) {
-      return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-        fallbackName || "Doctor"
-      )}`;
-    }
-    // If backend stored a relative uploads path, prefix with backend origin
-    if (url.startsWith("/uploads/") || url.startsWith("uploads/")) {
-      const normalized = url.startsWith("uploads/") ? `/${url}` : url;
+  const resolvePhotoUrl = (url) => {
+    const candidate = String(url || "").trim();
+    if (!candidate) return "";
+    if (
+      candidate.toLowerCase() === "null" ||
+      candidate.toLowerCase() === "undefined"
+    )
+      return "";
+    if (candidate.startsWith("/uploads/") || candidate.startsWith("uploads/")) {
+      const normalized = candidate.startsWith("uploads/")
+        ? `/${candidate}`
+        : candidate;
       return `http://localhost:5000${normalized}`;
     }
-    return url;
+    return candidate;
   };
 
   // Save selected photo from preset gallery (inside component for access to state setters)
@@ -671,838 +652,6 @@ const DoctorPanel = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const renderDashboard = () => {
-    const today = new Date();
-
-    return (
-      <div className="dashboard-content">
-        <div className="dashboard-header">
-          <div className="dashboard-welcome">
-            <div className="welcome-text">
-              <h1 className="doctor-dashboard-title">Doctor Dashboard</h1>
-              {/* Removed subtitle per request */}
-            </div>
-            <div className="dashboard-date">
-              <div className="current-date">
-                <FiCalendar />{" "}
-                {today.toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="doctor-status-section">
-            <div className="status-card">
-              <div className="status-header">
-                <div className="status-indicator-wrapper">
-                  <div className="status-details">
-                    <div className="status-specialization">
-                      {doctorProfile?.specialization || "General Practice"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* Removed working-hours block per request */}
-              {/* Removed status and debug display blocks per request */}
-            </div>
-          </div>
-        </div>
-
-        <div className="stats-dashboard">
-          <div className="stats-grid">
-            <div className="stat-card appointments-card">
-              <div className="stat-header">
-                <div className="stat-icon-wrapper">
-                  <span className="stat-icon">
-                    <FiCalendar />
-                  </span>
-                </div>
-                <div className="stat-info">
-                  <div className="trend-text">This month</div>
-                  <div className="stat-number">{appointments.length}</div>
-                  <div className="stat-label">Total Appointments</div>
-                </div>
-              </div>
-              {/* Footer removed for appointments-card to show 'This month' above number/label */}
-            </div>
-
-            <div className="stat-card completed-card">
-              <div className="stat-header">
-                <div className="stat-icon-wrapper">
-                  <span className="stat-icon">
-                    <FiCheckCircle />
-                  </span>
-                </div>
-                <div className="stat-info">
-                  <div className="trend-text">Successfully treated</div>
-                  <div className="stat-number">
-                    {
-                      appointments.filter((a) => a.status === "completed")
-                        .length
-                    }
-                  </div>
-                  <div className="stat-label">Completed</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="stat-card scheduled-card">
-              <div className="stat-header">
-                <div className="stat-icon-wrapper">
-                  <span className="stat-icon">
-                    <FiClock />
-                  </span>
-                </div>
-                <div className="stat-info">
-                  <div className="trend-text">Upcoming appointments</div>
-                  <div className="stat-number">
-                    {
-                      appointments.filter((a) => a.status === "scheduled")
-                        .length
-                    }
-                  </div>
-                  <div className="stat-label">Scheduled</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="stat-card patients-card">
-              <div className="stat-header">
-                <div className="stat-icon-wrapper">
-                  <span className="stat-icon">
-                    <FiUsers />
-                  </span>
-                </div>
-                <div className="stat-info">
-                  <div className="trend-text">Under your care</div>
-                  <div className="stat-number">{patients.length}</div>
-                  <div className="stat-label">Total Patients</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="dashboard-main">
-          <div className="dashboard-left">
-            <div className="section-card recent-appointments">
-              <div className="section-header">
-                <div className="section-title">
-                  <h1>
-                    Recent Appointments
-                    <span className="section-count">
-                      {
-                        appointments
-                          .filter(
-                            (a) =>
-                              a.status && a.status.toLowerCase() === "completed"
-                          )
-                          .slice(0, 5).length
-                      }{" "}
-                      of{" "}
-                      {
-                        appointments.filter(
-                          (a) =>
-                            a.status && a.status.toLowerCase() === "completed"
-                        ).length
-                      }
-                    </span>
-                  </h1>
-                </div>
-              </div>
-              <div className="appointments-preview">
-                {appointments
-                  .filter(
-                    (a) => a.status && a.status.toLowerCase() === "completed"
-                  )
-                  .slice(0, 5).length > 0 ? (
-                  <div className="appointments-list">
-                    {appointments
-                      .filter(
-                        (a) =>
-                          a.status && a.status.toLowerCase() === "completed"
-                      )
-                      .slice(0, 5)
-                      .map((appointment) => (
-                        <div key={appointment.id} className="appointment-item">
-                          <div className="appointment-avatar">
-                            <span className="avatar-icon">
-                              <FiUser />
-                            </span>
-                          </div>
-                          <div className="appointment-info">
-                            <div className="patient-name">
-                              {appointment.Patient
-                                ? `${appointment.Patient.firstName} ${appointment.Patient.lastName}`
-                                : "N/A"}
-                            </div>
-                            <div className="appointment-details">
-                              <span className="appointment-date">
-                                <FiCalendar />{" "}
-                                {new Date(
-                                  appointment.appointmentDate
-                                ).toLocaleDateString()}
-                              </span>
-                              <span className="appointment-time">
-                                <FiClock />{" "}
-                                {new Date(
-                                  appointment.appointmentDate
-                                ).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="appointment-status">
-                            <span
-                              className={`status-badge status-${appointment.status.toLowerCase()}`}
-                            >
-                              {appointment.status}
-                            </span>
-                          </div>
-                          {appointment.status === "completed" && (
-                            <div
-                              className="appointment-actions"
-                              style={{ marginLeft: "auto" }}
-                            >
-                              <button
-                                className="action-btn primary"
-                                type="button"
-                                onClick={() =>
-                                  openModal("addRecord", appointment.Patient)
-                                }
-                                title="Add Medical Record"
-                              >
-                                <FiFileText />
-                                Add Record
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  <div className="empty-state">
-                    <div className="empty-icon">
-                      <FiCalendar />
-                    </div>
-                    <div className="empty-content">
-                      <h4>No completed appointments</h4>
-                      <p>Completed appointments will appear here</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="dashboard-right">
-            <div className="section-card quick-actions">
-              <div className="section-header">
-                <h1>Quick Actions</h1>
-              </div>
-              <div className="actions-grid">
-                <button
-                  className="action-card patients-action"
-                  onClick={() => setActiveSection("patients")}
-                >
-                  <div className="action-icon">
-                    <FiUsers />
-                  </div>
-                  <div className="action-content">
-                    <span className="action-title">View Patients</span>
-                    <span className="action-desc">Manage patient records</span>
-                  </div>
-                  <div className="action-arrow">
-                    <FiArrowRight />
-                  </div>
-                </button>
-
-                <button
-                  className="action-card appointments-action"
-                  onClick={() => setActiveSection("appointments")}
-                >
-                  <div className="action-icon">
-                    <FiCalendar />
-                  </div>
-                  <div className="action-content">
-                    <span className="action-title">Appointments</span>
-                    <span className="action-desc">View schedule</span>
-                  </div>
-                  <div className="action-arrow">
-                    <FiArrowRight />
-                  </div>
-                </button>
-
-                <button
-                  className="action-card profile-action"
-                  onClick={() => setActiveSection("profile")}
-                >
-                  <div className="action-icon">
-                    <FiUser />
-                  </div>
-                  <div className="action-content">
-                    <span className="action-title">Profile</span>
-                    <span className="action-desc">View & edit profile</span>
-                  </div>
-                  <div className="action-arrow">
-                    <FiArrowRight />
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            <div className="section-card today-summary">
-              <div className="section-header">
-                <h1>Today's Summary</h1>
-              </div>
-              <div className="summary-content">
-                <div className="summary-item">
-                  <div className="summary-icon">
-                    <FiBarChart2 />
-                  </div>
-                  <div className="summary-info">
-                    <span className="summary-label">Appointments Today</span>
-                    <span className="summary-value">
-                      {
-                        appointments.filter(
-                          (a) =>
-                            new Date(a.appointmentDate).toDateString() ===
-                            new Date().toDateString()
-                        ).length
-                      }
-                    </span>
-                  </div>
-                </div>
-
-                <div className="summary-item">
-                  <div className="summary-icon">
-                    <FiClock />
-                  </div>
-                  <div className="summary-info">
-                    <span className="summary-label">Next Appointment</span>
-                    <span className="summary-value">
-                      {appointments.filter(
-                        (a) =>
-                          new Date(a.appointmentDate) > new Date() &&
-                          a.status === "scheduled"
-                      ).length > 0
-                        ? new Date(
-                            appointments.filter(
-                              (a) =>
-                                new Date(a.appointmentDate) > new Date() &&
-                                a.status === "scheduled"
-                            )[0]?.appointmentDate
-                          ).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "None"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="summary-item">
-                  <div className="summary-icon">
-                    <FiPieChart />
-                  </div>
-                  <div className="summary-info">
-                    <span className="summary-label">Completion Rate</span>
-                    <span className="summary-value">
-                      {appointments.length > 0
-                        ? Math.round(
-                            (appointments.filter(
-                              (a) => a.status === "completed"
-                            ).length /
-                              appointments.length) *
-                              100
-                          )
-                        : 0}
-                      %
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderPatients = () => (
-    <div className="doctor-section">
-      <div className="section-header">
-        <div className="section-title">
-          <h1 className="patients-title">
-            My Patients
-            <span className="section-count patients-count">
-              {patients.length} Total Patients
-            </span>
-          </h1>
-        </div>
-      </div>
-      <div className="patients-grid">
-        {patients.length > 0 ? (
-          patients.map((patient) => (
-            <div key={patient.id} className="patient-card">
-              <div className="patient-header">
-                <div className="patient-avatar">
-                  <FiUser />
-                </div>
-                <div className="patient-details">
-                  <div className="patient-name">
-                    {patient.firstName} {patient.lastName}
-                  </div>
-                  <div className="patient-id">ID: {patient.id}</div>
-                </div>
-              </div>
-
-              <div className="patient-row">
-                <div className="patient-content">
-                  <div className="patient-contact">
-                    <div className="contact-item">
-                      <span className="contact-icon">
-                        <FiPhone />
-                      </span>
-                      <span className="contact-text">{patient.phone}</span>
-                    </div>
-                    <div className="contact-secondary">
-                      <div className="secondary-item">
-                        <span className="secondary-label">DOB:</span>
-                        <span className="secondary-value">
-                          {patient.dateOfBirth || "N/A"}
-                        </span>
-                      </div>
-                      <div className="secondary-item">
-                        <span className="secondary-label">History:</span>
-                        <span className="secondary-value">
-                          {patient.hasMedicalRecords || patient.medicalHistory
-                            ? "Available"
-                            : "None"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="card-actions">
-                  <button
-                    className="action-btn primary"
-                    onClick={() => openModal("viewPatient", patient)}
-                    title="View Patient Details"
-                  >
-                    <FiEye />
-                    View
-                  </button>
-                  <button
-                    className="action-btn secondary"
-                    onClick={() => openModal("addRecord", patient)}
-                    title="Add Medical Record"
-                  >
-                    <FiFileText />
-                    Record
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="empty-state">
-            <span className="empty-icon">
-              <FiUsers />
-            </span>
-            <p>No patients assigned yet</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderAppointments = () => (
-    <div className="doctor-section">
-      <div className="section-header">
-        <div className="section-title">
-          <h1 className="appointments-title">
-            Appointment Schedule
-            <span className="section-count appointments-count">
-              {
-                appointments.filter(
-                  (a) => a.status && a.status.toLowerCase() === "completed"
-                ).length
-              }{" "}
-              Completed Appointments
-            </span>
-          </h1>
-          <div className="section-stats section-stats-inline"></div>
-        </div>
-      </div>
-      <div className="doctor-table-container">
-        <table className="doctor-table">
-          <thead>
-            <tr>
-              <th>Patient</th>
-              <th>Date & Time</th>
-              <th>Details</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {appointments.filter(
-              (a) => a.status && a.status.toLowerCase() === "completed"
-            ).length > 0 ? (
-              appointments
-                .filter(
-                  (a) => a.status && a.status.toLowerCase() === "completed"
-                )
-                .map((appointment) => (
-                  <tr key={appointment.id}>
-                    <td>
-                      <div className="patient-info">
-                        <div className="patient-details">
-                          <div className="patient-name">
-                            {appointment.Patient
-                              ? `${appointment.Patient.firstName} ${appointment.Patient.lastName}`
-                              : "N/A"}
-                          </div>
-                          <div className="patient-id">
-                            {appointment.Patient
-                              ? `ID: ${appointment.Patient.id}`
-                              : "Unknown Patient"}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="appointment-datetime">
-                        <div className="appointment-date">
-                          <span className="date-icon">
-                            <FiCalendar />
-                          </span>
-                          <span className="date-text">
-                            {new Date(
-                              appointment.appointmentDate
-                            ).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <div className="appointment-time">
-                          <span className="time-icon">
-                            <FiClock />
-                          </span>
-                          <span className="time-text">
-                            {new Date(
-                              appointment.appointmentDate
-                            ).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="appointment-details">
-                        <div className="detail-item">
-                          <span className="detail-label">Reason:</span>
-                          <span className="detail-value">
-                            {appointment.reason || "General consultation"}
-                          </span>
-                        </div>
-                        {appointment.notes && (
-                          <div className="detail-item">
-                            <span className="detail-label">Notes:</span>
-                            <span className="detail-value">
-                              {appointment.notes}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <span
-                        className={`status-badge status-${appointment.status
-                          .toLowerCase()
-                          .replace(" ", "-")}`}
-                      >
-                        {appointment.status === "scheduled" && <FiClock />}
-                        {appointment.status === "in-progress" && (
-                          <FiRefreshCcw />
-                        )}
-                        {appointment.status === "completed" && (
-                          <FiCheckCircle />
-                        )}
-                        {appointment.status === "cancelled" && <FiXCircle />}
-                        <span className="status-text">
-                          {appointment.status}
-                        </span>
-                      </span>
-                    </td>
-                    <td>
-                      <div className="table-actions">
-                        {appointment.status === "completed" && (
-                          <button
-                            className="action-btn primary"
-                            onClick={() =>
-                              openModal("addRecord", appointment.Patient)
-                            }
-                            title="Add Medical Record"
-                          >
-                            <FiFileText />
-                            Add Record
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-            ) : (
-              <tr>
-                <td colSpan="5">
-                  <div className="empty-state">
-                    <span className="empty-icon">📅</span>
-                    <p>No completed appointments</p>
-                  </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
-  const renderProfile = () => {
-    const name =
-      doctorProfile?.name ||
-      (user?.username ? `Dr. ${user.username}` : "Doctor");
-    const specialization = doctorProfile?.specialization || "General Practice";
-    const phone = doctorProfile?.phone || "Not provided";
-    const { days, time } = parseWorkingHours(doctorProfile?.workingHours || "");
-    const [startStr, endStr] = time
-      ? time.split("-").map((s) => s.trim())
-      : ["", ""];
-
-    return (
-      <div className="doctor-section">
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title-row">
-              <img
-                src={resolvePhotoUrl(doctorProfile?.photoUrl, name)}
-                alt="Doctor Avatar"
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  border: "1px solid #e5e5ea",
-                  background: "#fff",
-                  cursor: "pointer",
-                }}
-                title="Click to update photo"
-                onClick={() => {
-                  if (!doctorProfile?.photoUrl && fileInputRef.current) {
-                    fileInputRef.current.click();
-                  } else {
-                    openModal("photoGallery");
-                  }
-                }}
-              />
-              <input
-                type="file"
-                accept="image/*"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  const file = e.target.files && e.target.files[0];
-                  if (file) {
-                    uploadPhotoFile(file);
-                  }
-                  e.target.value = null;
-                }}
-              />
-              <h3 className="card-title">My Profile</h3>
-            </div>
-            {!editingProfile ? (
-              <button
-                className="btn btn-outline"
-                type="button"
-                onClick={() => openModal("editProfile")}
-                title="Edit Profile"
-              >
-                Edit Profile
-              </button>
-            ) : (
-              <div className="header-actions">
-                <button
-                  className="btn btn-secondary"
-                  type="button"
-                  onClick={cancelEditProfile}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn btn-primary"
-                  form="profile-edit-form"
-                  type="submit"
-                >
-                  Save
-                </button>
-              </div>
-            )}
-          </div>
-
-          {!editingProfile ? (
-            <div className="profile-info">
-              <div className="profile-field">
-                <span className="profile-label">Full Name</span>
-                <span className="profile-value">{name}</span>
-              </div>
-              <div className="profile-field">
-                <span className="profile-label">Phone</span>
-                <span className="profile-value">{phone}</span>
-              </div>
-              <div className="profile-field">
-                <span className="profile-label">Specialization</span>
-                <span className="profile-value">{specialization}</span>
-              </div>
-              <div className="profile-field">
-                <span className="profile-label">Start Time</span>
-                <span className="profile-value">{startStr || "Not set"}</span>
-              </div>
-              <div className="profile-field">
-                <span className="profile-label">End Time</span>
-                <span className="profile-value">{endStr || "Not set"}</span>
-              </div>
-              <div className="profile-field">
-                <span className="profile-label">Available Day</span>
-                <span className="profile-value">
-                  {days && days.length ? days.join(", ") : "Not set"}
-                </span>
-              </div>
-              <div className="profile-field">
-                <span className="profile-label">Qualification</span>
-                <span className="profile-value">
-                  {doctorProfile?.qualification || "Not set"}
-                </span>
-              </div>
-              <div className="profile-field">
-                <span className="profile-label">Experience</span>
-                <span className="profile-value">
-                  {doctorProfile?.experience != null &&
-                  doctorProfile.experience !== ""
-                    ? `${Number(doctorProfile.experience)} years`
-                    : "Not set"}
-                </span>
-              </div>
-              <div className="profile-field">
-                <span className="profile-label">License Number</span>
-                <span className="profile-value">
-                  {doctorProfile?.licenseNumber || "Not set"}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <form
-              id="profile-edit-form"
-              className="profile-edit-form"
-              onSubmit={saveProfile}
-            >
-              <div className="profile-details-grid">
-                <div className="details-group">
-                  <div className="details-group-title">Contact</div>
-                  <label className="form-field">
-                    <span className="form-label">Phone</span>
-                    <input
-                      className="profile-input"
-                      type="text"
-                      name="phone"
-                      value={profileForm.phone}
-                      onChange={handleProfileChange}
-                      placeholder="000-000-0000"
-                    />
-                  </label>
-                  <label className="form-field">
-                    <span className="form-label">Profile Image URL</span>
-                    <input
-                      className="profile-input"
-                      type="text"
-                      name="photoUrl"
-                      ref={photoUrlInputRef}
-                      value={profileForm.photoUrl}
-                      onChange={handleProfileChange}
-                      placeholder="https://example.com/image.jpg or /uploads/doctor.jpg"
-                    />
-                  </label>
-                  {profileForm.photoUrl ? (
-                    <div className="form-field">
-                      <span className="form-label">Preview</span>
-                      <img
-                        src={profileForm.photoUrl}
-                        alt="Profile Preview"
-                        style={{
-                          width: "96px",
-                          height: "96px",
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                          border: "1px solid #e5e5ea",
-                          background: "#fff",
-                        }}
-                      />
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="details-group">
-                  <div className="details-group-title">Work</div>
-
-                  <label className="form-field">
-                    <span className="form-label">Qualification</span>
-                    <input
-                      className="profile-input"
-                      type="text"
-                      name="qualification"
-                      value={profileForm.qualification}
-                      onChange={handleProfileChange}
-                      placeholder="MD"
-                    />
-                  </label>
-                  <label className="form-field">
-                    <span className="form-label">License Number</span>
-                    <input
-                      className="profile-input"
-                      type="text"
-                      name="licenseNumber"
-                      value={profileForm.licenseNumber}
-                      onChange={handleProfileChange}
-                      placeholder="ABC-12345"
-                    />
-                  </label>
-                  <label className="form-field">
-                    <span className="form-label">Experience (years)</span>
-                    <input
-                      className="profile-input"
-                      type="number"
-                      name="experience"
-                      value={profileForm.experience}
-                      onChange={handleProfileChange}
-                      min="0"
-                    />
-                  </label>
-                </div>
-              </div>
-            </form>
-          )}
-        </div>
-      </div>
-    );
   };
 
   const renderModal = () => {
@@ -1664,7 +813,7 @@ const DoctorPanel = () => {
                     className="btn btn-primary"
                     disabled={loading}
                   >
-                    {loading ? "Updating..." : "Update Profile"}
+                    Update Profile
                   </button>
                 </div>
               </form>
@@ -1994,16 +1143,7 @@ const DoctorPanel = () => {
                       className="btn btn-primary"
                       disabled={loading}
                     >
-                      {loading ? (
-                        <>
-                          <span className="btn-spinner">
-                            <FiLoader />
-                          </span>
-                          Adding Record...
-                        </>
-                      ) : (
-                        <>Save Medical Record</>
-                      )}
+                      <>Save Medical Record</>
                     </button>
                     <button
                       type="button"
@@ -2171,16 +1311,7 @@ const DoctorPanel = () => {
                       className="btn btn-primary"
                       disabled={loading}
                     >
-                      {loading ? (
-                        <>
-                          <span className="btn-spinner">
-                            <FiLoader />
-                          </span>
-                          Updating...
-                        </>
-                      ) : (
-                        <>Update Availability</>
-                      )}
+                      <>Update Availability</>
                     </button>
                     <button
                       type="button"
@@ -2217,7 +1348,7 @@ const DoctorPanel = () => {
           </div>
           <div className="doctor-header-right">
             <div className="doctor-user-info"></div>
-            <LogoutButton variant="doctor">Logout</LogoutButton>
+            <LogoutButton>Logout</LogoutButton>
           </div>
         </div>
       </div>
@@ -2271,22 +1402,45 @@ const DoctorPanel = () => {
         </nav>
 
         <div className="doctor-content">
-          {loading && (
-            <div className="loading-overlay">
-              <div className="loading-spinner">
-                <div className="spinner"></div>
-                <p>Loading...</p>
-              </div>
-            </div>
-          )}
+          {loading && <div className="loading-overlay"></div>}
 
           {error && <div className="alert alert-error">{error}</div>}
           {success && <div className="alert alert-success">{success}</div>}
 
-          {activeSection === "dashboard" && renderDashboard()}
-          {activeSection === "patients" && renderPatients()}
-          {activeSection === "appointments" && renderAppointments()}
-          {activeSection === "profile" && renderProfile()}
+          {activeSection === "dashboard" && (
+            <DoctorDashboard
+              appointments={appointments}
+              patients={patients}
+              doctorProfile={doctorProfile}
+              openModal={openModal}
+              setActiveSection={setActiveSection}
+            />
+          )}
+          {activeSection === "patients" && (
+            <DoctorPatient patients={patients} openModal={openModal} />
+          )}
+          {activeSection === "appointments" && (
+            <DoctorAppointments
+              appointments={appointments}
+              openModal={openModal}
+            />
+          )}
+          {activeSection === "profile" && (
+            <DoctorProfile
+              user={user}
+              doctorProfile={doctorProfile}
+              editingProfile={editingProfile}
+              profileForm={profileForm}
+              openModal={openModal}
+              cancelEditProfile={cancelEditProfile}
+              saveProfile={saveProfile}
+              handleProfileChange={handleProfileChange}
+              uploadPhotoFile={uploadPhotoFile}
+              resolvePhotoUrl={resolvePhotoUrl}
+              fileInputRef={fileInputRef}
+              photoUrlInputRef={photoUrlInputRef}
+            />
+          )}
         </div>
       </div>
 

@@ -1,20 +1,13 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import "./ProtectedRoute.css";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="protected-route-loading">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p className="loading-text">Loading...</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return isAuthenticated() ? children : <Navigate to="/login" replace />;

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import "./Navbar.css";
 import LogoutButton from "../ui/LogoutButton/LogoutButton";
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const getDashboardRoute = () => {
@@ -39,7 +39,7 @@ const Navbar = () => {
             <Link to={getDashboardRoute()} className="nav-link">
               Dashboard
             </Link>
-            <LogoutButton variant="outline">Logout</LogoutButton>
+            <LogoutButton>Logout</LogoutButton>
           </>
         ) : (
           <>

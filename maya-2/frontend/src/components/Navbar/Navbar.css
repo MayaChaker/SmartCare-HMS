@@ -8,7 +8,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 32px;
+  padding: 14px 24px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid #e5e7eb;
@@ -49,8 +49,9 @@
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 26px;
+  gap: 32px;
   margin-right: 8px;
+  font-size: 1rem;
 }
 
 .nav-link {
@@ -86,17 +87,6 @@
   background: #f9fafb;
 }
 
-.navbar .btn-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.navbar .btn-icon svg {
-  font-size: 1.75em;
-  color: inherit;
-}
-
 @media (max-width: 768px) {
   .nav-toggle {
     display: inline-flex;
@@ -106,7 +96,7 @@
   .nav-links {
     display: none;
     position: absolute;
-    top: 64px;
+    top: 72px;
     right: 16px;
     background: white;
     border: 1px solid #e5e7eb;

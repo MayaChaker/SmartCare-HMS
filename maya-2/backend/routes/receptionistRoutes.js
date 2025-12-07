@@ -15,7 +15,6 @@ router.get('/schedules', receptionistController.getAllSchedules);
 router.get('/appointments/today', receptionistController.getTodayAppointments);
 router.get('/appointments/day', receptionistController.getAppointmentsByDate);
 router.get('/appointments', receptionistController.getAllAppointments);
-router.get('/queue', receptionistController.getQueueStatus);
 router.post('/appointments', receptionistController.createAppointment);
 router.put('/appointments/:id', receptionistController.updateAppointment);
 router.put('/checkin/:appointmentId', receptionistController.checkInPatient);

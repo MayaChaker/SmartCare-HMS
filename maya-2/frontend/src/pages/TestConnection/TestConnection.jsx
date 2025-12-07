@@ -44,10 +44,10 @@ const TestConnection = () => {
       <h2>Backend Connection Test</h2>
       <div className="test-actions">
         <button onClick={testRegistration} disabled={loading} className="btn btn-primary">
-          {loading ? 'Testing...' : 'Test Registration'}
+          Test Registration
         </button>
         <button onClick={testLogin} disabled={loading} className="btn btn-success">
-          {loading ? 'Testing...' : 'Test Login'}
+          Test Login
         </button>
       </div>
       {result && (

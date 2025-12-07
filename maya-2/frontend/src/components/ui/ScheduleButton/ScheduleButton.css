@@ -1,0 +1,30 @@
+/* Scoped Schedule button styles for Doctor and Receptionist panels */
+.doctor-panel .schedule-btn,
+.receptionist-panel .schedule-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+  text-decoration: none;
+  background-color: #0284c7;
+  color: #ffffff;
+  border: none;
+  min-width: 120px;
+}
+
+.doctor-panel .schedule-btn:disabled,
+.receptionist-panel .schedule-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.doctor-panel .schedule-btn:hover:not(:disabled),
+.receptionist-panel .schedule-btn:hover:not(:disabled) {
+  background-color: #0284c7;
+}

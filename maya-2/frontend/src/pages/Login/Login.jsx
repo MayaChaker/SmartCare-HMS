@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import "./Login.css";
+import loginImage from "../../assets/login.jpg";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -50,7 +51,7 @@ const Login = () => {
       } else {
         setError(result.error);
       }
-    } catch (_error) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);
@@ -62,15 +63,13 @@ const Login = () => {
       <div className="auth-card auth-card--login">
         <div className="login-card">
           <div className="login-media">
-            <img
-              src="../src/assets/login.jpg"
-              alt="Doctor with patient"
-              className="login-image"
-            />
+            <img src={loginImage} alt="Doctor with patient" className="login-image" />
           </div>
           <div className="login-body">
             <div className="auth-header">
-              <Link to="/" className="brand-logo">SmartCare HMS</Link>
+              <Link to="/" className="brand-logo">
+                SmartCare HMS
+              </Link>
             </div>
 
             {error && <div className="error-message">{error}</div>}
@@ -111,18 +110,7 @@ const Login = () => {
               </div>
 
               <button type="submit" disabled={loading} className="auth-button">
-                {loading ? (
-                  <div className="loading-spinner">
-                    <div className="spinner">
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                      <div className="dot"></div>
-                    </div>
-                    Signing in...
-                  </div>
-                ) : (
-                  "Sign In"
-                )}
+                Sign In
               </button>
             </form>
           </div>

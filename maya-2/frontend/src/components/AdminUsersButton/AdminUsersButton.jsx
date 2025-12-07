@@ -32,11 +32,11 @@ const AdminUsersButton = ({
             <div className="section-header">
               <h2>User Management</h2>
               <button
-                className="btn btn-primary"
+                className="admin-users-add-btn"
                 onClick={() => openModal("createUser")}
               >
                 <span className="btn-icon">
-                  <MdAdd color="blue" />
+                  <MdAdd />
                 </span>
                 Add New User
               </button>

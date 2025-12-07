@@ -22,15 +22,6 @@
   text-align: center;
 }
 
-.loading-spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid #e2e8f0;
-  border-top: 4px solid #3182ce;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
 .loading-text {
   color: #4a5568;
   font-size: 1rem;
@@ -42,12 +33,6 @@
   font-size: 0.875rem;
   text-align: center;
   max-width: 300px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 /* Authentication Error States */

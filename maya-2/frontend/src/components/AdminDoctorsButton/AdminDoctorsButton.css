@@ -77,7 +77,28 @@
 
 /* Removed scoped card styles to keep CSS unchanged as requested */
 
-.doctor-description {
+/* Cards grid and card container (scoped to admin-doctors) */
+.admin-doctors .cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.admin-doctors .doctor-card {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  transition: all 150ms ease-in-out;
+}
+
+.admin-doctors .doctor-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.admin-doctors .doctor-description {
   flex: 1;
   width: 100%;
   padding: 20px;
@@ -91,7 +112,7 @@
 }
 
 /* Consistent image container sizing and centering */
-.doctor-image {
+.admin-doctors .doctor-image {
   height: 180px;
   width: 100%;
   display: flex;
@@ -102,7 +123,7 @@
   border-bottom: 1px solid #e9ecef;
 }
 
-.doctor-photo {
+.admin-doctors .doctor-photo {
   max-width: 100%;
   max-height: 100%;
   width: auto;
@@ -112,7 +133,7 @@
   display: block;
 }
 
-.doctor-name {
+.admin-doctors .doctor-name {
   font-size: 1.2em;
   font-weight: 700;
   margin-bottom: 0;
@@ -121,7 +142,7 @@
   line-height: 1.3;
 }
 
-.doctor-specialization {
+.admin-doctors .doctor-specialization {
   font-size: 1em;
   font-weight: 600;
   color: #3498db;
@@ -133,7 +154,7 @@
   border: none;
 }
 
-.doctor-experience {
+.admin-doctors .doctor-experience {
   font-size: 0.9em;
   color: #27ae60;
   font-weight: 500;
@@ -143,7 +164,7 @@
   gap: 6px;
 }
 
-.doctor-phone {
+.admin-doctors .doctor-phone {
   font-size: 0.9em;
   color: #34495e;
   font-weight: 500;
@@ -157,15 +178,15 @@
 }
 
 /* Bold labels before content */
-.doctor-description .label {
+.admin-doctors .doctor-description .label {
   font-weight: 700;
   color: #1f2937; /* slate-800 */
   margin-right: 6px;
 }
-.doctor-name,
-.doctor-specialization,
-.doctor-experience,
-.doctor-phone {
+.admin-doctors .doctor-name,
+.admin-doctors .doctor-specialization,
+.admin-doctors .doctor-experience,
+.admin-doctors .doctor-phone {
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -175,7 +196,7 @@
   min-width: 0; /* allow flex child to shrink for ellipsis */
 }
 
-.doctor-description .value {
+.admin-doctors .doctor-description .value {
   font-weight: 500;
   color: #374151; /* slate-700 */
   overflow: hidden;
@@ -185,9 +206,51 @@
 }
 
 /* Actions area within doctor card */
-.doctor-actions {
+.admin-doctors .doctor-actions {
   margin-top: auto; /* push to bottom of description */
 }
-.doctor-actions .btn {
+.admin-doctors .doctor-actions .btn {
   width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .admin-doctors .search-input {
+    width: 360px;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-doctors .admin-doctors-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem;
+  }
+  .admin-doctors .admin-doctors-header-left {
+    padding-left: 0;
+  }
+  .admin-doctors .admin-doctors-header-right {
+    width: 100%;
+    margin-left: 0 !important;
+    justify-content: flex-start !important;
+  }
+  .admin-doctors .search-container {
+    justify-content: flex-start;
+  }
+  .admin-doctors .search-input {
+    width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .admin-doctors .admin-doctors-header {
+    gap: 0.5rem;
+  }
+  .admin-doctors .search-input {
+    padding: 8px 10px 8px 36px;
+    font-size: 0.875rem;
+  }
+  .admin-doctors .search-icon {
+    left: 10px;
+    font-size: 0.75rem;
+  }
 }

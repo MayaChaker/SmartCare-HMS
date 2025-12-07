@@ -115,7 +115,7 @@ async function createTables() {
       doctorId: doctor.id,
       diagnosis: 'Hypertension',
       treatment: 'Lifestyle modifications and medication',
-      prescription: 'Lisinopril 10mg daily',
+      prescriptions: 'Lisinopril 10mg daily',
       notes: 'Patient advised on diet and exercise',
       visitDate: '2024-01-15'
     });
