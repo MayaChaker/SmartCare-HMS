@@ -1,12 +1,14 @@
 import React from "react";
 import "./DashboardMedicalRecords.css";
+import { usePatientDashboard } from "../../context/PatientContext";
 
 const DashboardMedicalRecords = ({
   variant = "content",
   active = false,
   onClick = () => {},
-  records = [],
 }) => {
+  const { medicalRecords: records } = usePatientDashboard();
+
   if (variant === "tabButton") {
     return (
       <button
@@ -18,9 +20,7 @@ const DashboardMedicalRecords = ({
     );
   }
 
-  if (!active) {
-    return null;
-  }
+  if (!active) return null;
 
   return (
     <div className="medical-records">
@@ -41,7 +41,14 @@ const DashboardMedicalRecords = ({
             {records.map((record) => (
               <div key={record.id} className="record-item">
                 <div className="record-header">
-                  <div className="record-doctor">Dr. {(record.Doctor && record.Doctor.firstName && record.Doctor.lastName) ? `${record.Doctor.firstName} ${record.Doctor.lastName}` : (record.doctor || "Doctor")}</div>
+                  <div className="record-doctor">
+                    Dr.{" "}
+                    {record.Doctor &&
+                    record.Doctor.firstName &&
+                    record.Doctor.lastName
+                      ? `${record.Doctor.firstName} ${record.Doctor.lastName}`
+                      : record.doctor || "Doctor"}
+                  </div>
                   <div className="record-specialty">
                     {record.Doctor && record.Doctor.specialization
                       ? record.Doctor.specialization
