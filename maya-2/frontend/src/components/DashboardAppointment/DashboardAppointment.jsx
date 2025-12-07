@@ -1,10 +1,21 @@
 import React from "react";
+import { FaUserDoctor } from "react-icons/fa6";
 import "./DashboardAppointment.css";
-import ReshcduleButton from "../ui/ReshcduleButton/ReshcduleButton";
 import CancelButton from "../ui/CancelButton/CancelButton";
 import DeleteButton from "../ui/DeleteButton/DeleteButton";
+import ReshcduleButton from "../ui/ReshcduleButton/ReshcduleButton";
+import { CancelModal } from "../ui/CancelButton/CancelButton";
+import { DeleteModal } from "../ui/DeleteButton/DeleteButton";
+import { ReshcduleModal } from "../ui/ReshcduleButton/ReshcduleButton";
 import { patientAPI } from "../../utils/api";
 import { parseWorkingHours, generateTimeSlots } from "../../utils/schedule";
+import { BookAppointmentModal } from "../DashboardDoctor/DashboardDoctor";
+import {
+  cancelAppointment,
+  deleteAppointment,
+  rescheduleAppointment,
+  bookAppointment,
+} from "../../actions/appointments";
 
 const DashboardAppointment = ({
   variant = "content",
@@ -15,6 +26,7 @@ const DashboardAppointment = ({
   error = "",
   success = "",
   openModal,
+  closeModal,
   doctors = [],
   setProfile = () => {},
   setAppointments = () => {},
@@ -22,100 +34,99 @@ const DashboardAppointment = ({
   setAvailableSlots = () => {},
   setDoctors = () => {},
   setError = () => {},
+  setSuccess = () => {},
   setLoading = () => {},
   onExposeLoadPatientData,
   showModal,
   modalType,
   selectedAppointment,
   availableSlots = [],
+  availableTimesForReschedule = [],
   setAvailableTimesForReschedule = () => {},
+  availableDatesForReschedule = [],
+  setAvailableDatesForReschedule = () => {},
+  selectedDateForReschedule,
+  setSelectedDateForReschedule,
+  selectedDoctorId,
+  setSelectedDoctorId,
+  availableDates = [],
+  selectedDateForBooking,
+  setSelectedDateForBooking,
+  availableTimes = [],
+  setAvailableTimes,
+  selectedTimeForBooking,
+  setSelectedTimeForBooking,
 }) => {
-  const spinnerRef = React.useRef(null);
-  const resolveDoctorImage = (doctorObj, fallbackName) => {
-    const idSeed =
-      doctorObj?.id != null ? String(doctorObj.id) : fallbackName || "Doctor";
+  const [brokenDoctorImageIds, setBrokenDoctorImageIds] = React.useState(
+    new Set()
+  );
+  const resolveDoctorImage = (doctorObj) => {
     const candidate = (
       doctorObj?.profileImage ||
       doctorObj?.photoUrl ||
       ""
     ).trim();
-    if (candidate && candidate.startsWith("/uploads/")) {
+    if (!candidate) return "";
+    if (candidate.startsWith("/uploads/")) {
       return `http://localhost:5000${candidate}`;
     }
-    if (candidate) return candidate;
-    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-      idSeed
-    )}&background=%23ffffff&radius=50`;
+    return candidate;
   };
 
-  React.useEffect(() => {
-    const run = async () => {
-      await loadPatientData();
-    };
-    if (typeof onExposeLoadPatientData === "function") {
-      onExposeLoadPatientData(loadPatientData);
-    }
-    run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const didInitRef = React.useRef(false);
 
-  const loadPatientData = async () => {
+  const loadPatientData = React.useCallback(async () => {
     setLoading(true);
     try {
-      const profileResponse = await patientAPI.getProfile();
-      if (profileResponse.success) {
-        setProfile(profileResponse.data);
-      }
-
-      const appointmentsResponse = await patientAPI.getAppointments();
-      if (appointmentsResponse.success) {
+      const [
+        profileResponse,
+        appointmentsResponse,
+        recordsResponse,
+        slotsResponse,
+        doctorsResponse,
+      ] = await Promise.all([
+        patientAPI.getProfile(),
+        patientAPI.getAppointments(),
+        patientAPI.getMedicalRecords(),
+        patientAPI.getAvailableSlots(),
+        patientAPI.getAllDoctors(),
+      ]);
+      if (profileResponse.success) setProfile(profileResponse.data);
+      if (appointmentsResponse.success)
         setAppointments(appointmentsResponse.data);
-      }
-
-      const recordsResponse = await patientAPI.getMedicalRecords();
-      if (recordsResponse.success) {
-        setMedicalRecords(recordsResponse.data);
-      }
-
-      const slotsResponse = await patientAPI.getAvailableSlots();
-      if (slotsResponse.success) {
+      if (recordsResponse.success) setMedicalRecords(recordsResponse.data);
+      if (slotsResponse.success)
         setAvailableSlots(
           Array.isArray(slotsResponse.data) ? slotsResponse.data : []
         );
-      }
-
-      const doctorsResponse = await patientAPI.getAllDoctors();
-      if (doctorsResponse.success) {
+      if (doctorsResponse.success)
         setDoctors(
           Array.isArray(doctorsResponse.data) ? doctorsResponse.data : []
         );
-      }
     } catch (e) {
       console.error("Error loading patient data:", e);
       setError("Failed to load data. Please refresh the page.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    setProfile,
+    setAppointments,
+    setMedicalRecords,
+    setAvailableSlots,
+    setDoctors,
+    setError,
+    setLoading,
+  ]);
 
   React.useEffect(() => {
-    let raf;
-    let angle = 0;
-    const node = spinnerRef.current;
-    const step = () => {
-      angle = (angle + 6) % 360;
-      if (node) node.style.transform = `rotate(${angle}deg)`;
-      raf = requestAnimationFrame(step);
-    };
-    if (loading) {
-      raf = requestAnimationFrame(step);
-    } else {
-      if (node) node.style.transform = "";
+    if (didInitRef.current) return;
+    didInitRef.current = true;
+    if (typeof onExposeLoadPatientData === "function") {
+      onExposeLoadPatientData(loadPatientData);
     }
-    return () => {
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, [loading]);
+    loadPatientData();
+  }, [loadPatientData, onExposeLoadPatientData]);
 
   React.useEffect(() => {
     const computeRescheduleTimes = async () => {
@@ -125,7 +136,8 @@ const DashboardAppointment = ({
           return;
         }
         const doctorId = String(selectedAppointment.doctorId);
-        const date = selectedAppointment.appointmentDate;
+        const date =
+          selectedDateForReschedule || selectedAppointment.appointmentDate;
         if (doctors.length === 0) {
           const result = await patientAPI.getDoctors();
           if (result.success) {
@@ -137,28 +149,43 @@ const DashboardAppointment = ({
         );
         const { start, end } = parseWorkingHours(doc?.workingHours || "");
         const windowTimes = generateTimeSlots(start, end);
+        const days = parseWorkingHours(doc?.workingHours || "").days || [];
+        const dayNames = days.length ? days.map((d) => d.toLowerCase()) : [];
+        const mapIdx = [
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+        ];
+        const dates = [];
+        const now = new Date();
+        for (let i = 0; i < 14; i++) {
+          const dt = new Date(now);
+          dt.setDate(now.getDate() + i);
+          const name = mapIdx[dt.getDay()];
+          if (!dayNames.length || dayNames.includes(name)) {
+            const y = dt.getFullYear();
+            const m = String(dt.getMonth() + 1).padStart(2, "0");
+            const d = String(dt.getDate()).padStart(2, "0");
+            dates.push(`${y}-${m}-${d}`);
+          }
+        }
+        setAvailableDatesForReschedule(dates);
+        if (windowTimes.length > 0) {
+          setAvailableTimesForReschedule(windowTimes);
+        }
         let bookedTimes = [];
         if (doctorId && date) {
           try {
-            const token = localStorage.getItem("token") || "";
-            const resp = await fetch(
-              `/api/patient/doctors/${doctorId}/booked-times?date=${encodeURIComponent(
-                date
-              )}`,
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: token ? `Bearer ${token}` : "",
-                },
-                credentials: "include",
-              }
-            );
-            if (resp.ok) {
-              const data = await resp.json();
-              bookedTimes = Array.isArray(data.bookedTimes)
-                ? data.bookedTimes
-                : [];
-            }
+            const resp = await patientAPI.getDoctorBookedTimes(doctorId, date);
+            bookedTimes = resp.success
+              ? Array.isArray(resp.data?.bookedTimes)
+                ? resp.data.bookedTimes
+                : []
+              : [];
           } catch (e) {
             console.warn(e);
             bookedTimes = [];
@@ -180,7 +207,51 @@ const DashboardAppointment = ({
     availableSlots,
     setAvailableTimesForReschedule,
     setDoctors,
+    selectedDateForReschedule,
+    setAvailableDatesForReschedule,
   ]);
+
+  const handleCancelAppointment = async (appointmentId) => {
+    await cancelAppointment(appointmentId, {
+      setLoading,
+      setError,
+      setSuccess,
+      loadPatientData,
+      closeModal,
+    });
+  };
+
+  const handleDeleteAppointment = async (appointmentId) => {
+    await deleteAppointment(appointmentId, {
+      setLoading,
+      setError,
+      setSuccess,
+      loadPatientData,
+      closeModal,
+    });
+  };
+
+  const handleRescheduleAppointment = async (appointmentId, newSlotData) => {
+    await rescheduleAppointment(appointmentId, newSlotData, {
+      setLoading,
+      setError,
+      setSuccess,
+      loadPatientData,
+      closeModal,
+    });
+  };
+
+  const handleBookAppointment = async (appointmentData) => {
+    await bookAppointment(appointmentData, {
+      availableSlots,
+      appointments,
+      setLoading,
+      setError,
+      setSuccess,
+      loadPatientData,
+      closeModal,
+    });
+  };
 
   if (variant === "tabButton") {
     return (
@@ -198,7 +269,7 @@ const DashboardAppointment = ({
   }
 
   return (
-    <div className="card">
+    <div className="card appointments-card">
       <div className="card-header">
         <h3 className="card-title">My Appointments</h3>
       </div>
@@ -207,11 +278,76 @@ const DashboardAppointment = ({
 
       {success && <div className="alert alert-success">{success}</div>}
 
-      {loading ? (
-        <div className="loading">
-          <div className="spinner" ref={spinnerRef}></div>
-        </div>
-      ) : appointments.filter(
+      {showModal &&
+        (modalType === "cancel" ||
+          modalType === "reschedule" ||
+          modalType === "delete" ||
+          modalType === "book") && (
+          <div className="modal-overlay" onClick={closeModal}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>
+                  {modalType === "cancel" && "Cancel Appointment"}
+                  {modalType === "reschedule" && "Reschedule Appointment"}
+                  {modalType === "book" && "Book New Appointment"}
+                </h3>
+                <button className="modal-close" onClick={closeModal}>
+                  ×
+                </button>
+              </div>
+              <div className="modal-content">
+                {error && <div className="alert alert-error">{error}</div>}
+                {success && (
+                  <div className="alert alert-success">{success}</div>
+                )}
+                {modalType === "cancel" && selectedAppointment && (
+                  <CancelModal
+                    selectedAppointment={selectedAppointment}
+                    closeModal={closeModal}
+                    onCancel={handleCancelAppointment}
+                  />
+                )}
+                {modalType === "reschedule" && selectedAppointment && (
+                  <ReshcduleModal
+                    selectedAppointment={selectedAppointment}
+                    availableTimesForReschedule={availableTimesForReschedule}
+                    availableDatesForReschedule={availableDatesForReschedule}
+                    selectedDateForReschedule={selectedDateForReschedule}
+                    setSelectedDateForReschedule={setSelectedDateForReschedule}
+                    closeModal={closeModal}
+                    onReschedule={handleRescheduleAppointment}
+                  />
+                )}
+                {modalType === "delete" && selectedAppointment && (
+                  <DeleteModal
+                    selectedAppointment={selectedAppointment}
+                    closeModal={closeModal}
+                    onDelete={handleDeleteAppointment}
+                  />
+                )}
+                {modalType === "book" && (
+                  <BookAppointmentModal
+                    selectedDoctorId={selectedDoctorId}
+                    setSelectedDoctorId={setSelectedDoctorId}
+                    availableSlots={availableSlots}
+                    doctors={doctors}
+                    availableDates={availableDates}
+                    selectedDateForBooking={selectedDateForBooking}
+                    setSelectedDateForBooking={setSelectedDateForBooking}
+                    selectedTimeForBooking={selectedTimeForBooking}
+                    setSelectedTimeForBooking={setSelectedTimeForBooking}
+                    availableTimes={availableTimes}
+                    setAvailableTimes={setAvailableTimes}
+                    handleBookAppointment={handleBookAppointment}
+                    closeModal={closeModal}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+      {loading ? null : appointments.filter(
           (a) => String(a.status).toLowerCase() !== "cancelled"
         ).length === 0 ? (
         <div className="empty-state">
@@ -245,32 +381,55 @@ const DashboardAppointment = ({
                         appointment.doctor ||
                         "Doctor";
                       const imgSrc = resolveDoctorImage(doctorObj, displayName);
+                      const broken = brokenDoctorImageIds.has(
+                        parseInt(appointment.doctorId)
+                      );
                       return (
                         <>
-                          <img
-                            src={imgSrc}
-                            alt={displayName}
-                            style={{
-                              width: "28px",
-                              height: "28px",
-                              borderRadius: "50%",
-                              objectFit: "cover",
-                              border: "1px solid #e5e5ea",
-                              background: "#fff",
-                            }}
-                          />
+                          {imgSrc && !broken ? (
+                            <img
+                              src={imgSrc}
+                              alt={displayName}
+                              style={{
+                                width: "28px",
+                                height: "28px",
+                                borderRadius: "50%",
+                                objectFit: "cover",
+                                border: "1px solid #e5e5ea",
+                                background: "#fff",
+                              }}
+                              onError={() =>
+                                setBrokenDoctorImageIds((prev) => {
+                                  const next = new Set(prev);
+                                  next.add(parseInt(appointment.doctorId));
+                                  return next;
+                                })
+                              }
+                            />
+                          ) : (
+                            <span
+                              style={{
+                                width: "28px",
+                                height: "28px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                borderRadius: "50%",
+                                border: "1px solid #e5e5ea",
+                                background: "#fff",
+                                color: "#0284c7",
+                                fontSize: "20px",
+                              }}
+                              aria-hidden="true"
+                            >
+                              <FaUserDoctor />
+                            </span>
+                          )}
                           <span>{displayName}</span>
                         </>
                       );
                     })()}
                   </div>
-                  <span
-                    className={`appointment-status status-${appointment.status
-                      .toLowerCase()
-                      .replace(" ", "-")}`}
-                  >
-                    {appointment.status}
-                  </span>
                 </div>
                 <div className="appointment-details">
                   <div>
@@ -300,33 +459,50 @@ const DashboardAppointment = ({
                     </div>
                   )}
                 </div>
-                {String(appointment.status).toLowerCase() === "scheduled" && (
-                  <div
-                    className="appointment-actions"
-                    style={{ marginTop: "15px", display: "flex", gap: "10px" }}
-                  >
-                    <ReshcduleButton
-                      openModal={openModal}
-                      appointment={appointment}
-                    />
-                    <CancelButton
-                      openModal={openModal}
-                      appointment={appointment}
-                      disabled={loading}
-                    />
-                  </div>
-                )}
-                {String(appointment.status).toLowerCase() === "completed" && (
-                  <div
-                    className="appointment-actions"
-                    style={{ marginTop: "15px", display: "flex", gap: "10px" }}
-                  >
-                    <DeleteButton
-                      openModal={openModal}
-                      appointment={appointment}
-                    />
-                  </div>
-                )}
+                {(() => {
+                  const status = String(appointment.status).toLowerCase();
+                  if (status === "completed") {
+                    return (
+                      <div
+                        className="appointment-actions"
+                        style={{
+                          marginTop: "15px",
+                          display: "flex",
+                          gap: "10px",
+                        }}
+                      >
+                        <DeleteButton
+                          openModal={openModal}
+                          appointment={appointment}
+                        />
+                      </div>
+                    );
+                  }
+                  if (status === "scheduled") {
+                    return (
+                      <div
+                        className="appointment-actions"
+                        style={{
+                          marginTop: "15px",
+                          display: "flex",
+                          gap: "10px",
+                        }}
+                      >
+                        <CancelButton
+                          openModal={openModal}
+                          appointment={appointment}
+                          disabled={loading}
+                        />
+                        <ReshcduleButton
+                          openModal={openModal}
+                          appointment={appointment}
+                          disabled={loading}
+                        />
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
             ))}
         </div>
@@ -336,89 +512,3 @@ const DashboardAppointment = ({
 };
 
 export default DashboardAppointment;
-
-export const ReshcduleModal = ({
-  selectedAppointment,
-  availableTimesForReschedule,
-  closeModal,
-  onReschedule,
-}) => {
-  if (!selectedAppointment) return null;
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        onReschedule(selectedAppointment.id, String(formData.get("newSlotId")));
-      }}
-    >
-      <p>
-        Current appointment:{" "}
-        {selectedAppointment.doctor || selectedAppointment.doctorName} on{" "}
-        {selectedAppointment.appointmentDate
-          ? new Date(selectedAppointment.appointmentDate).toLocaleDateString()
-          : "TBD"}{" "}
-        at{" "}
-        {selectedAppointment.appointmentTime
-          ? String(selectedAppointment.appointmentTime).slice(0, 5)
-          : ""}
-      </p>
-      <div className="form-group">
-        <label>New Appointment Time</label>
-        <select name="newSlotId" className="form-control" required>
-          <option value="">Select a new time</option>
-          {availableTimesForReschedule &&
-          availableTimesForReschedule.length > 0 ? (
-            availableTimesForReschedule.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))
-          ) : (
-            <option value="" disabled>
-              No available times
-            </option>
-          )}
-        </select>
-      </div>
-      <div className="modal-actions">
-        <button type="button" className="btn btn-outline" onClick={closeModal}>
-          Cancel
-        </button>
-        <button type="submit" className="btn btn-primary">
-          Reschedule
-        </button>
-      </div>
-    </form>
-  );
-};
-
-export const DeleteModal = ({ selectedAppointment, closeModal, onDelete }) => {
-  if (!selectedAppointment) return null;
-  return (
-    <div>
-      <p>
-        Delete this completed appointment with{" "}
-        {selectedAppointment.doctor || selectedAppointment.doctorName} on{" "}
-        {selectedAppointment.appointmentDate
-          ? new Date(selectedAppointment.appointmentDate).toLocaleDateString()
-          : "TBD"}{" "}
-        {selectedAppointment.appointmentTime
-          ? `at ${String(selectedAppointment.appointmentTime).slice(0, 5)}`
-          : ""}
-        ?
-      </p>
-      <div className="modal-actions">
-        <button className="btn btn-outline" onClick={closeModal}>
-          Keep Appointment
-        </button>
-        <button
-          className="btn btn-danger"
-          onClick={() => onDelete(selectedAppointment.id)}
-        >
-          Delete Appointment
-        </button>
-      </div>
-    </div>
-  );
-};

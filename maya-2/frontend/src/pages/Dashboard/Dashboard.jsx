@@ -1,31 +1,18 @@
-import React, { useState, useContext, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import LogoutButton from "../../components/ui/LogoutButton/LogoutButton";
 import { FaUserInjured } from "react-icons/fa6";
-import { AuthContext } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import DashboardAppointment from "../../components/DashboardAppointment/DashboardAppointment";
-import { CancelModal } from "../../components/ui/CancelButton/CancelButton";
-import { ReshcduleModal } from "../../components/ui/ReshcduleButton/ReshcduleButton";
-import { DeleteModal } from "../../components/ui/DeleteButton/DeleteButton";
 import { EditProfileModal } from "../../components/ui/EditButton/EditButton";
-import DashboardDoctor, {
-  BookAppointmentModal,
-} from "../../components/DashboardDoctor/DashboardDoctor";
-
+import DashboardDoctor from "../../components/DashboardDoctor/DashboardDoctor";
 import DashboardMedicalRecords from "../../components/DashboardMedicalRecords/DashboardMedicalRecords";
-import {
-  bookAppointment,
-  cancelAppointment,
-  rescheduleAppointment,
-  deleteAppointment,
-} from "../../actions/appointments";
-
 import "./Dashboard.css";
 import DashboardProfile from "../../components/DashboardProfile/DashboardProfile";
-import DashboardPatient from "../../components/DashboardPatient/DashboardPatient";
+import { patientAPI } from "../../utils/api";
 
 const Dashboard = () => {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("appointments");
 
@@ -63,13 +50,12 @@ const Dashboard = () => {
   const [selectedTimeForBooking, setSelectedTimeForBooking] = useState("");
   const [availableTimesForReschedule, setAvailableTimesForReschedule] =
     useState([]);
+  const [availableDatesForReschedule, setAvailableDatesForReschedule] =
+    useState([]);
+  const [selectedDateForReschedule, setSelectedDateForReschedule] =
+    useState("");
 
   const loadPatientDataRef = useRef(null);
-  const loadPatientData = async () => {
-    if (typeof loadPatientDataRef.current === "function") {
-      await loadPatientDataRef.current();
-    }
-  };
 
   // Resolve first name from profile or auth user
   const firstNameDisplay =
@@ -99,49 +85,28 @@ const Dashboard = () => {
     setSelectedTimeForBooking("");
   };
 
-  const handleBookAppointment = async (appointmentData) => {
-    await bookAppointment(appointmentData, {
-      availableSlots,
-      appointments,
-      setLoading,
-      setError,
-      setSuccess,
-      loadPatientData,
-      closeModal,
-    });
-  };
-
-  const handleCancelAppointment = async (appointmentId) => {
-    await cancelAppointment(appointmentId, {
-      setLoading,
-      setError,
-      setSuccess,
-      loadPatientData,
-      closeModal,
-    });
-  };
-
-  const handleDeleteAppointment = async (appointmentId) => {
-    await deleteAppointment(appointmentId, {
-      setLoading,
-      setError,
-      setSuccess,
-      loadPatientData,
-      closeModal,
-    });
-  };
-
-  const handleRescheduleAppointment = async (appointmentId, newSlotData) => {
-    await rescheduleAppointment(appointmentId, newSlotData, {
-      setLoading,
-      setError,
-      setSuccess,
-      loadPatientData,
-      closeModal,
-    });
-  };
-
   const updateProfileRef = useRef(null);
+  const updateProfile = async (updatedProfile) => {
+    setLoading(true);
+    try {
+      const response = await patientAPI.updateProfile(updatedProfile);
+      if (response.success) {
+        const profileResponse = await patientAPI.getProfile();
+        if (profileResponse.success) {
+          setProfile(profileResponse.data);
+        }
+        setSuccess("Profile updated successfully!");
+        closeModal();
+      } else {
+        setError(response.message || "Failed to update profile");
+      }
+    } catch {
+      setError("Failed to update profile. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  updateProfileRef.current = updateProfile;
   const handleUpdateProfile = async (updatedProfile) => {
     if (typeof updateProfileRef.current === "function") {
       await updateProfileRef.current(updatedProfile);
@@ -150,73 +115,26 @@ const Dashboard = () => {
 
   const renderModal = () => {
     if (!showModal) return null;
+    if (modalType !== "editProfile") return null;
 
     return (
       <div className="modal-overlay" onClick={closeModal}>
         <div className="modal" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
-            <h3>
-              {modalType === "book" && "Book New Appointment"}
-              {modalType === "cancel" && "Cancel Appointment"}
-              {modalType === "reschedule" && "Reschedule Appointment"}
-              {modalType === "editProfile" && "Edit Profile"}
-            </h3>
+            <h3>Edit Profile</h3>
             <button className="modal-close" onClick={closeModal}>
               ×
             </button>
           </div>
           <div className="modal-content">
             {error && <div className="alert alert-error">{error}</div>}
-
             {success && <div className="alert alert-success">{success}</div>}
-
-            {modalType === "editProfile" && (
-              <EditProfileModal
-                profile={profile}
-                loading={loading}
-                onSubmit={handleUpdateProfile}
-                closeModal={closeModal}
-              />
-            )}
-
-            {modalType === "book" && (
-              <BookAppointmentModal
-                selectedDoctorId={selectedDoctorId}
-                setSelectedDoctorId={setSelectedDoctorId}
-                availableSlots={availableSlots}
-                availableDates={availableDates}
-                selectedDateForBooking={selectedDateForBooking}
-                setSelectedDateForBooking={setSelectedDateForBooking}
-                selectedTimeForBooking={selectedTimeForBooking}
-                setSelectedTimeForBooking={setSelectedTimeForBooking}
-                availableTimes={availableTimes}
-                setAvailableTimes={setAvailableTimes}
-                handleBookAppointment={handleBookAppointment}
-                closeModal={closeModal}
-              />
-            )}
-            {modalType === "cancel" && selectedAppointment && (
-              <CancelModal
-                selectedAppointment={selectedAppointment}
-                closeModal={closeModal}
-                onCancel={handleCancelAppointment}
-              />
-            )}
-            {modalType === "reschedule" && selectedAppointment && (
-              <ReshcduleModal
-                selectedAppointment={selectedAppointment}
-                availableTimesForReschedule={availableTimesForReschedule}
-                closeModal={closeModal}
-                onReschedule={handleRescheduleAppointment}
-              />
-            )}
-            {modalType === "delete" && selectedAppointment && (
-              <DeleteModal
-                selectedAppointment={selectedAppointment}
-                closeModal={closeModal}
-                onDelete={handleDeleteAppointment}
-              />
-            )}
+            <EditProfileModal
+              profile={profile}
+              loading={loading}
+              onSubmit={handleUpdateProfile}
+              closeModal={closeModal}
+            />
           </div>
         </div>
       </div>
@@ -249,7 +167,7 @@ const Dashboard = () => {
               </h1>
             </div>
             <div className="user-info">
-              <LogoutButton variant="outline">Logout</LogoutButton>
+              <LogoutButton>Logout</LogoutButton>
             </div>
           </nav>
         </div>
@@ -257,6 +175,42 @@ const Dashboard = () => {
 
       <main className="dashboard-content">
         <div className="container">
+          {(() => {
+            const requiredFields = ["bloodType", "allergies", "gender"];
+            const missingFields = requiredFields.filter((f) => {
+              const v = (profile?.[f] ?? "").toString().trim();
+              return !v;
+            });
+            if (!loading && missingFields.length > 0) {
+              return (
+                <div
+                  className="alert alert-warning"
+                  style={{
+                    marginBottom: 16,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  <span className="alert-icon">⚠️</span>
+                  <span className="alert-message">
+                    {`Your profile is incomplete. Missing: ${missingFields
+                      .map((f) =>
+                        f === "bloodType"
+                          ? "Blood Type"
+                          : f === "allergies"
+                          ? "Allergies"
+                          : f === "gender"
+                          ? "Gender"
+                          : f
+                      )
+                      .join(", ")}.`}
+                  </span>
+                </div>
+              );
+            }
+            return null;
+          })()}
           <div className="dashboard-tabs">
             <DashboardAppointment
               variant="tabButton"
@@ -280,11 +234,7 @@ const Dashboard = () => {
             />
           </div>
 
-          {loading ? (
-            <div className="loading">
-              <div className="spinner"></div>
-            </div>
-          ) : (
+          {loading ? null : (
             <>
               <DashboardAppointment
                 variant="content"
@@ -294,6 +244,7 @@ const Dashboard = () => {
                 error={error}
                 success={success}
                 openModal={openModal}
+                closeModal={closeModal}
                 doctors={doctors}
                 setProfile={setProfile}
                 setAppointments={setAppointments}
@@ -309,7 +260,21 @@ const Dashboard = () => {
                 modalType={modalType}
                 selectedAppointment={selectedAppointment}
                 availableSlots={availableSlots}
+                availableTimesForReschedule={availableTimesForReschedule}
                 setAvailableTimesForReschedule={setAvailableTimesForReschedule}
+                setAvailableDatesForReschedule={setAvailableDatesForReschedule}
+                availableDatesForReschedule={availableDatesForReschedule}
+                selectedDateForReschedule={selectedDateForReschedule}
+                setSelectedDateForReschedule={setSelectedDateForReschedule}
+                selectedDoctorId={selectedDoctorId}
+                setSelectedDoctorId={setSelectedDoctorId}
+                availableDates={availableDates}
+                selectedDateForBooking={selectedDateForBooking}
+                setSelectedDateForBooking={setSelectedDateForBooking}
+                selectedTimeForBooking={selectedTimeForBooking}
+                setSelectedTimeForBooking={setSelectedTimeForBooking}
+                availableTimes={availableTimes}
+                setAvailableTimes={setAvailableTimes}
               />
               <DashboardMedicalRecords
                 variant="content"
@@ -325,16 +290,6 @@ const Dashboard = () => {
                 onDoctorsLoaded={(list) => setDoctors(list)}
                 selectedDoctorId={selectedDoctorId}
                 setAvailableDates={setAvailableDates}
-              />
-              <DashboardPatient
-                onExposeUpdateProfile={(fn) => {
-                  updateProfileRef.current = fn;
-                }}
-                setLoading={setLoading}
-                setError={setError}
-                setSuccess={setSuccess}
-                setProfile={setProfile}
-                closeModal={closeModal}
               />
               <DashboardProfile
                 variant="content"
