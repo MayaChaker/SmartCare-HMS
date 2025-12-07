@@ -219,6 +219,8 @@ exports.getAllDoctors = async (req, res) => {
         "firstName",
         "lastName",
         "specialization",
+        "availability",
+        "workingHours",
         "phone",
         "photoUrl",
       ],
@@ -333,10 +335,12 @@ exports.getDoctorBookedTimes = async (req, res) => {
         .json({ message: "Missing date query parameter (YYYY-MM-DD)" });
     }
 
+    const { Op } = require("sequelize");
     const appts = await Appointment.findAll({
       where: {
         doctorId: id,
         appointmentDate: date,
+        status: { [Op.not]: "cancelled" },
       },
       attributes: ["appointmentTime"],
       order: [["appointmentTime", "ASC"]],

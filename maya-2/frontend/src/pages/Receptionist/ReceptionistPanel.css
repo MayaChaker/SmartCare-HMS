@@ -572,6 +572,13 @@
 .receptionist-panel .btn-secondary:hover:not(:disabled) {
   background-color: #4b5563;
 }
+.receptionist-panel .btn-danger {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+.receptionist-panel .btn-danger:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
 .receptionist-panel .btn-outline {
   background-color: transparent;
   color: #0284c7;

@@ -81,6 +81,26 @@ export const AuthProvider = ({ children }) => {
     return user?.role || null;
   };
 
+  const getDefaultRouteForRole = (role) => {
+    switch (role) {
+      case "admin":
+        return "/admin";
+      case "doctor":
+        return "/doctor";
+      case "receptionist":
+        return "/receptionist";
+      case "patient":
+        return "/dashboard";
+      default:
+        return "/";
+    }
+  };
+
+  const isRoleAllowed = (roles = []) => {
+    if (!Array.isArray(roles) || roles.length === 0) return true;
+    return roles.includes(user?.role);
+  };
+
   const value = {
     user,
     login,
@@ -90,6 +110,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     hasRole,
     getUserRole,
+    getDefaultRouteForRole,
+    isRoleAllowed,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

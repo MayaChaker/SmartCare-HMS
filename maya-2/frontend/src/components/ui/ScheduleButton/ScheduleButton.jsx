@@ -16,4 +16,3 @@ const ScheduleButton = ({ onClick, disabled = false, style }) => {
 };
 
 export default ScheduleButton;
-

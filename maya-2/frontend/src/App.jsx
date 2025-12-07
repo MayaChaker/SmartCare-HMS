@@ -1,16 +1,20 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
-import RoleBasedRoute from './components/RoleBasedRoute/RoleBasedRoute';
-import Home from './pages/Home/Home';
-import Login from './pages/Login/Login';
-import Register from './pages/Register/Register';
-import Dashboard from './pages/Dashboard/Dashboard';
-import AdminPanel from './pages/Admin/AdminPanel';
-import DoctorPanel from './pages/Doctor/DoctorPanel';
-import ReceptionistPanel from './pages/Receptionist/ReceptionistPanel';
-import TestConnection from './pages/TestConnection/TestConnection';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+import Home from "./pages/Home/Home";
+import Login from "./pages/Login/Login";
+import Register from "./pages/Register/Register";
+import Dashboard from "./pages/Dashboard/Dashboard";
+import AdminPanel from "./pages/Admin/AdminPanel";
+import DoctorPanel from "./pages/Doctor/DoctorPanel";
+import ReceptionistPanel from "./pages/Receptionist/ReceptionistPanel";
+import TestConnection from "./pages/TestConnection/TestConnection";
 
 function App() {
   return (
@@ -21,37 +25,37 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route 
-              path="/dashboard" 
+            <Route
+              path="/dashboard"
               element={
-                <RoleBasedRoute allowedRoles={['patient']}>
+                <ProtectedRoute allowedRoles={["patient"]}>
                   <Dashboard />
-                </RoleBasedRoute>
-              } 
+                </ProtectedRoute>
+              }
             />
-            <Route 
-              path="/admin" 
+            <Route
+              path="/admin"
               element={
-                <RoleBasedRoute allowedRoles={['admin']}>
+                <ProtectedRoute allowedRoles={["admin"]}>
                   <AdminPanel />
-                </RoleBasedRoute>
-              } 
+                </ProtectedRoute>
+              }
             />
-            <Route 
-              path="/doctor" 
+            <Route
+              path="/doctor"
               element={
-                <RoleBasedRoute allowedRoles={['doctor']}>
+                <ProtectedRoute allowedRoles={["doctor"]}>
                   <DoctorPanel />
-                </RoleBasedRoute>
-              } 
+                </ProtectedRoute>
+              }
             />
-            <Route 
-              path="/receptionist" 
+            <Route
+              path="/receptionist"
               element={
-                <RoleBasedRoute allowedRoles={['receptionist']}>
+                <ProtectedRoute allowedRoles={["receptionist"]}>
                   <ReceptionistPanel />
-                </RoleBasedRoute>
-              } 
+                </ProtectedRoute>
+              }
             />
             <Route path="/test" element={<TestConnection />} />
           </Routes>

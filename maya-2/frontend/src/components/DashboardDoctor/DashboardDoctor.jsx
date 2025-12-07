@@ -291,7 +291,6 @@ export const BookAppointmentModal = ({
   availableTimes,
   setAvailableTimes,
   handleBookAppointment,
-  closeModal,
   doctors = [],
 }) => {
   const doctorList =
@@ -304,6 +303,15 @@ export const BookAppointmentModal = ({
   const selectedDoctor = doctorList.find(
     (d) => d.id === parseInt(selectedDoctorId, 10)
   );
+
+  const formatTimeWithMeridiem = (hhmm) => {
+    const [hStr, mStr] = String(hhmm || "").split(":");
+    const h = parseInt(hStr, 10);
+    if (Number.isNaN(h)) return hhmm;
+    const meridiem = h < 12 ? "AM" : "PM";
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${mStr} ${meridiem}`;
+  };
 
   return (
     <form
@@ -466,7 +474,13 @@ export const BookAppointmentModal = ({
                   const { start, end } = parseWorkingHours(
                     doc?.workingHours || ""
                   );
-                  return start && end ? `${start} - ${end}` : "09:00 - 17:00";
+                  return start && end
+                    ? `${formatTimeWithMeridiem(
+                        start
+                      )} - ${formatTimeWithMeridiem(end)}`
+                    : `${formatTimeWithMeridiem(
+                        "09:00"
+                      )} - ${formatTimeWithMeridiem("17:00")}`;
                 })()}
               </div>
               <select
@@ -485,10 +499,13 @@ export const BookAppointmentModal = ({
                     return acc;
                   }, {});
                   return Object.entries(timesByHour).map(([hour, times]) => (
-                    <optgroup key={hour} label={`${hour}:00`}>
+                    <optgroup
+                      key={hour}
+                      label={`${formatTimeWithMeridiem(`${hour}:00`)}`}
+                    >
                       {times.map((tt) => (
                         <option key={tt} value={tt}>
-                          {tt}
+                          {formatTimeWithMeridiem(tt)}
                         </option>
                       ))}
                     </optgroup>
@@ -529,9 +546,6 @@ export const BookAppointmentModal = ({
       </div>
 
       <div className="modal-actions">
-        <button type="button" className="btn btn-outline" onClick={closeModal}>
-          Cancel
-        </button>
         <button type="submit" className="btn btn-primary">
           Book Appointment
         </button>

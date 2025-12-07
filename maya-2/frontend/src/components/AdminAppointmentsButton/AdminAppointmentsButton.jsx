@@ -1,9 +1,12 @@
 import React from "react";
 import { GoChecklist } from "react-icons/go";
 import "./AdminAppointmentsButton.css";
+import { useAdmin } from "../../context/AdminContext";
 
-const AdminAppointmentsButton = ({ activeSection, setActiveSection }) => {
+const AdminAppointmentsButton = () => {
+  const { activeSection, setActiveSection } = useAdmin();
   const isActive = activeSection === "appointments";
+
   return (
     <button
       className={`admin-nav-item ${isActive ? "active" : ""}`}

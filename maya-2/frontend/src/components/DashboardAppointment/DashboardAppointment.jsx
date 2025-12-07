@@ -51,17 +51,6 @@ const DashboardAppointment = ({
     availableSlots,
     setAvailableSlots,
 
-    // Booking
-    selectedDoctorId,
-    setSelectedDoctorId,
-    availableDates,
-    selectedDateForBooking,
-    setSelectedDateForBooking,
-    availableTimes,
-    setAvailableTimes,
-    selectedTimeForBooking,
-    setSelectedTimeForBooking,
-
     // Reschedule
     availableTimesForReschedule,
     setAvailableTimesForReschedule,
@@ -238,54 +227,6 @@ const DashboardAppointment = ({
   ]);
 
   // ---- Handlers ----
-  const handleBookAppointment = async (appointmentData) => {
-    setLoading(true);
-    setError("");
-    setSuccess("");
-
-    try {
-      const doctorForBooking = availableSlots.find(
-        (d) => d.id === parseInt(appointmentData.doctorId, 10)
-      );
-      if (doctorForBooking && doctorForBooking.availability === false) {
-        setError(
-          "Selected doctor is currently unavailable. Please choose another date or doctor."
-        );
-        return;
-      }
-
-      const conflict = appointments.some(
-        (a) =>
-          parseInt(a.doctorId, 10) === parseInt(appointmentData.doctorId, 10) &&
-          String(a.appointmentDate) ===
-            String(appointmentData.appointmentDate) &&
-          a.appointmentTime &&
-          appointmentData.appointmentTime &&
-          String(a.appointmentTime).slice(0, 5) ===
-            String(appointmentData.appointmentTime).slice(0, 5) &&
-          String(a.status).toLowerCase() !== "cancelled"
-      );
-
-      if (conflict) {
-        setError("Selected date/time is already booked for this doctor.");
-        return;
-      }
-
-      const response = await patientAPI.bookAppointment(appointmentData);
-      if (response.success) {
-        setSuccess("Appointment booked successfully!");
-        await loadPatientData();
-        closeModal();
-      } else {
-        setError(response.message || "Failed to book appointment");
-      }
-    } catch (e) {
-      console.error(e);
-      setError("Failed to book appointment. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCancelAppointment = async (appointmentId) => {
     setLoading(true);
@@ -400,6 +341,15 @@ const DashboardAppointment = ({
     (a) => String(a.status).toLowerCase() !== "cancelled"
   );
 
+  const formatTimeWithMeridiem = (hhmm) => {
+    const [hStr, mStr] = String(hhmm || "").split(":");
+    const h = parseInt(hStr, 10);
+    if (Number.isNaN(h)) return hhmm;
+    const meridiem = h < 12 ? "AM" : "PM";
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${mStr} ${meridiem}`;
+  };
+
   return (
     <div className="card appointments-card">
       <div className="card-header">
@@ -413,8 +363,7 @@ const DashboardAppointment = ({
       {showModal &&
         (modalType === "cancel" ||
           modalType === "reschedule" ||
-          modalType === "delete" ||
-          modalType === "book") && (
+          modalType === "delete") && (
           <div className="modal-overlay" onClick={closeModal}>
             <div className="modal" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
@@ -436,7 +385,6 @@ const DashboardAppointment = ({
                 {modalType === "cancel" && selectedAppointment && (
                   <CancelModal
                     selectedAppointment={selectedAppointment}
-                    closeModal={closeModal}
                     onCancel={handleCancelAppointment}
                   />
                 )}
@@ -448,7 +396,6 @@ const DashboardAppointment = ({
                     availableDatesForReschedule={availableDatesForReschedule}
                     selectedDateForReschedule={selectedDateForReschedule}
                     setSelectedDateForReschedule={setSelectedDateForReschedule}
-                    closeModal={closeModal}
                     onReschedule={handleRescheduleAppointment}
                   />
                 )}
@@ -458,24 +405,6 @@ const DashboardAppointment = ({
                     selectedAppointment={selectedAppointment}
                     closeModal={closeModal}
                     onDelete={handleDeleteAppointment}
-                  />
-                )}
-
-                {modalType === "book" && (
-                  <BookAppointmentModal
-                    selectedDoctorId={selectedDoctorId}
-                    setSelectedDoctorId={setSelectedDoctorId}
-                    availableSlots={availableSlots}
-                    doctors={doctors}
-                    availableDates={availableDates}
-                    selectedDateForBooking={selectedDateForBooking}
-                    setSelectedDateForBooking={setSelectedDateForBooking}
-                    selectedTimeForBooking={selectedTimeForBooking}
-                    setSelectedTimeForBooking={setSelectedTimeForBooking}
-                    availableTimes={availableTimes}
-                    setAvailableTimes={setAvailableTimes}
-                    handleBookAppointment={handleBookAppointment}
-                    closeModal={closeModal}
                   />
                 )}
               </div>
@@ -571,7 +500,9 @@ const DashboardAppointment = ({
                         ).toLocaleDateString()
                       : "TBD"}{" "}
                     {appointment.appointmentTime
-                      ? `at ${String(appointment.appointmentTime).slice(0, 5)}`
+                      ? `at ${formatTimeWithMeridiem(
+                          String(appointment.appointmentTime).slice(0, 5)
+                        )}`
                       : ""}
                   </div>
                   <div>

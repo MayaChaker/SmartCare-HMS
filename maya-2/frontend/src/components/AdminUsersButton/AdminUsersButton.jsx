@@ -2,18 +2,22 @@ import React from "react";
 import { FaUsersCog } from "react-icons/fa";
 import { MdAdd, MdEdit, MdDelete } from "react-icons/md";
 import "./AdminUsersButton.css";
+import { useAdmin } from "../../context/AdminContext";
 
-const AdminUsersButton = ({
-  activeSection,
-  setActiveSection,
-  renderContent = false,
-  users = [],
-  openModal,
-  handleDeleteUser,
-}) => {
+const AdminUsersButton = ({ renderContent = false }) => {
+  const {
+    activeSection,
+    setActiveSection,
+    users,
+    openModal,
+    handleDeleteUser,
+  } = useAdmin();
+
   const isActive = activeSection === "users";
+
   return (
     <>
+      {/* Sidebar button */}
       {!renderContent && (
         <button
           className={`admin-nav-item ${isActive ? "active" : ""}`}
@@ -26,6 +30,7 @@ const AdminUsersButton = ({
         </button>
       )}
 
+      {/* Main content */}
       {renderContent && isActive && (
         <div className="admin-users">
           <div className="section-content">
@@ -64,7 +69,11 @@ const AdminUsersButton = ({
                           {user.role}
                         </span>
                       </td>
-                      <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                      <td>
+                        {user.createdAt
+                          ? new Date(user.createdAt).toLocaleDateString()
+                          : "-"}
+                      </td>
                       <td>
                         <div className="action-buttons">
                           <button

@@ -2,15 +2,14 @@ import React, { useState, useEffect } from "react";
 import { FaUserInjured } from "react-icons/fa6";
 import { FaSearch } from "react-icons/fa";
 import "./AdminPatientsButton.css";
+import { useAdmin } from "../../context/AdminContext";
 
-const AdminPatientsButton = ({
-  activeSection,
-  setActiveSection,
-  renderContent = false,
-}) => {
+const AdminPatientsButton = ({ renderContent = false }) => {
+  const { activeSection, setActiveSection } = useAdmin();
+  const isActive = activeSection === "patients";
+
   const [patients, setPatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const isActive = activeSection === "patients";
 
   useEffect(() => {
     if (renderContent && isActive) {
@@ -38,70 +37,75 @@ const AdminPatientsButton = ({
     }
   };
 
-  const renderPatients = () => (
-    <div className="admin-patients admin-patients-content">
-      <div className="admin-patients-header">
-        <div className="admin-patients-header-left">
-          <h2>Patients Overview</h2>
-          <span className="patients-count">
-            {patients.length} patients in SmartCare
-          </span>
-        </div>
-        <div className="admin-patients-header-right">
-          <div className="search-container">
-            <FaSearch className="search-icon" />
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search patients..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+  const filteredPatients = patients.filter((p) => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return true;
+
+    const fullName = `${p.firstName || ""} ${p.lastName || ""}`
+      .toLowerCase()
+      .trim();
+    const phone = (p.phone || "").toLowerCase();
+
+    return fullName.includes(q) || phone.includes(q);
+  });
+
+  if (renderContent && isActive) {
+    return (
+      <div className="admin-patients admin-patients-content">
+        <div className="admin-patients-header">
+          <div className="admin-patients-header-left">
+            <h2>Patients Overview</h2>
+            <span className="patients-count">
+              {patients.length} patients in SmartCare
+            </span>
+          </div>
+          <div className="admin-patients-header-right">
+            <div className="search-container">
+              <FaSearch className="search-icon" />
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search patients..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="admin-patients-table-container">
-        <table className="admin-patients-data-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Date of Birth</th>
-              <th>Registered</th>
-            </tr>
-          </thead>
-          <tbody>
-            {patients
-              .filter((p) => {
-                const q = searchQuery.trim().toLowerCase();
-                if (!q) return true;
-                return (
-                  `${p.firstName || ""} ${p.lastName || ""}`
-                    .toLowerCase()
-                    .includes(q) || (p.phone || "").toLowerCase().includes(q)
-                );
-              })
-              .map((patient) => (
+        <div className="admin-patients-table-container">
+          <table className="admin-patients-data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Date of Birth</th>
+                <th>Registered</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPatients.map((patient) => (
                 <tr key={patient.id}>
                   <td>
                     {patient.firstName} {patient.lastName}
                   </td>
                   <td>{patient.phone}</td>
                   <td>{patient.dateOfBirth}</td>
-                  <td>{new Date(patient.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    {patient.createdAt
+                      ? new Date(patient.createdAt).toLocaleDateString()
+                      : "-"}
+                  </td>
                 </tr>
               ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
-
-  if (renderContent && isActive) {
-    return renderPatients();
+    );
   }
 
+  // Sidebar button
   return (
     <button
       className={`admin-nav-item ${isActive ? "active" : ""}`}

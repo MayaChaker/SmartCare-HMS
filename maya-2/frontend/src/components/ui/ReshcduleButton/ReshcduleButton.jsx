@@ -37,10 +37,18 @@ export const ReshcduleModal = ({
   availableDatesForReschedule = [],
   selectedDateForReschedule = "",
   setSelectedDateForReschedule,
-  closeModal,
   onReschedule,
 }) => {
   if (!selectedAppointment) return null;
+
+  const formatTimeWithMeridiem = (hhmm) => {
+    const [hStr, mStr] = String(hhmm || "").split(":");
+    const h = parseInt(hStr, 10);
+    if (Number.isNaN(h)) return hhmm;
+    const meridiem = h < 12 ? "AM" : "PM";
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${mStr} ${meridiem}`;
+  };
   return (
     <form
       onSubmit={(e) => {
@@ -56,7 +64,7 @@ export const ReshcduleModal = ({
       }}
     >
       <p>
-        Current appointment: {selectedAppointment.doctor || selectedAppointment.doctorName} on {selectedAppointment.appointmentDate ? new Date(selectedAppointment.appointmentDate).toLocaleDateString() : "TBD"} at {selectedAppointment.appointmentTime ? String(selectedAppointment.appointmentTime).slice(0, 5) : ""}
+        Current appointment: {selectedAppointment.doctor || selectedAppointment.doctorName} on {selectedAppointment.appointmentDate ? new Date(selectedAppointment.appointmentDate).toLocaleDateString() : "TBD"} {selectedAppointment.appointmentTime ? `at ${formatTimeWithMeridiem(String(selectedAppointment.appointmentTime).slice(0, 5))}` : ""}
       </p>
       <div className="form-group">
         <label>New Appointment Date</label>
@@ -82,7 +90,7 @@ export const ReshcduleModal = ({
           {availableTimesForReschedule && availableTimesForReschedule.length > 0 ? (
             availableTimesForReschedule.map((t) => (
               <option key={t} value={t}>
-                {t}
+                {formatTimeWithMeridiem(t)}
               </option>
             ))
           ) : (
@@ -93,7 +101,6 @@ export const ReshcduleModal = ({
         </select>
       </div>
       <div className="modal-actions">
-        <button type="button" className="btn btn-outline" onClick={closeModal}>Cancel</button>
         <button type="submit" className="btn btn-primary">Reschedule</button>
       </div>
     </form>

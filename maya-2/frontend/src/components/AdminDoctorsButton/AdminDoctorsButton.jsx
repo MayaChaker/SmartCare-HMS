@@ -2,16 +2,15 @@ import React, { useState, useMemo } from "react";
 import { FaSearch } from "react-icons/fa";
 import { FaUserDoctor } from "react-icons/fa6";
 import "./AdminDoctorsButton.css";
+import { useAdmin } from "../../context/AdminContext";
 
 const AdminDoctorsButton = ({
-  activeSection,
-  setActiveSection,
   renderContent = false,
-  doctors = [],
-  openModal,
   showBookButton = false,
   onSelectDoctor,
 }) => {
+  const { activeSection, setActiveSection, doctors, openModal } = useAdmin();
+
   const isActive = activeSection === "doctors";
   const [searchTerm, setSearchTerm] = useState("");
   const excludedNames = useMemo(() => new Set(["john doe"]), []);
@@ -46,6 +45,7 @@ const AdminDoctorsButton = ({
       );
     });
   }, [doctors, searchTerm]);
+
   const visibleDoctors = useMemo(() => {
     return filteredDoctors.filter((d) => {
       const name = `${(d.firstName || "").trim()} ${(d.lastName || "").trim()}`
@@ -57,6 +57,7 @@ const AdminDoctorsButton = ({
 
   return (
     <>
+      {/* Sidebar button */}
       {!renderContent && (
         <button
           className={`admin-nav-item ${isActive ? "active" : ""}`}
@@ -69,6 +70,7 @@ const AdminDoctorsButton = ({
         </button>
       )}
 
+      {/* Main doctors content */}
       {renderContent && isActive && (
         <div className="admin-doctors">
           <div className="section-content">

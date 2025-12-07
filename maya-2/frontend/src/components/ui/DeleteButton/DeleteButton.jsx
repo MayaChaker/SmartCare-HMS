@@ -31,6 +31,14 @@ export default DeleteButton;
 
 export const DeleteModal = ({ selectedAppointment, closeModal, onDelete }) => {
   if (!selectedAppointment) return null;
+  const formatTimeWithMeridiem = (hhmm) => {
+    const [hStr, mStr] = String(hhmm || "").split(":");
+    const h = parseInt(hStr, 10);
+    if (Number.isNaN(h)) return hhmm;
+    const meridiem = h < 12 ? "AM" : "PM";
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${mStr} ${meridiem}`;
+  };
   return (
     <div>
       <p>
@@ -40,7 +48,9 @@ export const DeleteModal = ({ selectedAppointment, closeModal, onDelete }) => {
           ? new Date(selectedAppointment.appointmentDate).toLocaleDateString()
           : "TBD"}{" "}
         {selectedAppointment.appointmentTime
-          ? `at ${String(selectedAppointment.appointmentTime).slice(0, 5)}`
+          ? `at ${formatTimeWithMeridiem(
+              String(selectedAppointment.appointmentTime).slice(0, 5)
+            )}`
           : ""}
         ?
       </p>

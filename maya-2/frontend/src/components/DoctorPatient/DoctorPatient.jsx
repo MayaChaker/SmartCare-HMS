@@ -1,7 +1,11 @@
+// src/components/DoctorPatient/DoctorPatient.jsx
 import React from "react";
 import { FiUser, FiPhone, FiEye, FiFileText, FiUsers } from "react-icons/fi";
+import { useDoctor } from "../../context/DoctorContext";
 
-const DoctorPatient = ({ patients = [], openModal = () => {} }) => {
+const DoctorPatient = ({ openModal = () => {} }) => {
+  const { patients = [] } = useDoctor();
+
   return (
     <div className="doctor-patient doctor-section">
       <div className="section-header">

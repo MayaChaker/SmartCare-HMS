@@ -1,3 +1,4 @@
+// src/components/DoctorDashboard/DoctorDashboard.jsx
 import React from "react";
 import {
   FiCalendar,
@@ -10,12 +11,54 @@ import {
   FiFileText,
   FiBarChart2,
 } from "react-icons/fi";
+import { useDoctor } from "../../context/DoctorContext";
 import "./DoctorDashboard.css";
 
-const DoctorDashboard = ({ appointments = [], patients = [], doctorProfile, openModal, setActiveSection }) => {
+const DoctorDashboard = ({ openModal, setActiveSection }) => {
+  const { appointments = [], patients = [], doctorProfile } = useDoctor();
   const today = new Date();
-  const completedCount = appointments.filter((a) => a.status && a.status.toLowerCase() === "completed").length;
-  const scheduledCount = appointments.filter((a) => a.status === "scheduled").length;
+  const todayStr = today.toDateString();
+
+  const completedAppointments = appointments.filter(
+    (a) => a.status && a.status.toLowerCase() === "completed"
+  );
+  const scheduledAppointments = appointments.filter(
+    (a) => a.status && a.status.toLowerCase() === "scheduled"
+  );
+  const todayAppointments = appointments.filter(
+    (a) =>
+      a.appointmentDate &&
+      new Date(a.appointmentDate).toDateString() === todayStr
+  );
+
+  const upcomingScheduled = appointments
+    .filter(
+      (a) =>
+        a.status === "scheduled" &&
+        a.appointmentDate &&
+        new Date(a.appointmentDate) > new Date()
+    )
+    .sort(
+      (a, b) =>
+        new Date(`${a.appointmentDate}T${a.appointmentTime}`) -
+        new Date(`${b.appointmentDate}T${b.appointmentTime}`)
+    );
+
+  const nextAppointmentTime =
+    upcomingScheduled.length > 0
+      ? new Date(
+          `${upcomingScheduled[0].appointmentDate}T${upcomingScheduled[0].appointmentTime}`
+        ).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        })
+      : "None";
+
+  const completionRate =
+    appointments.length > 0
+      ? Math.round((completedAppointments.length / appointments.length) * 100)
+      : 0;
 
   return (
     <div className="dashboard-content">
@@ -52,6 +95,7 @@ const DoctorDashboard = ({ appointments = [], patients = [], doctorProfile, open
         </div>
       </div>
 
+      {/* STATS CARDS */}
       <div className="stats-dashboard">
         <div className="stats-grid">
           <div className="stat-card appointments-card">
@@ -78,7 +122,9 @@ const DoctorDashboard = ({ appointments = [], patients = [], doctorProfile, open
               </div>
               <div className="stat-info">
                 <div className="trend-text">Successfully treated</div>
-                <div className="stat-number">{completedCount}</div>
+                <div className="stat-number">
+                  {completedAppointments.length}
+                </div>
                 <div className="stat-label">Completed</div>
               </div>
             </div>
@@ -93,7 +139,9 @@ const DoctorDashboard = ({ appointments = [], patients = [], doctorProfile, open
               </div>
               <div className="stat-info">
                 <div className="trend-text">Upcoming appointments</div>
-                <div className="stat-number">{scheduledCount}</div>
+                <div className="stat-number">
+                  {scheduledAppointments.length}
+                </div>
                 <div className="stat-label">Scheduled</div>
               </div>
             </div>
@@ -116,6 +164,7 @@ const DoctorDashboard = ({ appointments = [], patients = [], doctorProfile, open
         </div>
       </div>
 
+      {/* MAIN SECTION */}
       <div className="dashboard-main">
         <div className="dashboard-left">
           <div className="section-card recent-appointments">
@@ -124,70 +173,75 @@ const DoctorDashboard = ({ appointments = [], patients = [], doctorProfile, open
                 <h1>
                   Recent Appointments
                   <span className="section-count">
-                    {appointments
-                      .filter((a) => a.status && a.status.toLowerCase() === "completed")
-                      .slice(0, 5).length}{" "}
-                    of{" "}
-                    {appointments.filter((a) => a.status && a.status.toLowerCase() === "completed").length}
+                    {completedAppointments.slice(0, 5).length} of{" "}
+                    {completedAppointments.length}
                   </span>
                 </h1>
               </div>
             </div>
             <div className="appointments-preview">
-              {appointments
-                .filter((a) => a.status && a.status.toLowerCase() === "completed")
-                .slice(0, 5).length > 0 ? (
+              {completedAppointments.slice(0, 5).length > 0 ? (
                 <div className="appointments-list">
-                  {appointments
-                    .filter((a) => a.status && a.status.toLowerCase() === "completed")
-                    .slice(0, 5)
-                    .map((appointment) => (
-                      <div key={appointment.id} className="appointment-item">
-                        <div className="appointment-avatar">
-                          <span className="avatar-icon">
-                            <FiUser />
-                          </span>
-                        </div>
-                        <div className="appointment-info">
-                          <div className="patient-name">
-                            {appointment.Patient
-                              ? `${appointment.Patient.firstName} ${appointment.Patient.lastName}`
-                              : "N/A"}
-                          </div>
-                          <div className="appointment-details">
-                            <span className="appointment-date">
-                              <FiCalendar />{" "}
-                              {new Date(appointment.appointmentDate).toLocaleDateString()}
-                            </span>
-                            <span className="appointment-time">
-                              <FiClock />{" "}
-                              {new Date(`${appointment.appointmentDate}T${appointment.appointmentTime}`).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="appointment-status">
-                          <span className={`status-badge status-${appointment.status.toLowerCase()}`}>
-                            {appointment.status}
-                          </span>
-                        </div>
-                        {appointment.status === "completed" && (
-                          <div className="appointment-actions" style={{ marginLeft: "auto" }}>
-                            <button
-                              className="action-btn primary"
-                              type="button"
-                              onClick={() => openModal && openModal("addRecord", appointment.Patient)}
-                              title="Add Medical Record"
-                            >
-                              <FiFileText />
-                              Add Record
-                            </button>
-                          </div>
-                        )}
+                  {completedAppointments.slice(0, 5).map((appointment) => (
+                    <div key={appointment.id} className="appointment-item">
+                      <div className="appointment-avatar">
+                        <span className="avatar-icon">
+                          <FiUser />
+                        </span>
                       </div>
-                    ))}
+                      <div className="appointment-info">
+                        <div className="patient-name">
+                          {appointment.Patient
+                            ? `${appointment.Patient.firstName} ${appointment.Patient.lastName}`
+                            : "N/A"}
+                        </div>
+                        <div className="appointment-details">
+                          <span className="appointment-date">
+                            <FiCalendar />{" "}
+                            {new Date(
+                              appointment.appointmentDate
+                            ).toLocaleDateString()}
+                          </span>
+                          <span className="appointment-time">
+                            <FiClock />{" "}
+                            {new Date(
+                              `${appointment.appointmentDate}T${appointment.appointmentTime}`
+                            ).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="appointment-status">
+                        <span
+                          className={`status-badge status-${appointment.status.toLowerCase()}`}
+                        >
+                          {appointment.status}
+                        </span>
+                      </div>
+                      {appointment.status === "completed" && (
+                        <div
+                          className="appointment-actions"
+                          style={{ marginLeft: "auto" }}
+                        >
+                          <button
+                            className="action-btn primary"
+                            type="button"
+                            onClick={() =>
+                              openModal &&
+                              openModal("addRecord", appointment.Patient)
+                            }
+                            title="Add Medical Record"
+                          >
+                            <FiFileText />
+                            Add Record
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="empty-state">
@@ -204,13 +258,17 @@ const DoctorDashboard = ({ appointments = [], patients = [], doctorProfile, open
           </div>
         </div>
 
+        {/* RIGHT SIDE: Quick actions + Today summary */}
         <div className="dashboard-right">
           <div className="section-card quick-actions">
             <div className="section-header">
               <h1>Quick Actions</h1>
             </div>
             <div className="actions-grid">
-              <button className="action-card patients-action" onClick={() => setActiveSection && setActiveSection("patients")}>
+              <button
+                className="action-card patients-action"
+                onClick={() => setActiveSection && setActiveSection("patients")}
+              >
                 <div className="action-icon">
                   <FiUsers />
                 </div>
@@ -223,7 +281,12 @@ const DoctorDashboard = ({ appointments = [], patients = [], doctorProfile, open
                 </div>
               </button>
 
-              <button className="action-card appointments-action" onClick={() => setActiveSection && setActiveSection("appointments")}>
+              <button
+                className="action-card appointments-action"
+                onClick={() =>
+                  setActiveSection && setActiveSection("appointments")
+                }
+              >
                 <div className="action-icon">
                   <FiCalendar />
                 </div>
@@ -236,7 +299,10 @@ const DoctorDashboard = ({ appointments = [], patients = [], doctorProfile, open
                 </div>
               </button>
 
-              <button className="action-card profile-action" onClick={() => setActiveSection && setActiveSection("profile")}>
+              <button
+                className="action-card profile-action"
+                onClick={() => setActiveSection && setActiveSection("profile")}
+              >
                 <div className="action-icon">
                   <FiUser />
                 </div>
@@ -263,9 +329,7 @@ const DoctorDashboard = ({ appointments = [], patients = [], doctorProfile, open
                 <div className="summary-info">
                   <span className="summary-label">Appointments Today</span>
                   <span className="summary-value">
-                    {appointments.filter(
-                      (a) => new Date(a.appointmentDate).toDateString() === new Date().toDateString()
-                    ).length}
+                    {todayAppointments.length}
                   </span>
                 </div>
               </div>
@@ -276,16 +340,7 @@ const DoctorDashboard = ({ appointments = [], patients = [], doctorProfile, open
                 </div>
                 <div className="summary-info">
                   <span className="summary-label">Next Appointment</span>
-                  <span className="summary-value">
-                    {appointments.filter((a) => new Date(a.appointmentDate) > new Date() && a.status === "scheduled").length > 0
-                      ? new Date(
-                          `${appointments.filter((a) => new Date(a.appointmentDate) > new Date() && a.status === "scheduled")[0]?.appointmentDate}T${appointments.filter((a) => new Date(a.appointmentDate) > new Date() && a.status === "scheduled")[0]?.appointmentTime}`
-                        ).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "None"}
-                  </span>
+                  <span className="summary-value">{nextAppointmentTime}</span>
                 </div>
               </div>
 
@@ -295,12 +350,7 @@ const DoctorDashboard = ({ appointments = [], patients = [], doctorProfile, open
                 </div>
                 <div className="summary-info">
                   <span className="summary-label">Completion Rate</span>
-                  <span className="summary-value">
-                    {appointments.length > 0
-                      ? Math.round((appointments.filter((a) => a.status === "completed").length / appointments.length) * 100)
-                      : 0}
-                    %
-                  </span>
+                  <span className="summary-value">{completionRate}%</span>
                 </div>
               </div>
             </div>

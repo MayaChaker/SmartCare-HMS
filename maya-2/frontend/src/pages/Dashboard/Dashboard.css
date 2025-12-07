@@ -473,10 +473,20 @@
   font-size: 0.875rem;
 }
 .patient-dashboard .btn-danger {
-  background-color: #dc2626;
+  background-color: #0284c7;
   color: white;
 }
 .patient-dashboard .btn-danger:hover:not(:disabled) {
+  background-color: #0284c7;
+  transform: none;
+}
+
+/* Dedicated Cancel button (stay red, while Delete uses blue danger) */
+.patient-dashboard .btn-cancel {
+  background-color: #dc2626;
+  color: white;
+}
+.patient-dashboard .btn-cancel:hover:not(:disabled) {
   background-color: #dc2626;
   transform: none;
 }

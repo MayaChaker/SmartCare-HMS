@@ -10,9 +10,7 @@ const RegisterButton = ({ onClick, disabled = false, style, children }) => {
       disabled={disabled}
       style={style}
     >
-      <span className="btn-icon">
-      
-      </span>
+      <span className="btn-icon"></span>
       <span className="btn-label">{children || "Register"}</span>
     </button>
   );

@@ -1,13 +1,16 @@
 import React from "react";
 import { MdNotifications } from "react-icons/md";
 import "./ReceptionistNotifications.css";
+import { useReceptionist } from "../../context/ReceptionistContext";
 
-const ReceptionistNotifications = ({
-  patients = [],
-  appointments = [],
-  selectedDate,
-  onChangeDate,
-}) => {
+const ReceptionistNotifications = () => {
+  const {
+    patients = [],
+    appointments = [],
+    selectedDate,
+    setSelectedDate,
+  } = useReceptionist();
+
   const toYmd = (d) => {
     if (!d) return "";
     const dt = new Date(d);
@@ -20,6 +23,7 @@ const ReceptionistNotifications = ({
   const notifications = [];
   const date = selectedDate;
 
+  // 🔔 تسجيل مرضى جداد
   (patients || []).forEach((p) => {
     if (toYmd(p.createdAt) === date) {
       notifications.push({
@@ -31,6 +35,7 @@ const ReceptionistNotifications = ({
     }
   });
 
+  // 🔔 مواعيد جديدة
   (appointments || []).forEach((a) => {
     if (toYmd(a.createdAt) === date) {
       const patientName =
@@ -41,6 +46,7 @@ const ReceptionistNotifications = ({
         a.Doctor && a.Doctor.firstName
           ? `Dr. ${a.Doctor.firstName} ${a.Doctor.lastName || ""}`
           : "";
+
       notifications.push({
         id: `appointment-${a.id}-${a.createdAt}`,
         type: "Appointment",
@@ -58,15 +64,17 @@ const ReceptionistNotifications = ({
     <div className="receptionist-notifications table-card">
       <div className="table-header">
         <h1 className="table-title">Notifications</h1>
+
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <input
             type="date"
             value={selectedDate}
-            onChange={(e) => onChangeDate(e.target.value)}
+            onChange={(e) => setSelectedDate(e.target.value)}
             className="filter-select"
           />
         </div>
       </div>
+
       <div className="table-container notifications-table">
         <table className="notifications-table">
           <colgroup>
@@ -81,6 +89,7 @@ const ReceptionistNotifications = ({
               <th>Time</th>
             </tr>
           </thead>
+
           <tbody>
             {sorted.length > 0 ? (
               sorted.map((n) => (
@@ -91,13 +100,14 @@ const ReceptionistNotifications = ({
                     {new Date(n.time).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
+                      hour12: true,
                     })}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="3" className="no-data">
+                <td colSpan={3} className="no-data">
                   <div className="no-data-content">
                     <span className="no-data-icon">
                       <MdNotifications />

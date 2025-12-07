@@ -1,24 +1,31 @@
+// src/components/DoctorAppointment/DoctorAppointments.jsx
 import React from "react";
 import {
   FiCalendar,
+  FiCheckCircle,
   FiClock,
   FiRefreshCcw,
-  FiCheckCircle,
   FiXCircle,
   FiFileText,
 } from "react-icons/fi";
+import { useDoctor } from "../../context/DoctorContext";
 
-const DoctorAppointments = ({ appointments = [], openModal = () => {} }) => {
+const DoctorAppointments = ({ openModal = () => {} }) => {
+  const { appointments = [] } = useDoctor();
+
   const toDateStr = (d) => {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
     return `${y}-${m}-${dd}`;
   };
+
   const selectedDate = toDateStr(new Date());
-  const filteredAppointments = (appointments || []).filter(
+
+  const todaysAppointments = appointments.filter(
     (a) => String(a.appointmentDate) === String(selectedDate)
   );
+
   return (
     <div className="doctor-section">
       <div className="section-header">
@@ -26,7 +33,7 @@ const DoctorAppointments = ({ appointments = [], openModal = () => {} }) => {
           <h1 className="appointments-title">
             Appointment Schedule
             <span className="section-count appointments-count">
-              {filteredAppointments.length} Appointments on{" "}
+              {todaysAppointments.length} Appointments on{" "}
               {new Date(selectedDate).toLocaleDateString()}
             </span>
           </h1>
@@ -45,8 +52,8 @@ const DoctorAppointments = ({ appointments = [], openModal = () => {} }) => {
             </tr>
           </thead>
           <tbody>
-            {filteredAppointments.length > 0 ? (
-              filteredAppointments.map((appointment) => (
+            {todaysAppointments.length > 0 ? (
+              todaysAppointments.map((appointment) => (
                 <tr key={appointment.id}>
                   <td>
                     <div className="patient-info">
@@ -86,6 +93,7 @@ const DoctorAppointments = ({ appointments = [], openModal = () => {} }) => {
                           ).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
+                            hour12: true,
                           })}
                         </span>
                       </div>

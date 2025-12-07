@@ -6,17 +6,20 @@ import { FaUserInjured } from "react-icons/fa6";
 import { GrBarChart } from "react-icons/gr";
 import { CiSettings } from "react-icons/ci";
 import { FaUser } from "react-icons/fa";
-import "./AdminDashboardButton.css";
 
-const AdminDashboardButton = ({
-  activeSection,
-  setActiveSection,
-  renderContent = false,
-  analytics = {},
-  systemSettings = {},
-  openModal,
-}) => {
+import { useAdmin } from "../../context/AdminContext";
+
+const AdminDashboardButton = ({ renderContent = false }) => {
+  const {
+    activeSection,
+    setActiveSection,
+    analytics,
+    systemSettings,
+    openModal,
+  } = useAdmin();
+
   const isActive = activeSection === "dashboard";
+
   // Live current time for dashboard header
   const [currentTime, setCurrentTime] = useState(new Date());
   useEffect(() => {
@@ -26,6 +29,7 @@ const AdminDashboardButton = ({
 
   return (
     <>
+      {/* Sidebar button */}
       {!renderContent && (
         <button
           className={`admin-nav-item ${isActive ? "active" : ""}`}
@@ -38,6 +42,7 @@ const AdminDashboardButton = ({
         </button>
       )}
 
+      {/* Main dashboard content */}
       {renderContent && isActive && (
         <div className="dashboard-content">
           <div className="dashboard-header">

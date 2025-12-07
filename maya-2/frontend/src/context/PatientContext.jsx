@@ -1,52 +1,31 @@
-// src/context/PatientDashboardContext.jsx
-import React, { createContext, useContext, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+
+import { parseWorkingHours, generateTimeSlots } from "../utils/schedule";
 import { patientAPI } from "../utils/api";
 
-const PatientContext = createContext(null);
-
-export const usePatientDashboard = () => {
-  const ctx = useContext(PatientContext);
-  if (!ctx) {
-    throw new Error(
-      "usePatientDashboard must be used inside PatientDashboardProvider"
-    );
-  }
-  return ctx;
-};
+const PatientDashboardContext = createContext(null);
 
 export const PatientDashboardProvider = ({ children }) => {
-  // Tabs
   const [activeTab, setActiveTab] = useState("appointments");
 
-  // UI
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Data
-  const [profile, setProfile] = useState({
-    name: "",
-    phone: "",
-    dateOfBirth: "",
-    gender: "",
-    address: "",
-    emergencyContact: "",
-    bloodType: "",
-    allergies: "",
-    insurance: "",
-    medicalHistory: "",
-    permanentMedicine: "",
-  });
-
+  const [profile, setProfile] = useState({});
   const [appointments, setAppointments] = useState([]);
   const [medicalRecords, setMedicalRecords] = useState([]);
+
   const [doctors, setDoctors] = useState([]);
   const [availableSlots, setAvailableSlots] = useState([]);
 
-  // Booking / reschedule
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
-
   const [availableDates, setAvailableDates] = useState([]);
   const [selectedDateForBooking, setSelectedDateForBooking] = useState("");
   const [availableTimes, setAvailableTimes] = useState([]);
@@ -59,62 +38,90 @@ export const PatientDashboardProvider = ({ children }) => {
   const [selectedDateForReschedule, setSelectedDateForReschedule] =
     useState("");
 
-  // Modals
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
-  const openModal = (type, appointment = null) => {
-    setModalType(type);
-    setSelectedAppointment(appointment);
-    setShowModal(true);
-    setError("");
-    setSuccess("");
-  };
-
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setShowModal(false);
     setModalType("");
     setSelectedAppointment(null);
     setError("");
     setSuccess("");
-    setSelectedDoctorId("");
-    setSelectedDateForBooking("");
-    setAvailableTimes([]);
-    setSelectedTimeForBooking("");
-  };
+  }, []);
 
-  // Update profile (used by EditProfileModal)
-  const updateProfile = async (updatedProfile) => {
-    setLoading(true);
+  const openModal = useCallback((type, appointment = null) => {
+    setModalType(type);
+    setSelectedAppointment(appointment);
+    setShowModal(true);
     setError("");
     setSuccess("");
+  }, []);
 
-    try {
-      const response = await patientAPI.updateProfile(updatedProfile);
-      if (response.success) {
-        const profileResponse = await patientAPI.getProfile();
-        if (profileResponse.success) {
-          setProfile(profileResponse.data);
+  const updateProfile = useCallback(
+    async (updated) => {
+      setLoading(true);
+      setError("");
+      setSuccess("");
+      try {
+        const response = await patientAPI.updateProfile(updated);
+        if (response.success) {
+          setProfile(response.data);
+          setSuccess("Profile updated successfully!");
+          closeModal();
+        } else {
+          setError(response.message || "Failed to update profile");
         }
-        setSuccess("Profile updated successfully!");
-        closeModal();
-      } else {
-        setError(response.message || "Failed to update profile");
+      } catch {
+        setError("Failed to update profile. Please try again.");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error(err);
-      setError("Failed to update profile. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [closeModal]
+  );
+
+  useEffect(() => {
+    const computeAvailableTimes = async () => {
+      setAvailableTimes([]);
+      if (!selectedDoctorId || !selectedDateForBooking) {
+        return;
+      }
+      try {
+        const doctor =
+          doctors.find((d) => d.id === parseInt(selectedDoctorId, 10)) ||
+          availableSlots.find((d) => d.id === parseInt(selectedDoctorId, 10));
+        const { start, end } = parseWorkingHours(doctor?.workingHours || "");
+        const windowTimes = generateTimeSlots(start || "09:00", end || "17:00");
+
+        let bookedTimes = [];
+        try {
+          const resp = await patientAPI.getDoctorBookedTimes(
+            String(selectedDoctorId),
+            String(selectedDateForBooking)
+          );
+          bookedTimes = resp.success
+            ? Array.isArray(resp.data?.bookedTimes)
+              ? resp.data.bookedTimes
+              : []
+            : [];
+        } catch {
+          bookedTimes = [];
+        }
+
+        const available = windowTimes.filter((t) => !bookedTimes.includes(t));
+        setAvailableTimes(available);
+      } catch {
+        setAvailableTimes([]);
+      }
+    };
+    computeAvailableTimes();
+  }, [selectedDoctorId, selectedDateForBooking, doctors, availableSlots]);
 
   const value = {
-    // Tabs
     activeTab,
     setActiveTab,
 
-    // UI
     loading,
     setLoading,
     error,
@@ -122,19 +129,18 @@ export const PatientDashboardProvider = ({ children }) => {
     success,
     setSuccess,
 
-    // Data
     profile,
     setProfile,
     appointments,
     setAppointments,
     medicalRecords,
     setMedicalRecords,
+
     doctors,
     setDoctors,
     availableSlots,
     setAvailableSlots,
 
-    // Booking
     selectedDoctorId,
     setSelectedDoctorId,
     availableDates,
@@ -146,7 +152,6 @@ export const PatientDashboardProvider = ({ children }) => {
     selectedTimeForBooking,
     setSelectedTimeForBooking,
 
-    // Reschedule
     availableTimesForReschedule,
     setAvailableTimesForReschedule,
     availableDatesForReschedule,
@@ -154,21 +159,28 @@ export const PatientDashboardProvider = ({ children }) => {
     selectedDateForReschedule,
     setSelectedDateForReschedule,
 
-    // Selected appointment
-    selectedAppointment,
-    setSelectedAppointment,
-
-    // Modals
     showModal,
     modalType,
+    selectedAppointment,
     openModal,
     closeModal,
 
-    // Actions
     updateProfile,
   };
 
   return (
-    <PatientContext.Provider value={value}>{children}</PatientContext.Provider>
+    <PatientDashboardContext.Provider value={value}>
+      {children}
+    </PatientDashboardContext.Provider>
   );
+};
+
+export const usePatientDashboard = () => {
+  const ctx = useContext(PatientDashboardContext);
+  if (!ctx) {
+    throw new Error(
+      "usePatientDashboard must be used inside <PatientDashboardProvider />"
+    );
+  }
+  return ctx;
 };

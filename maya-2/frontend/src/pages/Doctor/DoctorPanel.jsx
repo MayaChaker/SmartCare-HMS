@@ -1,50 +1,40 @@
+// src/pages/DoctorPanel/DoctorPanel.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import EditButton from "../../components/ui/EditButton/EditButton";
-import {
-  FaUserMd,
-  FaStethoscope,
-  FaBirthdayCake,
-  FaPills,
-} from "react-icons/fa";
-import LogoutButton from "../../components/ui/LogoutButton/LogoutButton";
+
+import { FaUserMd, FaStethoscope, FaPills } from "react-icons/fa";
 import {
   FiCalendar,
-  FiCircle,
   FiSettings,
   FiClock,
   FiCheckCircle,
   FiClipboard,
-  FiEye,
   FiUser,
-  FiArrowRight,
-  FiBarChart2,
-  FiTrendingUp,
-  FiHeart,
-  FiMail,
-  FiPhone,
   FiFileText,
-  FiSave,
   FiAlertTriangle,
   FiX,
-  FiRefreshCcw,
-  FiPieChart,
+  FiBarChart2,
   FiUsers,
-  FiXCircle,
+  FiEdit,
+  FiImage,
+  FiPhone,
 } from "react-icons/fi";
-import { FiEdit, FiImage } from "react-icons/fi";
+import { TbMicroscope } from "react-icons/tb";
+
 import img1 from "../../assets/Dr-Walid-Haddad.jpg";
 import img2 from "../../assets/Andrew-el-alam.jpeg";
 import img3 from "../../assets/Elie-assaf.jpeg";
 import img4 from "../../assets/Mahmoud-choucair.jpg";
 import img5 from "../../assets/Michel-Nawfal.jpeg";
 import img6 from "../../assets/riad-azar.jpg";
-import { TbMicroscope } from "react-icons/tb";
+
+import LogoutButton from "../../components/ui/LogoutButton/LogoutButton";
 import { useAuth } from "../../context/useAuth";
-import "../../utils/api";
+import { useDoctor, DoctorProvider } from "../../context/DoctorContext";
+import { parseWorkingHours } from "../../utils/schedule";
+
 import "./DoctorPanel.css";
 import DoctorDashboard from "../../components/DoctorDashboard/DoctorDashboard";
-import { parseWorkingHours } from "../../utils/schedule";
 import DoctorPatient from "../../components/DoctorPatient/DoctorPatient";
 import "../../components/DoctorPatient/DoctorPatient.css";
 import DoctorAppointments from "../../components/DoctorAppointment/DoctorAppointments";
@@ -52,35 +42,42 @@ import "../../components/DoctorAppointment/DoctorAppointments.css";
 import DoctorProfile from "../../components/DoctorProfile/DoctorProfile";
 import "../../components/DoctorProfile/DoctorProfile.css";
 
+const DAYS_OF_WEEK = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
 const DoctorPanel = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // global doctor data from context
+  const {
+    doctorProfile,
+    setDoctorProfile,
+    setPatients,
+    loading,
+    setLoading,
+    error,
+    setError,
+    success,
+    setSuccess,
+    loadDoctorData,
+  } = useDoctor();
+
   const [activeSection, setActiveSection] = useState("dashboard");
-  const [loading, setLoading] = useState(false);
+
+  // modal state
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const photoUrlInputRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const galleryImages = [img1, img2, img3, img4, img5, img6];
 
-  const DAYS_OF_WEEK = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
-  ];
-
-  // Real data from backend
-  const [doctorProfile, setDoctorProfile] = useState(null);
-  const [patients, setPatients] = useState([]);
-  const [appointments, setAppointments] = useState([]);
-  const [editingProfile, setEditingProfile] = useState(false);
+  // local form states
   const [profileForm, setProfileForm] = useState({
     firstName: "",
     lastName: "",
@@ -95,9 +92,9 @@ const DoctorPanel = () => {
     licenseNumber: "",
     experience: 0,
     qualification: "",
+    photoUrl: "",
   });
 
-  // Form states
   const [medicalRecordForm, setMedicalRecordForm] = useState({
     patientId: "",
     notes: "",
@@ -106,6 +103,7 @@ const DoctorPanel = () => {
     diagnosis: "",
     medications: "",
   });
+
   const [patientRecords, setPatientRecords] = useState([]);
 
   const [availabilityForm, setAvailabilityForm] = useState({
@@ -116,7 +114,17 @@ const DoctorPanel = () => {
     endTime: "",
   });
 
-  // Convert time like "9:00 AM" or "09:00" to 24h "09:00"
+  const photoUrlInputRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const galleryImages = [img1, img2, img3, img4, img5, img6];
+
+  // --------- initial load ----------
+  useEffect(() => {
+    loadDoctorData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // --------- time helpers ----------
   const to24Hour = (t) => {
     if (!t || typeof t !== "string") return "";
     const m = t.trim().match(/^(\d{1,2}):(\d{2})(?:\s*([AP]M))?$/i);
@@ -129,7 +137,6 @@ const DoctorPanel = () => {
     return `${String(h).padStart(2, "0")}:${minutes}`;
   };
 
-  // Split a range like "09:00 - 17:00" or "9:00 AM - 5:00 PM" to 24h times
   const splitTimeRange = (timeRange) => {
     if (!timeRange || typeof timeRange !== "string")
       return { start: "", end: "" };
@@ -140,59 +147,6 @@ const DoctorPanel = () => {
     return { start, end };
   };
 
-  useEffect(() => {
-    loadDoctorData();
-  }, []);
-
-  const loadDoctorData = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-
-      // Load doctor profile
-      const profileResponse = await fetch(
-        "http://localhost:5000/api/doctor/profile",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (profileResponse.ok) {
-        const profileData = await profileResponse.json();
-        setDoctorProfile(profileData);
-      }
-
-      // Load patients
-      const patientsResponse = await fetch(
-        "http://localhost:5000/api/doctor/patients",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (patientsResponse.ok) {
-        const patientsData = await patientsResponse.json();
-        setPatients(patientsData);
-      }
-
-      // Load appointments
-      const appointmentsResponse = await fetch(
-        "http://localhost:5000/api/doctor/appointments",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (appointmentsResponse.ok) {
-        const appointmentsData = await appointmentsResponse.json();
-        setAppointments(appointmentsData);
-      }
-    } catch (error) {
-      console.error("Error loading doctor data:", error);
-      setError("Failed to load data. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Format 24-hour time (HH:mm) into 12-hour (h:mm AM/PM)
   const formatTime12 = (t) => {
     if (!t || typeof t !== "string") return "";
     const [hhStr, mm] = t.split(":");
@@ -203,11 +157,11 @@ const DoctorPanel = () => {
     return `${hour12}:${mm} ${ampm}`;
   };
 
-  // Parse flexible time input into 24-hour HH:mm
   const parseTimeTo24 = (input) => {
     if (!input || typeof input !== "string") return "";
     const s = input.trim().toUpperCase();
-    // Match 12h: e.g., 10:15 PM or 10:15PM
+
+    // 12h: 10:15 PM
     const m12 = s.match(/^([0-1]?\d):([0-5]\d)\s*([AP]M)$/);
     if (m12) {
       let hh = parseInt(m12[1], 10);
@@ -217,7 +171,8 @@ const DoctorPanel = () => {
       if (ap === "AM" && hh === 12) hh = 0;
       return `${String(hh).padStart(2, "0")}:${mm}`;
     }
-    // Match 24h: e.g., 22:15
+
+    // 24h: 22:15
     const m24 = s.match(/^([0-2]?\d):([0-5]\d)$/);
     if (m24) {
       let hh = parseInt(m24[1], 10);
@@ -228,11 +183,14 @@ const DoctorPanel = () => {
     return "";
   };
 
+  // ---------- availability ----------
   const handleUpdateAvailability = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
+    setSuccess("");
+
     try {
-      // Compose working hours string from separate inputs
       const days = availabilityForm.workingDays || [];
       const startNorm = parseTimeTo24(availabilityForm.startTime?.trim());
       const endNorm = parseTimeTo24(availabilityForm.endTime?.trim());
@@ -240,22 +198,16 @@ const DoctorPanel = () => {
       const endDisp = endNorm ? formatTime12(endNorm) : "";
       const daysString = days.join(", ");
       const timeRange = startDisp && endDisp ? `${startDisp} - ${endDisp}` : "";
-      // Persist days even if time is not set; append time only when both provided
+
       const composed = daysString
         ? `${daysString}${timeRange ? ` ${timeRange}` : ""}`
-        : timeRange
-        ? timeRange
-        : "";
+        : timeRange || "";
+
       const workingHoursString =
         composed || availabilityForm.workingHours || "";
-      // If a schedule is set but availability checkbox isn't checked, auto-enable availability
+
       const newAvailability =
         availabilityForm.availability || Boolean(workingHoursString.trim());
-
-      console.log("Submitting availability payload", {
-        availability: newAvailability,
-        workingHours: workingHoursString,
-      });
 
       const token = localStorage.getItem("token");
       const response = await fetch(
@@ -280,39 +232,31 @@ const DoctorPanel = () => {
         const respData = await response.json();
         const updatedDoctor = respData?.doctor;
         setSuccess("Availability updated successfully!");
-        // Prefer server-returned doctor profile for immediate accuracy
+
         if (updatedDoctor) {
           setDoctorProfile(updatedDoctor);
-        } else if (doctorProfile) {
-          // Fallback optimistic update if response doesn't include doctor
-          setDoctorProfile({
-            ...doctorProfile,
-            availability: newAvailability,
-            workingHours:
-              workingHoursString || doctorProfile.workingHours || "",
-          });
-        } else {
-          // If we don't have a local profile, refetch to ensure UI updates
-          await loadDoctorData();
         }
-        // Always refetch to sync with backend state and avoid stale UI
         await loadDoctorData();
         closeModal();
       } else {
         const errorData = await response.json();
         setError(errorData.message || "Failed to update availability");
       }
-    } catch (error) {
-      console.error("Error updating availability:", error);
+    } catch (err) {
+      console.error("Error updating availability:", err);
       setError("Failed to update availability. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // ---------- add medical record ----------
   const handleAddMedicalRecord = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
+    setSuccess("");
+
     try {
       const token = localStorage.getItem("token");
       const response = await fetch("http://localhost:5000/api/doctor/records", {
@@ -332,14 +276,15 @@ const DoctorPanel = () => {
         const errorData = await response.json();
         setError(errorData.message || "Failed to add medical record");
       }
-    } catch (error) {
-      console.error("Error adding medical record:", error);
+    } catch (err) {
+      console.error("Error adding medical record:", err);
       setError("Failed to add medical record. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // ---------- modal open/close ----------
   const openModal = (type, item = null) => {
     setModalType(type);
     setSelectedItem(item);
@@ -436,9 +381,9 @@ const DoctorPanel = () => {
     setSuccess("");
   };
 
+  // focus image URL input when edit profile modal opens
   useEffect(() => {
     if (showModal && modalType === "editProfile") {
-      // Delay slightly to ensure the input is rendered
       setTimeout(() => {
         if (photoUrlInputRef.current) {
           photoUrlInputRef.current.focus();
@@ -447,10 +392,7 @@ const DoctorPanel = () => {
     }
   }, [showModal, modalType]);
 
-  const cancelEditProfile = () => {
-    setEditingProfile(false);
-  };
-
+  // ---------- profile form ----------
   const handleProfileChange = (e) => {
     const { name, value, type, checked } = e.target;
     setProfileForm((prev) => ({
@@ -464,6 +406,7 @@ const DoctorPanel = () => {
     setLoading(true);
     setError("");
     setSuccess("");
+
     try {
       const token = localStorage.getItem("token");
       const days = (profileForm.availableDay || "").trim();
@@ -474,6 +417,7 @@ const DoctorPanel = () => {
         days && timeRange
           ? `${days} ${timeRange}`
           : profileForm.workingHours || "";
+
       const normalizePhotoUrl = (u) => {
         const v = (u || "").trim();
         if (!v) return v;
@@ -502,6 +446,7 @@ const DoctorPanel = () => {
         experience: expNum,
         qualification: profileForm.qualification,
       };
+
       const resp = await fetch("http://localhost:5000/api/doctor/profile", {
         method: "PUT",
         headers: {
@@ -510,6 +455,7 @@ const DoctorPanel = () => {
         },
         body: JSON.stringify(payload),
       });
+
       if (!resp.ok) {
         let msg = "Failed to update profile";
         const ct = resp.headers.get("Content-Type") || "";
@@ -530,11 +476,12 @@ const DoctorPanel = () => {
         }
         throw new Error(msg);
       }
+
       const data = await resp.json();
       const updated = data.doctor || data;
       setDoctorProfile(updated);
       setSuccess("Profile updated successfully.");
-      setEditingProfile(false);
+      closeModal();
     } catch (err) {
       console.error("Error updating profile:", err);
       setError(err?.message || "Could not update profile. Please try again.");
@@ -543,15 +490,17 @@ const DoctorPanel = () => {
     }
   };
 
-  // Upload a new profile photo from device (inside component for access to state setters)
+  // ---------- photo helpers ----------
   const uploadPhotoFile = async (file) => {
     setLoading(true);
     setError("");
     setSuccess("");
+
     try {
       const token = localStorage.getItem("token");
       const formData = new FormData();
       formData.append("photo", file);
+
       const resp = await fetch("http://localhost:5000/api/doctor/photo", {
         method: "POST",
         headers: {
@@ -559,10 +508,12 @@ const DoctorPanel = () => {
         },
         body: formData,
       });
+
       if (!resp.ok) {
         const t = await resp.text();
         throw new Error(t || "Failed to upload photo");
       }
+
       const data = await resp.json();
       const updated = data.doctor || data;
       setDoctorProfile(updated);
@@ -580,7 +531,6 @@ const DoctorPanel = () => {
     }
   };
 
-  // Resolve stored photoUrl to an absolute URL when it's a backend-served path
   const resolvePhotoUrl = (url) => {
     const candidate = String(url || "").trim();
     if (!candidate) return "";
@@ -598,11 +548,11 @@ const DoctorPanel = () => {
     return candidate;
   };
 
-  // Save selected photo from preset gallery (inside component for access to state setters)
   const savePhotoFromGallery = async (url) => {
     setLoading(true);
     setError("");
     setSuccess("");
+
     try {
       const token = localStorage.getItem("token");
       const days = (profileForm.availableDay || "").trim();
@@ -613,6 +563,7 @@ const DoctorPanel = () => {
         days && timeRange
           ? `${days} ${timeRange}`
           : profileForm.workingHours || "";
+
       const payload = {
         firstName: profileForm.firstName,
         lastName: profileForm.lastName,
@@ -628,6 +579,7 @@ const DoctorPanel = () => {
         experience: profileForm.experience,
         qualification: profileForm.qualification,
       };
+
       const resp = await fetch("http://localhost:5000/api/doctor/profile", {
         method: "PUT",
         headers: {
@@ -636,10 +588,12 @@ const DoctorPanel = () => {
         },
         body: JSON.stringify(payload),
       });
+
       if (!resp.ok) {
         const t = await resp.text();
         throw new Error(t || "Failed to update profile photo");
       }
+
       const data = await resp.json();
       const updated = data.doctor || data;
       setDoctorProfile(updated);
@@ -654,6 +608,7 @@ const DoctorPanel = () => {
     }
   };
 
+  // ---------- modal UI ----------
   const renderModal = () => {
     if (!showModal) return null;
 
@@ -702,6 +657,7 @@ const DoctorPanel = () => {
               </div>
             )}
 
+            {/* EDIT PROFILE */}
             {modalType === "editProfile" && (
               <form
                 id="profile-edit-form"
@@ -733,7 +689,6 @@ const DoctorPanel = () => {
                         placeholder="https://example.com/image.jpg or /uploads/doctor.jpg"
                       />
                     </div>
-                    {/* Availability input and label removed per request */}
                     <div className="form-field">
                       <span className="form-label">Available Day</span>
                       <input
@@ -819,6 +774,7 @@ const DoctorPanel = () => {
               </form>
             )}
 
+            {/* PHOTO GALLERY */}
             {modalType === "photoGallery" && (
               <div className="photo-gallery">
                 <div className="photo-gallery-grid">
@@ -859,9 +815,9 @@ const DoctorPanel = () => {
               </div>
             )}
 
+            {/* VIEW PATIENT */}
             {modalType === "viewPatient" && selectedItem && (
               <div className="patient-profile">
-                {/* Medical Records at the very top */}
                 {patientRecords && patientRecords.length > 0 && (
                   <div className="medical-records-section-top">
                     <h5 className="section-title">Medical Records</h5>
@@ -938,7 +894,6 @@ const DoctorPanel = () => {
                   </div>
                 )}
 
-                {/* Patient details under medical records */}
                 <div className="patient-details-top">
                   <div className="detail-item">
                     <span className="detail-icon">
@@ -992,6 +947,7 @@ const DoctorPanel = () => {
               </div>
             )}
 
+            {/* ADD RECORD */}
             {modalType === "addRecord" && (
               <div className="medical-record-form">
                 <div className="form-header">
@@ -1157,10 +1113,9 @@ const DoctorPanel = () => {
               </div>
             )}
 
+            {/* UPDATE AVAILABILITY */}
             {modalType === "updateAvailability" && (
               <div className="availability-form">
-                {/* Removed empty form-header div */}
-
                 <form
                   onSubmit={handleUpdateAvailability}
                   className="doctor-form"
@@ -1330,6 +1285,7 @@ const DoctorPanel = () => {
     );
   };
 
+  // ---------- main render ----------
   return (
     <div className="doctor-panel">
       <div className="doctor-header">
@@ -1409,36 +1365,26 @@ const DoctorPanel = () => {
 
           {activeSection === "dashboard" && (
             <DoctorDashboard
-              appointments={appointments}
-              patients={patients}
-              doctorProfile={doctorProfile}
               openModal={openModal}
               setActiveSection={setActiveSection}
             />
           )}
+
           {activeSection === "patients" && (
-            <DoctorPatient patients={patients} openModal={openModal} />
+            <DoctorPatient openModal={openModal} />
           )}
+
           {activeSection === "appointments" && (
-            <DoctorAppointments
-              appointments={appointments}
-              openModal={openModal}
-            />
+            <DoctorAppointments openModal={openModal} />
           )}
+
           {activeSection === "profile" && (
             <DoctorProfile
               user={user}
-              doctorProfile={doctorProfile}
-              editingProfile={editingProfile}
-              profileForm={profileForm}
               openModal={openModal}
-              cancelEditProfile={cancelEditProfile}
-              saveProfile={saveProfile}
-              handleProfileChange={handleProfileChange}
               uploadPhotoFile={uploadPhotoFile}
               resolvePhotoUrl={resolvePhotoUrl}
               fileInputRef={fileInputRef}
-              photoUrlInputRef={photoUrlInputRef}
             />
           )}
         </div>
@@ -1449,4 +1395,10 @@ const DoctorPanel = () => {
   );
 };
 
-export default DoctorPanel;
+const DoctorPanelWithProvider = () => (
+  <DoctorProvider>
+    <DoctorPanel />
+  </DoctorProvider>
+);
+
+export default DoctorPanelWithProvider;

@@ -124,6 +124,22 @@
   justify-content: flex-start;
   gap: 1rem;
 }
+.dashboard-actions .action-card.action-register {
+  background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
+  border-color: #bae6fd;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.12);
+}
+.dashboard-actions .action-card.action-register:hover {
+  border-color: #7dd3fc;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.18);
+}
+.dashboard-actions .action-card.action-register .action-icon {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.dashboard-actions .action-card.action-register .action-content h4 {
+  color: #0c4a6e;
+}
 
 .dashboard-actions .action-icon {
   width: 48px;
@@ -344,9 +360,10 @@
 }
 
 .receptionist-dashboard .appointments-table {
-  border-collapse: separate;
-  border-spacing: 1.75rem 0.75rem;
+  border-collapse: collapse;
+  border-spacing: 0;
   table-layout: fixed;
+  width: 100%;
 }
 
 .receptionist-dashboard .appointments-table th,
@@ -355,9 +372,8 @@
 }
 
 .receptionist-dashboard .table-container.appointments-table > table {
-  width: 92%;
-  margin-left: 0;
-  margin-right: auto;
+  width: 100%;
+  margin: 0;
 }
 
 .receptionist-dashboard .patients-table {
@@ -375,11 +391,6 @@
   text-align: center;
 }
 
-.receptionist-dashboard .appointments-table th:nth-child(6),
-.receptionist-dashboard .appointments-table td:nth-child(6) {
-  text-align: center;
-  min-width: 180px;
-}
 .receptionist-dashboard .appointments-table tbody tr:nth-child(even) {
   background: #f9fafb;
 }
@@ -394,4 +405,15 @@
 .receptionist-dashboard .appointment-time,
 .receptionist-dashboard .time-cell .appointment-time {
   white-space: nowrap;
+}
+
+.receptionist-dashboard .appointments-table td {
+  vertical-align: middle;
+}
+
+.receptionist-dashboard .appointments-table td span {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }
