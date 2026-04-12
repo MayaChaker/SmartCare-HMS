@@ -1,0 +1,833 @@
+
+
+/* ---------- Base page wrapper ---------- */
+.admin-panel {
+  /* Full height page */
+  min-height: 100vh;
+  background-color: #f9fafb;
+  /* Default font stack */
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+}
+
+/* Global reset inside admin panel only */
+.admin-panel *,
+.admin-panel *::before,
+.admin-panel *::after {
+  box-sizing: border-box; /* padding/border included in width/height */
+  margin: 0;
+  padding: 0;
+}
+
+/* Typography rules for headings inside admin */
+.admin-panel h1,
+.admin-panel h2,
+.admin-panel h3,
+.admin-panel h4,
+.admin-panel h5,
+.admin-panel h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  color: #111827; /* dark gray */
+}
+
+/* Paragraph styling inside admin */
+.admin-panel p {
+  line-height: 1.625;
+  color: #374151; /
+}
+
+/* ---------- Main layout grid ---------- */
+.admin-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  grid-template-areas: "sidebar main";
+  gap: 1.5rem;
+  height: calc(100vh - 120px);
+  width: 100%;
+  margin: 0;
+  align-items: stretch;
+}
+
+/* Alternative wrapper */
+.admin-content {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: calc(100vh - 80px);
+}
+
+/* Main content area */
+.admin-main {
+  grid-area: main;
+  width: 100%;
+  padding: 2rem;
+  background-color: #f9fafb;
+  position: relative;
+  overflow-y: auto; 
+  overflow-x: hidden;
+}
+
+/* Ensure sidebar is placed in the left grid area */
+.admin-sidebar {
+  grid-area: sidebar;
+}
+
+/*  Dashboard stat cards grid */
+.stats-grid {
+  display: grid;
+  /* Responsive columns: each card min 250px then auto-fit */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Individual stat card */
+.stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  transition: all 250ms ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Hover disabled (kept intentionally for stable UI) */
+.stat-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Icon container inside stat cards */
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+  color: #4338ca;
+}
+
+/* Title number inside stat cards  */
+.stat-content h3 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+/* Label text inside stat cards  */
+.stat-content p {
+  color: #4b5563;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+/*  Responsive Admin Layout */
+
+@media (max-width: 1024px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas: "sidebar" "main";
+    gap: 1rem;
+    height: auto;
+  }
+  .admin-content {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 768px) {
+  .admin-main {
+    padding: 1rem;
+  }
+}
+@media (max-width: 360px) {
+  .admin-main {
+    padding: 0.75rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .modal-container {
+    max-width: 95vw;
+  }
+
+  .modal-header {
+    padding: 0.75rem;
+  }
+
+  .modal-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .modal-close {
+    width: 32px;
+    height: 32px;
+    font-size: 1.5rem;
+  }
+
+  .modal-content {
+    padding: 0.75rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-control {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .modal .form-actions {
+    gap: 0.5rem;
+    padding-top: 1rem;
+  }
+
+  .admin-panel .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+/*  Top header bar */
+.admin-header {
+  position: relative;
+  top: 0;
+  left: auto;
+  width: 100%;
+  z-index: 1000;
+  background: white;
+  color: #111827;
+  padding: 1rem 1.5rem;
+  /* subtle shadow */
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* Header: left title + right actions (logout) */
+.admin-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.admin-header-right {
+  display: flex;
+  margin-right: 20px;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Admin title */
+.admin-title {
+  font-size: 1.875rem;
+  line-height: 1.2;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Icon inside the title */
+.admin-title .admin-icon {
+  font-size: 1.75em;
+  color: #0284c7;
+}
+
+/* Username under title */
+.admin-user-name {
+  font-size: 0.875rem;
+  color: #4b5563;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+/* If you show extra user info block */
+.admin-user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Extra icon styling inside header */
+.admin-header .admin-icon {
+  color: #0284c7;
+  margin-top: 5px;
+}
+
+/* Title group is clickable (navigate home) */
+.admin-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.admin-title-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Make the icon larger in the title group */
+.admin-title-group .admin-icon {
+  font-size: 2.75em;
+  transform: none;
+}
+
+/* overwrite margin for username (kept to match UI) */
+.admin-user-name {
+  margin-top: 0;
+}
+
+/* Header responsive: stack content on smaller screens */
+@media (max-width: 1024px) {
+  .admin-header {
+    padding: 1.25rem 1.5rem;
+  }
+  .admin-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .admin-header-right {
+    width: 100%;
+    margin-right: 0;
+    justify-content: flex-start;
+  }
+}
+
+/* Small screens: smaller title + hide username */
+@media (max-width: 640px) {
+  .admin-header {
+    padding: 1rem 1.25rem;
+  }
+  .admin-title {
+    font-size: 1.5rem;
+  }
+  .admin-title-group {
+    gap: 0.5rem;
+  }
+  .admin-user-name {
+    display: none; /* save space */
+  }
+  .admin-header-right {
+    gap: 0.5rem;
+  }
+}
+
+/* Very small screens: even smaller */
+@media (max-width: 360px) {
+  .admin-header {
+    padding: 0.75rem 1rem;
+  }
+  .admin-title {
+    font-size: 1.25rem;
+  }
+  .admin-title-group .admin-icon {
+    font-size: 2.5em;
+  }
+  .admin-header-right {
+    width: 100%;
+    gap: 0.25rem;
+  }
+}
+
+/*  Sidebar styling  */
+.admin-sidebar {
+  width: 280px;
+  background: white;
+  border-right: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  padding: 1.5rem;
+}
+
+/* Padding wrapper inside sidebar */
+.sidebar-content {
+  padding: 1.5rem;
+}
+
+/* Buttons list inside sidebar */
+.admin-nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Sidebar nav item button */
+.admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  text-align: left;
+  width: 100%;
+}
+
+/* Hover state */
+.admin-nav-item:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+/* Active state */
+.admin-nav-item.active {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+/* Active left indicator bar */
+.admin-nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #4f46e5;
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+
+/* Sidebar icon style */
+.admin-nav-icon {
+  font-size: 1.125rem;
+  color: #0284c7;
+}
+
+/* Sidebar responsive: becomes horizontal scroll nav */
+@media (max-width: 1024px) {
+  .admin-nav-section {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 0.25rem;
+  }
+  .admin-nav-item {
+    white-space: nowrap;
+    min-width: fit-content;
+  }
+  .admin-sidebar {
+    width: 100%;
+    padding: 1.25rem 1.5rem;
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+}
+
+/* Smaller sidebar spacing */
+@media (max-width: 640px) {
+  .sidebar-content {
+    padding: 1.25rem;
+  }
+  .admin-nav-section {
+    gap: 0.5rem;
+  }
+  .admin-nav-item {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Very small screens: compact nav items */
+@media (max-width: 360px) {
+  .admin-nav-item {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    gap: 0.5rem;
+  }
+  .admin-nav-icon {
+    font-size: 1rem;
+  }
+}
+
+/*  Dashboard small alignment tweaks  */
+/* Align current time block to the left in dashboard header */
+.dashboard-header .current-time {
+  align-items: flex-start;
+}
+.dashboard-header .current-time .time-label,
+.dashboard-header .current-time .time-value {
+  text-align: left;
+}
+
+/* Stat text  */
+.stat-info h3 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+.stat-info p {
+  color: #4b5563;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+/*  Table styling  */
+.table-container {
+  background: white;
+  border-radius: 0.75rem;
+  overflow: hidden; /* round corners + hide overflow */
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  background-color: #f9fafb;
+  padding: 1rem 1.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.data-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+}
+
+.data-table tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Appointment status badge pills */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+/* Status colors */
+.status-badge.scheduled {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+}
+.status-badge.completed {
+  background-color: #f0fdf4;
+  color: #15803d;
+}
+.status-badge.cancelled {
+  background-color: #fef2f2;
+  color: #b91c1c;
+}
+.status-badge.in-progress {
+  background-color: #fffbeb;
+  color: #b45309;
+}
+
+/* ----------  (doctors) ---------- */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.doctor-card {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  transition: all 150ms ease-in-out;
+}
+
+.doctor-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.doctor-header {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.doctor-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.specialization {
+  color: #4f46e5;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.doctor-info p {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.doctor-info strong {
+  color: #111827;
+}
+
+/* ---------- Modal styling (create/edit/delete user) ---------- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Dim the page behind the modal */
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 10px 10px -5px rgb(0 0 0 / 0.1);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh; 
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Close (X) button */
+.modal-close {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  font-size: 1.875rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+.modal-close:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.modal-content {
+  padding: 1.5rem;
+}
+
+/* ---------- Form styling inside modal ---------- */
+.user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Two-column row (desktop) */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Inputs/select styling */
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: all 150ms ease-in-out;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px #f0f4ff;
+}
+
+/* Form action buttons area */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ---------- Buttons used in admin panel ---------- */
+.admin-panel .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+  text-decoration: none;
+  justify-content: center;
+}
+
+.admin-panel .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Button variants */
+.admin-panel .btn-primary {
+  background-color: #2563eb;
+  color: white;
+}
+.admin-panel .btn-primary:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+.admin-panel .btn-primary .btn-icon,
+.admin-panel .btn-primary .btn-icon svg {
+  color: #ffffff;
+}
+
+.admin-panel .btn-secondary {
+  background-color: #4b5563;
+  color: white;
+}
+.admin-panel .btn-secondary:hover:not(:disabled) {
+  background-color: #374151;
+}
+
+.admin-panel .btn-danger {
+  background-color: #dc2626;
+  color: white;
+}
+.admin-panel .btn-danger:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+/* ---------- Loading overlay ---------- */
+.loading-overlay {
+  position: absolute; /* uses .admin-main relative positioning */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* ---------- Alerts (error/success messages) ---------- */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.alert-error {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.alert-success {
+  background-color: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.alert-icon {
+  font-size: 1rem;
+}
+
+/* Modal responsive: tighter padding on small screens */
+@media (max-width: 640px) {
+  .modal-header {
+    padding: 1rem;
+  }
+  .modal-content {
+    padding: 1rem;
+  }
+  .form-row {
+    grid-template-columns: 1fr; /* stack fields */
+  }
+  .modal .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .modal .form-actions .btn {
+    width: 100%;
+  }
+}

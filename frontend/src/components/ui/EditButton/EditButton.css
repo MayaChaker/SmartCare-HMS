@@ -1,0 +1,30 @@
+.edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2.5rem;
+  background: transparent;
+  color: #0284c7;
+  border: 2px solid #0284c7;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+  text-decoration: none;
+  min-height: 44px;
+}
+
+.edit-btn:hover:not(:disabled) {
+  background: transparent;
+}
+
+.edit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.edit-btn .btn-icon {
+  font-size: 0.875rem;
+}

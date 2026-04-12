@@ -1,0 +1,33 @@
+/* ---------- Appointments section header ---------- */
+.admin-appointments .admin-appointments-header {
+  display: flex; /* horizontal layout */
+  justify-content: flex-start; /* keep title aligned to the left */
+  align-items: center; /* vertically center content */
+  margin-bottom: 2rem; /* space below header */
+}
+
+/* Appointments title */
+.admin-appointments .admin-appointments-header h2 {
+  margin: 0;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* ---------- Table container ---------- */
+.admin-appointments .table-container {
+  overflow-x: auto;
+}
+
+/* Ensure table keeps readable column width */
+.admin-appointments .data-table {
+  min-width: 720px;
+}
+
+/* ---------- Responsive adjustments ---------- */
+@media (max-width: 768px) {
+  .admin-appointments .data-table th,
+  .admin-appointments .data-table td {
+    white-space: normal; /* allow text to wrap */
+    word-break: break-word; /* break long words to avoid overflow */
+  }
+}

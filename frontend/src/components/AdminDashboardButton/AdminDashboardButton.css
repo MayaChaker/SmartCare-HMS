@@ -1,0 +1,382 @@
+/* Main dashboard container */
+.dashboard-content {
+  width: 100%;
+  padding: 1.5rem;
+  background: #f9fafb; /* light background for dashboard */
+}
+
+/*  Dashboard header (title + time)*/
+.dashboard-content .dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-content .dashboard-title {
+  display: grid;
+  row-gap: 0.35rem;
+}
+
+/* Dashboard title */
+.dashboard-content .dashboard-header h2 {
+  margin: 0;
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.dashboard-content .dashboard-subtitle {
+  margin: 0;
+  color: #e5e7eb;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.dashboard-content .dashboard-header p {
+  margin: 0;
+  color: #4b5563;
+}
+
+/* Current time block  */
+.dashboard-content .dashboard-header .current-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* left-align text */
+  gap: 0.75rem;
+  border: 1px solid #ffffff !important;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Time label + value alignment */
+.dashboard-content .dashboard-header .current-time .time-label,
+.dashboard-content .dashboard-header .current-time .time-value {
+  text-align: left;
+  padding: 0;
+  margin: 0;
+}
+
+/* Time label style */
+.dashboard-content .dashboard-header .current-time .time-label {
+  font-size: 0.875rem;
+  color: #ffffff;
+}
+
+/* Time value style */
+.dashboard-content .dashboard-header .current-time .time-value {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+/*  Statistics cards grid  */
+.dashboard-content .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Individual stat card */
+.dashboard-content .stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid #ffffff;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 150ms ease-in-out;
+}
+
+/* Stat icon container */
+.dashboard-content .stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+  color: #0284c7;
+}
+
+/* Per-type icon colors */
+.dashboard-content .stat-card.warning .stat-icon,
+.dashboard-content .stat-card.warning .stat-icon svg {
+  color: #f59e0b;
+}
+.dashboard-content .stat-card.success .stat-icon,
+.dashboard-content .stat-card.success .stat-icon svg {
+  color: #22c55e;
+}
+.dashboard-content .stat-card.primary .stat-icon,
+.dashboard-content .stat-card.primary .stat-icon svg {
+  color: #0284c7;
+}
+
+/* Accent borders for important cards */
+.dashboard-content .stat-card.primary,
+.dashboard-content .stat-card.info {
+  border-left: 4px solid #0284c7;
+  border-top: 4px solid #0284c7;
+}
+
+/* Stat values */
+.dashboard-content .stat-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.dashboard-content .stat-info h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.dashboard-content .stat-info p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+/* Dashboard cards grid */
+.dashboard-content .dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Generic dashboard card */
+.dashboard-content .dashboard-card {
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid #ffffff;
+  box-shadow: none;
+  padding: 1.5rem;
+}
+
+/* Card header */
+.dashboard-content .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.dashboard-content .card-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Card content wrapper */
+.dashboard-content .card-content {
+  display: block;
+}
+
+/* Recent activity list */
+.dashboard-content .activity-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* Remove divider for last item */
+.dashboard-content .activity-item:last-child {
+  border-bottom: none;
+}
+
+/* Activity icon */
+.dashboard-content .activity-icon {
+  font-size: 1.25rem;
+  color: #0284c7;
+}
+
+/* Activity text */
+.dashboard-content .activity-info p {
+  margin: 0;
+  color: #1f2937;
+}
+.dashboard-content .activity-info small {
+  color: #6b7280;
+}
+
+/*  Appointment status grid  */
+.dashboard-content .status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+/* Status item */
+.dashboard-content .status-item {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+/* Status color dot */
+.dashboard-content .status-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #d1d5db;
+}
+
+/* Status colors */
+.dashboard-content .status-indicator.scheduled {
+  background: #0284c7;
+}
+.dashboard-content .status-indicator.completed {
+  background: #22c55e;
+}
+.dashboard-content .status-indicator.cancelled {
+  background: #ef4444;
+}
+.dashboard-content .status-indicator.in-progress {
+  background: #f59e0b;
+}
+.dashboard-content .status-indicator.checked-in {
+  background: #8b5cf6;
+}
+.dashboard-content .status-indicator.pending {
+  background: #fcd34d;
+}
+
+/* Status text */
+.dashboard-content .status-label {
+  color: #1f2937;
+  font-weight: 500;
+}
+.dashboard-content .status-count {
+  color: #374151;
+}
+
+/* Quick actions section */
+.dashboard-content .quick-actions {
+  margin-top: 1.5rem;
+  margin-left: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+/* Quick actions title */
+.dashboard-content .quick-actions h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Action buttons container */
+.dashboard-content .action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Generic action button */
+.dashboard-content .action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #1f2937;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+  font-size: 0.875rem;
+}
+
+/* Hover effect */
+.dashboard-content .action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+/* Primary action */
+.dashboard-content .action-btn.primary {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+/* Info action */
+.dashboard-content .action-btn.info {
+  background: #d97706;
+  color: #ffffff;
+  border-color: #d97706;
+}
+
+/* Ensure icons inside primary/info quick action buttons are white */
+.dashboard-content .action-btn.primary .btn-icon,
+.dashboard-content .action-btn.primary .btn-icon svg {
+  color: #ffffff;
+}
+.dashboard-content .action-btn.info .btn-icon,
+.dashboard-content .action-btn.info .btn-icon svg {
+  color: #ffffff;
+}
+
+/* Button icon */
+.dashboard-content .btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 1em;
+}
+
+/* Make quick action icons blue by default */
+.dashboard-content .quick-actions .btn-icon {
+  color: #0284c7;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dashboard-content {
+    padding: 1rem;
+  }
+  .dashboard-content .dashboard-grid,
+  .dashboard-content .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-content .quick-actions {
+    margin-left: 1rem;
+    padding-left: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-content .quick-actions {
+    margin-left: 0;
+    padding-left: 0.5rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .dashboard-content .quick-actions {
+    margin-left: 0;
+    padding-left: 0.5rem;
+  }
+}

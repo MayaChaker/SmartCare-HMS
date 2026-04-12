@@ -1,0 +1,250 @@
+/*  Card (Appointment Status box) */
+.admin-reports .dashboard-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  margin-bottom: 2rem;
+}
+
+/* Card header  */
+.admin-reports .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Card content padding */
+.admin-reports .card-content {
+  padding: 1.5rem;
+}
+
+/* Status grid (Scheduled / Completed / etc.) */
+.admin-reports .status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.admin-reports .status-bars {
+  display: grid;
+  row-gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.admin-reports .status-bar-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 64px;
+  align-items: center;
+  column-gap: 0.75rem;
+}
+
+.admin-reports .status-bar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.admin-reports .status-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.admin-reports .status-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #3b82f6;
+}
+
+.admin-reports .status-bar-fill.completed {
+  background: #22c55e;
+}
+
+.admin-reports .status-bar-fill.cancelled {
+  background: #ef4444;
+}
+
+.admin-reports .status-bar-fill.in-progress {
+  background: #f59e0b;
+}
+
+.admin-reports .status-bar-fill.checked-in {
+  background: #8b5cf6;
+}
+
+.admin-reports .status-bar-count {
+  text-align: right;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Each status row item */
+.admin-reports .status-item {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  column-gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background: white;
+}
+
+.admin-reports .status-item.in-progress {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(255, 247, 237, 0.9);
+}
+
+.admin-reports .status-item.checked-in {
+  border-color: rgba(139, 92, 246, 0.35);
+  background: rgba(245, 243, 255, 0.9);
+}
+
+/* Status color dot base */
+.admin-reports .status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(17, 24, 39, 0.08);
+}
+
+/* Dot colors per status */
+.admin-reports .status-indicator.scheduled {
+  background-color: #3b82f6;
+}
+.admin-reports .status-indicator.completed {
+  background-color: #22c55e;
+}
+.admin-reports .status-indicator.cancelled {
+  background-color: #ef4444;
+}
+.admin-reports .status-indicator.in-progress {
+  background-color: #f59e0b;
+}
+.admin-reports .status-indicator.checked-in {
+  background-color: #8b5cf6;
+}
+
+/* Status label text */
+.admin-reports .status-label {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+/* Status count text */
+.admin-reports .status-count {
+  font-weight: 600;
+  color: #111827;
+}
+
+/*  Doctor summary table */
+.admin-reports .table-container {
+  overflow-x: auto;
+}
+
+.admin-reports .data-table {
+  min-width: 640px;
+}
+
+.admin-reports .data-table thead th {
+  padding-top: calc(1rem + 8px);
+}
+
+/*  Responsive rules  */
+@media (max-width: 1024px) {
+  .admin-reports .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-reports .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Reduce card padding on small screens */
+  .admin-reports .card-header {
+    padding: 1rem;
+  }
+  .admin-reports .card-content {
+    padding: 1rem;
+  }
+
+  /* Status items stack vertically */
+  .admin-reports .status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-reports .status-bar-row {
+    grid-template-columns: 1fr;
+    row-gap: 0.5rem;
+    align-items: start;
+  }
+
+  .admin-reports .status-bar-count {
+    text-align: left;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Improve scroll experience  */
+  .admin-reports .table-container {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  /* Smaller table padding/text on small screens */
+  .admin-reports .data-table th,
+  .admin-reports .data-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Slightly smaller table min width for very small screens */
+  .admin-reports .data-table {
+    min-width: 520px;
+  }
+}
+
+@media (max-width: 360px) {
+  /* Even smaller min width for extra-small devices */
+  .admin-reports .data-table {
+    min-width: 480px;
+  }
+}
+
+/* Reports section layout wrapper */
+.admin-reports {
+  display: grid;
+  row-gap: 2rem;
+  border: 1px solid #ffffff;
+}
+
+/* Reports title styling */
+.admin-reports .admin-reports-header h2 {
+  padding-bottom: 1.5rem;
+  font-size: 1.875rem;
+}
+
+/* Stats cards grid */
+.admin-reports .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.admin-reports .stat-card {
+  border: 0;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}

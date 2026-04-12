@@ -1,0 +1,193 @@
+/* Main section container */
+.admin-patients-content {
+  background: #fff; /* white card background */
+  border-radius: 12px; /* rounded corners */
+  padding: 0 0 20px; /* bottom padding only */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* soft card shadow */
+}
+
+/* Header (title + search bar) */
+.admin-patients-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 20px;
+  padding-bottom: 30px;
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Left side of header (title + count) */
+.admin-patients-header-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding-left: 25px;
+  gap: 8px;
+}
+
+/* Remove default spacing from title */
+.admin-patients-header-left h2 {
+  margin: 0;
+}
+
+/* Extra spacing for subtitle text */
+.admin-patients-header-left span {
+  padding-left: 20px;
+}
+
+/* Patients count text */
+.admin-patients-count,
+.admin-patients .patients-count {
+  font-size: 0.9em;
+  color: #666;
+  font-weight: 500;
+}
+
+/*Search area  */
+.admin-patients-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Right side of header (search input) */
+.admin-patients-header-right {
+  display: flex;
+  align-items: center;
+  padding-right: 25px;
+}
+
+/* Search wrapper */
+.admin-patients-header-right .search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Search icon inside input */
+.admin-patients .search-icon {
+  position: absolute;
+  left: 12px;
+  color: #888;
+}
+
+/* Search input field */
+.admin-patients .search-input {
+  padding: 10px 12px 10px 38px;
+  border: 2px solid #e0e0e0;
+  border-radius: 25px;
+  font-size: 0.9em;
+  width: 280px;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+/* Search input focus state */
+.admin-patients .search-input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+/* Table container*/
+.admin-patients-table-container {
+  overflow-x: auto;
+  padding: 0 20px;
+}
+
+/*Data table */
+.admin-patients-data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Table headers */
+.admin-patients-data-table thead th {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 2px solid #e6e6e6;
+}
+
+/* Table body cells */
+.admin-patients-data-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+/* First column alignment */
+.admin-patients-data-table thead th:first-child,
+.admin-patients-data-table tbody td:first-child {
+  text-align: left;
+  vertical-align: top;
+}
+
+/* Row hover effect */
+.admin-patients-data-table tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Tablet responsiveness */
+@media (max-width: 1024px) {
+  .admin-patients-header-left {
+    padding-left: 1rem;
+  }
+  .admin-patients-header-right {
+    padding-right: 1rem;
+  }
+  .admin-patients .search-input {
+    width: 360px;
+  }
+}
+
+/* Mobile responsiveness  */
+@media (max-width: 640px) {
+  /* Stack header vertically */
+  .admin-patients-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .admin-patients-header-left {
+    padding-left: 0;
+  }
+
+  .admin-patients-header-right {
+    padding-right: 0;
+  }
+
+  /* Full-width search input */
+  .admin-patients-header-right .search-container,
+  .admin-patients-search {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .admin-patients .search-input {
+    width: 100%;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 360px) {
+  .admin-patients-header {
+    gap: 0.75rem;
+  }
+
+  /* Compact search input */
+  .admin-patients .search-input {
+    padding: 8px 10px 8px 34px;
+    font-size: 0.875rem;
+  }
+
+  /* Smaller search icon */
+  .admin-patients .search-icon {
+    left: 10px;
+    font-size: 0.75rem;
+  }
+}
