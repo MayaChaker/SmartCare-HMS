@@ -1,0 +1,304 @@
+.doctor-profile .card {
+  padding-top: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.doctor-profile .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (max-width: 768px) {
+  .doctor-profile .card-header {
+    padding: 0.75rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+  }
+}
+
+.doctor-profile .card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.doctor-profile .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.doctor-profile .card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0;
+}
+
+.doctor-profile .profile-info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding-top: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (max-width: 1024px) {
+  .doctor-profile .profile-info {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .doctor-profile .profile-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+.doctor-profile .profile-field {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+.doctor-profile .profile-label {
+  color: #4b5563;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.doctor-profile .profile-value {
+  color: #111827;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.doctor-profile .edit-btn {
+  padding: 0.6rem 1.6rem;
+  font-size: 0.95rem;
+  min-height: 40px;
+}
+
+.doctor-modal-content .availability-form {
+  display: grid;
+  gap: 1.25rem;
+}
+/* Availability modal content */
+.doctor-modal-content .availability-form .form-section {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+}
+.doctor-modal-content .availability-form .section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.75rem 0;
+}
+.doctor-modal-content .availability-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.doctor-modal-content .availability-form .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background: #f9fafb;
+}
+.doctor-modal-content .availability-form .checkbox-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.doctor-modal-content .availability-form .checkbox-title {
+  font-weight: 600;
+  color: #111827;
+}
+.doctor-modal-content .availability-form .checkbox-desc {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+.doctor-modal-content .availability-form .checkbox-custom {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: #d1d5db;
+  display: inline-block;
+  transition: all 150ms ease-in-out;
+}
+.doctor-modal-content .availability-form .checkbox-custom::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 1px 0 rgb(0 0 0 / 0.05);
+  transition: transform 150ms ease-in-out;
+}
+.doctor-modal-content
+  .availability-form
+  .checkbox-input:checked
+  + .checkbox-custom {
+  background: #0284c7;
+}
+.doctor-modal-content
+  .availability-form
+  .checkbox-input:checked
+  + .checkbox-custom::after {
+  transform: translateX(20px);
+}
+.doctor-modal-content
+  .availability-form
+  .checkbox-input:focus-visible
+  + .checkbox-custom {
+  outline: 2px solid #0ea5e9;
+  outline-offset: 2px;
+}
+.doctor-modal-content .availability-form .checkbox-content {
+  display: flex;
+  flex-direction: column;
+}
+.doctor-modal-content
+  .availability-form
+  .checkbox-input:checked
+  ~ .checkbox-content
+  .checkbox-title {
+  color: #15803d;
+}
+.doctor-modal-content
+  .availability-form
+  .checkbox-input:checked
+  ~ .checkbox-content
+  .checkbox-desc {
+  color: #0369a1;
+}
+.doctor-modal-content .availability-form .form-hint {
+  font-size: 0.75rem;
+  color: #4b5563;
+}
+.doctor-modal-content .availability-form .current-schedule {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+.doctor-modal-content .availability-form .days-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.doctor-modal-content .availability-form .day-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  background: #f9fafb;
+  cursor: pointer;
+}
+.doctor-modal-content .availability-form .day-chip.selected {
+  background: #e0f2fe;
+  border-color: #0ea5e9;
+}
+.doctor-modal-content .availability-form .day-chip input {
+  width: 14px;
+  height: 14px;
+}
+.doctor-modal-content .availability-form .day-label {
+  font-size: 0.875rem;
+  color: #111827;
+}
+.doctor-modal-content .availability-form .time-inputs {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+}
+.doctor-modal-content .availability-form .time-field .form-control {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background: white;
+}
+.doctor-modal-content .availability-form .time-separator {
+  color: #6b7280;
+}
+
+.doctor-profile .profile-section {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+.doctor-profile .profile-section .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.doctor-profile .profile-section .section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.doctor-profile .availability-section .availability-content {
+  display: grid;
+  gap: 0.5rem;
+}
+.doctor-profile .availability-section .availability-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+}
+.doctor-profile .availability-section .availability-label {
+  color: #4b5563;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.doctor-profile .availability-section .availability-value {
+  color: #111827;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.doctor-profile .availability-section .availability-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+.doctor-profile .photo-helpers .photo-helpers-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.doctor-profile .photo-helpers .photo-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.doctor-profile .photo-helpers .btn {
+  min-height: 40px;
+  min-width: 160px;
+}

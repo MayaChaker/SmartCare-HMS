@@ -1,0 +1,27 @@
+import React from "react";
+import { IoIosLogOut } from "react-icons/io";
+import { useAuth } from "../../../context/useAuth";
+import { useNavigate } from "react-router-dom";
+import "./LogoutButton.css";
+
+const LogoutButton = ({ children = "Logout" }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  return (
+    <button
+      type="button"
+      className="logout-button"
+      onClick={() => {
+        // Clear session and redirect to landing page
+        logout();
+        navigate("/");
+      }}
+    >
+      <IoIosLogOut className="logout-icon" size={24} />
+      {children}
+    </button>
+  );
+};
+
+export default LogoutButton;
