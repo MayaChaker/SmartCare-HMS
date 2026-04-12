@@ -284,6 +284,7 @@
   /* Stack image + form vertically */
   .auth-container--login .login-card {
     grid-template-columns: 1fr;
+    max-height: none;
   }
 
   .auth-container--login {
@@ -292,8 +293,26 @@
     padding: 16px;
   }
 
+  .auth-container--login .auth-card.auth-card--login {
+    padding: 20px;
+  }
+
   .auth-container--login .brand-logo {
     font-size: 1.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-container--login .auth-card.auth-card--login {
+    padding: 16px;
+  }
+
+  .auth-container--login .login-media {
+    display: none;
+  }
+
+  .auth-container--login .auth-form {
+    gap: 1rem !important;
   }
 }
 
