@@ -64,33 +64,34 @@ app.use(
   express.static(path.join(__dirname, "uploads")),
 );
 
-// Sync database models - skip alter to avoid key conflicts
-sequelize.sync({ alter: false });
+const allowStartWithoutDb =
+  String(process.env.ALLOW_START_WITHOUT_DB || "").toLowerCase() === "true" ||
+  process.env.NODE_ENV !== "production";
 
-// Sync database models
-sequelize
-  .sync()
-  .then(() => {
+async function init() {
+  try {
+    await sequelize.authenticate();
+    await sequelize.sync({ alter: false });
     console.log("Database models synchronized successfully.");
-    // Create admin user after sync
-    return createAdminUser();
-  })
-  .then(() => {
+    await createAdminUser();
     console.log("Admin user created successfully.");
-    return ensureDoctorFeeColumn();
-  })
-  .then(async () => {
+    await ensureDoctorFeeColumn();
     if (String(process.env.SEED_DEMO_DOCTOR || "").toLowerCase() === "true") {
       await createDoctorUser();
       console.log("Dev doctor user ensured.");
     }
     startServer();
-  })
-  .catch((error) => {
-    console.error("Error synchronizing database models:", error);
-    // Start server even if database sync fails (for development)
-    startServer();
-  });
+  } catch (error) {
+    console.error("Error initializing database:", error);
+    if (allowStartWithoutDb) {
+      startServer();
+      return;
+    }
+    process.exit(1);
+  }
+}
+
+void init();
 
 // Function to create admin user
 async function createAdminUser() {
