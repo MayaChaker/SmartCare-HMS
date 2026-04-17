@@ -3,6 +3,7 @@ const cors = require("cors");
 const path = require("path");
 const { sequelize } = require("./config/db");
 require("dotenv").config();
+require("./models");
 
 // Import routes
 const authRoutes = require("./routes/authRoutes");
@@ -158,6 +159,12 @@ async function createDoctorUser() {
 
 async function ensureDoctorFeeColumn() {
   try {
+    const [tableRows] = await sequelize.query(
+      "SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'doctors' LIMIT 1",
+    );
+    if (!Array.isArray(tableRows) || tableRows.length === 0) {
+      return;
+    }
     const [rows] = await sequelize.query(
       "SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'doctors' AND COLUMN_NAME = 'fee'",
     );
