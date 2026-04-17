@@ -2,7 +2,7 @@ import React from "react";
 import { IoIosLogOut } from "react-icons/io";
 import { useAuth } from "../../../context/useAuth";
 import { useNavigate } from "react-router-dom";
-import "./LogoutButton.css";
+import "./logoutButton.css";
 
 const LogoutButton = ({ children = "Logout" }) => {
   const { logout } = useAuth();
