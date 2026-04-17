@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FaUserInjured } from "react-icons/fa6";
 import LogoutButton from "../../components/ui/LogoutButton/LogoutButton";
 import DashboardAppointment from "../../components/DashboardAppointment/DashboardAppointment";
-import DashboardDoctor from "../../components/dashboarddoctor/DashboardDoctor";
+import DashboardDoctor from "../../components/DashboardDoctor/DashboardDoctor";
 import DashboardMedicalRecords from "../../components/DashboardMedicalRecords/DashboardMedicalRecords";
 import DashboardProfile from "../../components/DashboardProfile/DashboardProfile";
 import { EditProfileLayer } from "../../components/DashboardProfile/DashboardProfile";
