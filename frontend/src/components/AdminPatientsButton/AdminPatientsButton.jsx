@@ -4,6 +4,7 @@ import { FaSearch } from "react-icons/fa";
 import "./AdminPatientsButton.css";
 import { useAdmin } from "../../context/AdminContext";
 import { AdminNavItem } from "../../pages/Admin/AdminPanel";
+import { API_BASE_URL } from "../../utils/api";
 
 const AdminPatientsButton = ({ renderContent = false }) => {
   const { activeSection, setActiveSection } = useAdmin();
@@ -25,7 +26,7 @@ const AdminPatientsButton = ({ renderContent = false }) => {
     try {
       const token = localStorage.getItem("token");
 
-      const patientsResponse = await fetch("/api/admin/patients", {
+      const patientsResponse = await fetch(`${API_BASE_URL}/admin/patients`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
