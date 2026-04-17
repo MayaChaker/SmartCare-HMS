@@ -1,9 +1,10 @@
 import axios from "axios";
 
 // Resolve API base URL from Vite env;
-const API_BASE_URL =
+export const API_BASE_URL = String(
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE_URL) ||
-  "/api";
+    "/api",
+).replace(/\/$/, "");
 
 // Axios instance
 const api = axios.create({

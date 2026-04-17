@@ -6,6 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { useAuth } from "./useAuth";
+import { API_BASE_URL } from "../utils/api";
 
 /**
  * Create Admin context
@@ -82,7 +83,7 @@ export const AdminProvider = ({ children }) => {
 
       //  Analytics
       try {
-        const res = await fetch("/api/admin/analytics", {
+        const res = await fetch(`${API_BASE_URL}/admin/analytics`, {
           headers: authHeaders,
         });
 
@@ -99,7 +100,9 @@ export const AdminProvider = ({ children }) => {
 
       //  Users
       try {
-        const res = await fetch("/api/admin/users", { headers: authHeaders });
+        const res = await fetch(`${API_BASE_URL}/admin/users`, {
+          headers: authHeaders,
+        });
 
         if (res.ok) {
           setUsers(await res.json());
@@ -114,7 +117,9 @@ export const AdminProvider = ({ children }) => {
 
       //  Doctors
       try {
-        const res = await fetch("/api/admin/doctors", { headers: authHeaders });
+        const res = await fetch(`${API_BASE_URL}/admin/doctors`, {
+          headers: authHeaders,
+        });
 
         if (res.ok) {
           setDoctors(await res.json());
@@ -129,7 +134,7 @@ export const AdminProvider = ({ children }) => {
 
       //  Appointments
       try {
-        const res = await fetch("/api/admin/appointments", {
+        const res = await fetch(`${API_BASE_URL}/admin/appointments`, {
           headers: authHeaders,
         });
 
@@ -146,7 +151,7 @@ export const AdminProvider = ({ children }) => {
 
       // System Settings
       try {
-        const res = await fetch("/api/admin/settings", {
+        const res = await fetch(`${API_BASE_URL}/admin/settings`, {
           headers: authHeaders,
         });
 
@@ -244,8 +249,8 @@ export const AdminProvider = ({ children }) => {
       const token = localStorage.getItem("token");
 
       const url = isEdit
-        ? `/api/admin/users/${selectedItem.id}`
-        : "/api/admin/users";
+        ? `${API_BASE_URL}/admin/users/${selectedItem.id}`
+        : `${API_BASE_URL}/admin/users`;
 
       const method = isEdit ? "PUT" : "POST";
 
@@ -274,7 +279,7 @@ export const AdminProvider = ({ children }) => {
 
       if (res.ok) {
         setSuccess(
-          isEdit ? "User updated successfully!" : "User created successfully!"
+          isEdit ? "User updated successfully!" : "User created successfully!",
         );
         await loadAdminData();
         closeModal();
@@ -303,7 +308,7 @@ export const AdminProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch(`/api/admin/users/${selectedItem.id}`, {
+      const res = await fetch(`${API_BASE_URL}/admin/users/${selectedItem.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
