@@ -67,7 +67,22 @@ const dialectOptions = shouldUseSSL
     }
   : {};
 
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
+function normalizeDatabaseUrl(rawUrl) {
+  if (!rawUrl) return rawUrl;
+  try {
+    const url = new URL(rawUrl);
+    const paramsToRemove = ["ssl-mode", "sslmode", "ssl_mode", "sslMode"];
+    for (const key of paramsToRemove) {
+      url.searchParams.delete(key);
+    }
+    const normalizedUrl = url.toString();
+    return normalizedUrl;
+  } catch {
+    return rawUrl;
+  }
+}
+
+const sequelize = new Sequelize(normalizeDatabaseUrl(databaseUrl), {
   dialect: "mysql",
   dialectOptions,
   logging: false,
