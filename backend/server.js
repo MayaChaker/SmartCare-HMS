@@ -69,27 +69,59 @@ const allowStartWithoutDb =
   String(process.env.ALLOW_START_WITHOUT_DB || "").toLowerCase() === "true" ||
   process.env.NODE_ENV !== "production";
 
+const dbConnectRetries = process.env.DB_CONNECT_RETRIES
+  ? Number(process.env.DB_CONNECT_RETRIES)
+  : 8;
+const dbConnectRetryDelayMs = process.env.DB_CONNECT_RETRY_DELAY_MS
+  ? Number(process.env.DB_CONNECT_RETRY_DELAY_MS)
+  : 1500;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled promise rejection:", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err);
+});
+
 async function init() {
-  try {
-    await sequelize.authenticate();
-    await sequelize.sync({ alter: false });
-    console.log("Database models synchronized successfully.");
-    await createAdminUser();
-    console.log("Admin user created successfully.");
-    await ensureDoctorFeeColumn();
-    if (String(process.env.SEED_DEMO_DOCTOR || "").toLowerCase() === "true") {
-      await createDoctorUser();
-      console.log("Dev doctor user ensured.");
-    }
-    startServer();
-  } catch (error) {
-    console.error("Error initializing database:", error);
-    if (allowStartWithoutDb) {
+  let lastError;
+  const attempts = Number.isFinite(dbConnectRetries) && dbConnectRetries > 0 ? dbConnectRetries : 1;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      await sequelize.authenticate();
+      await sequelize.sync({ alter: false });
+      console.log("Database models synchronized successfully.");
+      await createAdminUser();
+      console.log("Admin user created successfully.");
+      await ensureDoctorFeeColumn();
+      if (String(process.env.SEED_DEMO_DOCTOR || "").toLowerCase() === "true") {
+        await createDoctorUser();
+        console.log("Dev doctor user ensured.");
+      }
       startServer();
       return;
+    } catch (error) {
+      lastError = error;
+      console.error(`Error initializing database (attempt ${attempt}/${attempts}):`, error);
+      if (attempt < attempts) {
+        const delay = Number.isFinite(dbConnectRetryDelayMs) && dbConnectRetryDelayMs > 0 ? dbConnectRetryDelayMs : 1500;
+        await sleep(delay);
+      }
     }
-    process.exit(1);
   }
+
+  if (allowStartWithoutDb) {
+    startServer();
+    return;
+  }
+
+  console.error("Database initialization failed after retries:", lastError);
+  process.exit(1);
 }
 
 void init();
