@@ -72,24 +72,14 @@ exports.createUser = async (req, res) => {
       role,
     });
 
-    // If doctor, always create a doctor profile so it appears in the system
-    if (role === "doctor") {
-      const usernameBase = String(username).trim().split("@")[0];
-      const parts = usernameBase.split(/[._\-\s]+/).filter(Boolean);
-      const safeFirstName =
-        isNonEmptyString(firstName) ? String(firstName).trim() : parts[0] || "Doctor";
-      const safeLastName =
-        isNonEmptyString(lastName) ? String(lastName).trim() : parts[1] || "User";
-      const safeSpecialization = isNonEmptyString(specialization)
-        ? String(specialization).trim()
-        : "General Medicine";
-
+    // If doctor, create doctor profile
+    if (role === "doctor" && firstName && lastName && specialization) {
       await Doctor.create({
-        firstName: safeFirstName,
-        lastName: safeLastName,
-        specialization: safeSpecialization,
-        phone: isNonEmptyString(phone) ? String(phone).trim() : "000-000-0000",
-        email: isNonEmptyString(email) ? String(email).trim() : String(username).trim(),
+        firstName: String(firstName).trim(),
+        lastName: String(lastName).trim(),
+        specialization: String(specialization).trim(),
+        phone: phone || "000-000-0000",
+        email: email || username,
         fee: typeof fee === "number" ? fee : fee ? parseFloat(fee) : 0,
         userId: user.id,
       });
