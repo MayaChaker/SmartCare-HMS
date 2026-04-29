@@ -11,6 +11,7 @@ import AdminDoctorsButton from "../../components/AdminDoctorsButton/AdminDoctors
 import AdminPatientsButton from "../../components/AdminPatientsButton/AdminPatientsButton";
 import AdminAppointmentsButton from "../../components/AdminAppointmentsButton/AdminAppointmentsButton";
 import AdminReports from "../../components/AdminReports/AdminReports";
+import Spinner from "../../components/ui/Spinner/Spinner";
 
 import {
   AdminProvider,
@@ -117,7 +118,12 @@ const AdminMain = () => {
       <AdminSidebar />
 
       <main className="admin-main">
-        {loading && <div className="loading-overlay"></div>}
+        {loading && (
+          <div className="loading-overlay">
+            <Spinner size={48} />
+            <div className="loading-overlay-text">Loading...</div>
+          </div>
+        )}
 
         {error && (
           <div className="alert alert-error">

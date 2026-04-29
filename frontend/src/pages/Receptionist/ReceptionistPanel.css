@@ -309,6 +309,25 @@
   height: 100%;
   overflow-y: auto;
   min-height: 0;
+  position: relative;
+}
+
+.receptionist-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  z-index: 10;
+}
+
+.receptionist-loading-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
 }
 .receptionist-content {
   display: grid;
