@@ -20,6 +20,7 @@ import { GrBarChart } from "react-icons/gr";
 import { FaUserInjured } from "react-icons/fa6";
 import { GoChecklist } from "react-icons/go";
 import { MdNotifications } from "react-icons/md";
+import Spinner from "../../components/ui/Spinner/Spinner";
 
 // Inner panel: consumes receptionist context and renders the layout
 const ReceptionistPanelInner = () => {
@@ -120,7 +121,12 @@ const ReceptionistPanelInner = () => {
 
         <div className="receptionist-main">
           {/* Section routing: render content based on activeSection; loading gates content */}
-          {loading ? null : (
+          {loading ? (
+            <div className="receptionist-loading-overlay">
+              <Spinner size={48} />
+              <div className="receptionist-loading-text">Loading...</div>
+            </div>
+          ) : (
             <>
               {/* Dashboard overview for receptionist tasks */}
               {activeSection === "dashboard" && <ReceptionistDashboard />}
