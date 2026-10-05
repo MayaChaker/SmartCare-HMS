@@ -16,7 +16,6 @@ const AdminDashboardButton = ({ renderContent = false }) => {
     activeSection,
     setActiveSection,
     analytics,
-    systemSettings,
     openModal,
   } = useAdmin();
 
@@ -39,10 +38,6 @@ const AdminDashboardButton = ({ renderContent = false }) => {
   const todayAppointments = analytics.todayAppointments || 0;
   const totalAppointments = analytics.totalAppointments || 0;
   const recentRegistrations = analytics.recentRegistrations || 0;
-  // Maintenance mode affects the status text
-  const systemStatus = systemSettings.maintenanceMode
-    ? "Under maintenance"
-    : "Running";
 
   const formatStatusLabel = (raw) => {
     const s = String(raw || "").trim();
@@ -168,7 +163,7 @@ const AdminDashboardButton = ({ renderContent = false }) => {
                   </span>
                   <div className="activity-info">
                     <p>
-                      Service status: <span>{systemStatus}</span>
+                      Service status: <span>Running</span>
                     </p>
                     <small>Right now</small>
                   </div>

@@ -42,7 +42,6 @@ export const AdminProvider = ({ children }) => {
   const [users, setUsers] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [appointments, setAppointments] = useState([]);
-  const [systemSettings, setSystemSettings] = useState({});
 
   // Modal state (create / edit / delete user)
   const [showModal, setShowModal] = useState(false);
@@ -149,22 +148,6 @@ export const AdminProvider = ({ children }) => {
         console.warn("Appointments API error:", e);
       }
 
-      // System Settings
-      try {
-        const res = await fetch(`${API_BASE_URL}/admin/settings`, {
-          headers: authHeaders,
-        });
-
-        if (res.ok) {
-          setSystemSettings(await res.json());
-        } else if (res.status === 401) {
-          setError("Please sign in again.");
-          logout();
-          return;
-        }
-      } catch (e) {
-        console.warn("Settings API error:", e);
-      }
     } catch (e) {
       console.error("Error loading admin data:", e);
       setError("Couldn't load the data. Please try again.");
@@ -344,7 +327,6 @@ export const AdminProvider = ({ children }) => {
     users,
     doctors,
     appointments,
-    systemSettings,
 
     showModal,
     modalType,

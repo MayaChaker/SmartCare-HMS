@@ -4,7 +4,6 @@ import React, {
   useState,
   useEffect,
   useCallback,
-  useRef,
 } from "react";
 
 import { useAuth } from "./useAuth";
@@ -36,12 +35,6 @@ export const ReceptionistProvider = ({ children }) => {
   const [appointments, setAppointments] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [todayAppointments, setTodayAppointments] = useState([]);
-  const todayAppointmentsRef = useRef([]);
-
-  // Keep latest todayAppointments
-  useEffect(() => {
-    todayAppointmentsRef.current = todayAppointments;
-  }, [todayAppointments]);
 
   const [selectedDate, setSelectedDate] = useState(() => {
     const d = new Date();
@@ -165,71 +158,7 @@ export const ReceptionistProvider = ({ children }) => {
 
       if (doctorsRes.ok) {
         const doctorsData = await doctorsRes.json();
-        if (Array.isArray(doctorsData) && doctorsData.length > 0) {
-          setDoctors(doctorsData);
-        } else {
-          const schedRes = await fetch(`${API_BASE_URL}/receptionist/schedules`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-
-          if (schedRes.ok) {
-            const schedules = await schedRes.json();
-            const uniq = new Map();
-            (Array.isArray(schedules) ? schedules : []).forEach((s) => {
-              if (s && s.doctor && s.doctor.id && !uniq.has(s.doctor.id)) {
-                uniq.set(s.doctor.id, s.doctor);
-              }
-            });
-            let derived = Array.from(uniq.values());
-
-            if (
-              (!derived || derived.length === 0) &&
-              todayAppointmentsRef.current &&
-              todayAppointmentsRef.current.length > 0
-            ) {
-              const fromToday = new Map();
-              todayAppointmentsRef.current.forEach((a) => {
-                if (
-                  a &&
-                  a.Doctor &&
-                  a.Doctor.id &&
-                  !fromToday.has(a.Doctor.id)
-                ) {
-                  fromToday.set(a.Doctor.id, {
-                    id: a.Doctor.id,
-                    firstName: a.Doctor.firstName,
-                    lastName: a.Doctor.lastName,
-                    specialization: a.Doctor.specialization,
-                  });
-                }
-              });
-              derived = Array.from(fromToday.values());
-            }
-
-            setDoctors(derived);
-          } else {
-            setDoctors([]);
-          }
-        }
-      } else {
-        // fallback admin
-        const token = localStorage.getItem("token");
-        const adminRes = await fetch(`${API_BASE_URL}/admin/doctors`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (adminRes.ok) {
-          const adminDoctors = await adminRes.json();
-          setDoctors(Array.isArray(adminDoctors) ? adminDoctors : []);
-        } else {
-          const publicRes = await fetch(`${API_BASE_URL}/doctors`);
-          if (publicRes.ok) {
-            const publicDoctors = await publicRes.json();
-            setDoctors(Array.isArray(publicDoctors) ? publicDoctors : []);
-          } else {
-            setDoctors([]);
-          }
-        }
+        setDoctors(Array.isArray(doctorsData) ? doctorsData : []);
       }
 
       if (dayAppointmentsRes.ok) {
@@ -456,35 +385,6 @@ export const ReceptionistProvider = ({ children }) => {
       });
       setAvailableTimesForSchedule([]);
       setAvailableDatesForSchedule([]);
-
-      if (!doctors || doctors.length === 0) {
-        (async () => {
-          try {
-            setLoading(true);
-            const token = localStorage.getItem("token");
-            const res = await fetch(`${API_BASE_URL}/receptionist/doctors`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-
-            if (res.ok) {
-              const data = await res.json();
-              setDoctors(Array.isArray(data) ? data : []);
-            } else {
-              const adminRes = await fetch(`${API_BASE_URL}/admin/doctors`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              if (adminRes.ok) {
-                const adminData = await adminRes.json();
-                setDoctors(Array.isArray(adminData) ? adminData : []);
-              }
-            }
-          } catch (err) {
-            console.error("Error loading doctors inside modal:", err);
-          } finally {
-            setLoading(false);
-          }
-        })();
-      }
     } else if (type === "editAppointment") {
       setEditForm({
         appointmentDate: item?.appointmentDate || "",
