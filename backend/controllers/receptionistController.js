@@ -139,6 +139,10 @@ exports.createAppointment = async (req, res) => {
       return res.status(400).json({ message: "appointmentTime is required" });
     }
 
+    const patient = await Patient.findByPk(cleanPatientId);
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
     const doctor = await Doctor.findByPk(cleanDoctorId);
     if (!doctor) {
       return res.status(404).json({ message: "Doctor not found" });
