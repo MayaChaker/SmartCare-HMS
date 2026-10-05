@@ -7,6 +7,8 @@ import {
   normalizeTimeTo24,
   formatTimeHHMM,
 } from "../../utils/schedule";
+import { API_BASE_URL, resolveUploadUrl } from "../../utils/api";
+
 export const resolvePhotoUrl = (url) => {
   const candidate = String(url || "").trim();
   if (!candidate) return "";
@@ -19,7 +21,7 @@ export const resolvePhotoUrl = (url) => {
     const normalized = candidate.startsWith("uploads/")
       ? `/${candidate}`
       : candidate;
-    return `http://localhost:5000${normalized}`;
+    return resolveUploadUrl(normalized);
   }
   return candidate;
 };
@@ -86,7 +88,7 @@ export const saveProfileFactory =
         qualification: pf.qualification,
       };
 
-      const resp = await fetch("http://localhost:5000/api/doctor/profile", {
+      const resp = await fetch(`${API_BASE_URL}/doctor/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -170,7 +172,7 @@ export const savePhotoFromGalleryFactory =
         qualification: pf.qualification,
       };
 
-      const resp = await fetch("http://localhost:5000/api/doctor/profile", {
+      const resp = await fetch(`${API_BASE_URL}/doctor/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -232,7 +234,7 @@ export const handleUpdateAvailabilityFactory =
 
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:5000/api/doctor/availability",
+        `${API_BASE_URL}/doctor/availability`,
         {
           method: "PUT",
           headers: {

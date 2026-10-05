@@ -16,6 +16,7 @@ import {
   formatTimeHHMM,
   toHHMM,
 } from "../utils/schedule";
+import { API_BASE_URL } from "../utils/api";
 
 const ReceptionistContext = createContext(null);
 
@@ -138,21 +139,21 @@ export const ReceptionistProvider = ({ children }) => {
 
       const [patientsRes, doctorsRes, dayAppointmentsRes, allAppointmentsRes] =
         await Promise.all([
-          fetch("/api/receptionist/patients", {
+          fetch(`${API_BASE_URL}/receptionist/patients`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch("/api/receptionist/doctors", {
+          fetch(`${API_BASE_URL}/receptionist/doctors`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
           fetch(
-            `/api/receptionist/appointments/day?date=${encodeURIComponent(
+            `${API_BASE_URL}/receptionist/appointments/day?date=${encodeURIComponent(
               selectedDate
             )}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
           ),
-          fetch("/api/receptionist/appointments", {
+          fetch(`${API_BASE_URL}/receptionist/appointments`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -167,7 +168,7 @@ export const ReceptionistProvider = ({ children }) => {
         if (Array.isArray(doctorsData) && doctorsData.length > 0) {
           setDoctors(doctorsData);
         } else {
-          const schedRes = await fetch("/api/receptionist/schedules", {
+          const schedRes = await fetch(`${API_BASE_URL}/receptionist/schedules`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -213,7 +214,7 @@ export const ReceptionistProvider = ({ children }) => {
       } else {
         // fallback admin
         const token = localStorage.getItem("token");
-        const adminRes = await fetch("/api/admin/doctors", {
+        const adminRes = await fetch(`${API_BASE_URL}/admin/doctors`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -221,7 +222,7 @@ export const ReceptionistProvider = ({ children }) => {
           const adminDoctors = await adminRes.json();
           setDoctors(Array.isArray(adminDoctors) ? adminDoctors : []);
         } else {
-          const publicRes = await fetch("/api/doctors");
+          const publicRes = await fetch(`${API_BASE_URL}/doctors`);
           if (publicRes.ok) {
             const publicDoctors = await publicRes.json();
             setDoctors(Array.isArray(publicDoctors) ? publicDoctors : []);
@@ -269,7 +270,7 @@ export const ReceptionistProvider = ({ children }) => {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/receptionist/patients", {
+      const response = await fetch(`${API_BASE_URL}/receptionist/patients`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -314,7 +315,7 @@ export const ReceptionistProvider = ({ children }) => {
           : undefined,
       };
 
-      const response = await fetch("/api/receptionist/appointments", {
+      const response = await fetch(`${API_BASE_URL}/receptionist/appointments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -358,7 +359,7 @@ export const ReceptionistProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `/api/receptionist/checkin/${appointmentId}`,
+        `${API_BASE_URL}/receptionist/checkin/${appointmentId}`,
         {
           method: "PUT",
           headers: {
@@ -391,7 +392,7 @@ export const ReceptionistProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `/api/receptionist/appointments/${appointmentId}`,
+        `${API_BASE_URL}/receptionist/appointments/${appointmentId}`,
         {
           method: "PUT",
           headers: {
@@ -461,7 +462,7 @@ export const ReceptionistProvider = ({ children }) => {
           try {
             setLoading(true);
             const token = localStorage.getItem("token");
-            const res = await fetch("/api/receptionist/doctors", {
+            const res = await fetch(`${API_BASE_URL}/receptionist/doctors`, {
               headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -469,7 +470,7 @@ export const ReceptionistProvider = ({ children }) => {
               const data = await res.json();
               setDoctors(Array.isArray(data) ? data : []);
             } else {
-              const adminRes = await fetch("/api/admin/doctors", {
+              const adminRes = await fetch(`${API_BASE_URL}/admin/doctors`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               if (adminRes.ok) {
@@ -550,7 +551,7 @@ export const ReceptionistProvider = ({ children }) => {
 
         const token = localStorage.getItem("token");
         const res = await fetch(
-          `/api/receptionist/doctors/${doctorId}/booked-times?date=${encodeURIComponent(
+          `${API_BASE_URL}/receptionist/doctors/${doctorId}/booked-times?date=${encodeURIComponent(
             appointmentDate
           )}`,
           {
@@ -611,7 +612,7 @@ export const ReceptionistProvider = ({ children }) => {
 
         const token = localStorage.getItem("token");
         const res = await fetch(
-          `/api/receptionist/doctors/${doctorId}/booked-times?date=${encodeURIComponent(
+          `${API_BASE_URL}/receptionist/doctors/${doctorId}/booked-times?date=${encodeURIComponent(
             appointmentDate
           )}`,
           {
@@ -907,7 +908,7 @@ export const ReceptionistProvider = ({ children }) => {
         try {
           const token = localStorage.getItem("token");
           const response = await fetch(
-            `/api/receptionist/appointments/${selectedItem.id}`,
+            `${API_BASE_URL}/receptionist/appointments/${selectedItem.id}`,
             {
               method: "PUT",
               headers: {

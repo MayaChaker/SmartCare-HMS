@@ -11,6 +11,7 @@ import {
 import { FaStethoscope, FaPills } from "react-icons/fa";
 import { TbMicroscope } from "react-icons/tb";
 import { useDoctor } from "../../context/DoctorContext";
+import { API_BASE_URL } from "../../utils/api";
 const DoctorPatient = () => {
   const { patients = [], openModal } = useDoctor();
   return (
@@ -421,7 +422,7 @@ export const handleAddMedicalRecordFactory =
     try {
       // Auth token
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/doctor/records", {
+      const response = await fetch(`${API_BASE_URL}/doctor/records`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -471,7 +472,7 @@ export const usePatientModalInitEffect = (
         try {
           const token = localStorage.getItem("token");
           const r = await fetch(
-            `http://localhost:5000/api/doctor/patients/${selectedItem.id}`,
+            `${API_BASE_URL}/doctor/patients/${selectedItem.id}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           if (!r.ok) throw new Error();

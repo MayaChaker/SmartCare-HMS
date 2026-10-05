@@ -1,4 +1,5 @@
 import "./Footer.css";
+import { API_ORIGIN } from "../../utils/api";
 
 const Footer = () => {
   const year = new Date().getFullYear();
@@ -72,7 +73,7 @@ const Footer = () => {
                   </a>
                 </li>
                 <li>
-                  <a className="footer-link" href="http://localhost:5000/">
+                  <a className="footer-link" href={`${API_ORIGIN}/`}>
                     System status
                   </a>
                 </li>

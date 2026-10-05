@@ -6,6 +6,12 @@ export const API_BASE_URL = String(
     "/api",
 ).replace(/\/$/, "");
 
+// Backend origin without the /api suffix; empty in development, where Vite proxies requests
+export const API_ORIGIN = API_BASE_URL.replace(/\/api$/, "");
+
+// Files under /uploads are served by the backend, next to /api
+export const resolveUploadUrl = (uploadPath) => `${API_ORIGIN}${uploadPath}`;
+
 // Axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,

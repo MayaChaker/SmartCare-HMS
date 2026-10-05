@@ -24,6 +24,7 @@ import {
   ViewPatientModal,
   AddMedicalRecordForm,
 } from "../components/DoctorPatient/DoctorPatient";
+import { API_BASE_URL } from "../utils/api";
 
 const DoctorContext = createContext(null);
 
@@ -82,9 +83,9 @@ export const DoctorProvider = ({ children }) => {
 
       // Parallel fetch for profile/patients/appointments to speed up loading
       const [profileRes, patientsRes, appointmentsRes] = await Promise.all([
-        fetch("http://localhost:5000/api/doctor/profile", { headers }),
-        fetch("http://localhost:5000/api/doctor/patients", { headers }),
-        fetch("http://localhost:5000/api/doctor/appointments", { headers }),
+        fetch(`${API_BASE_URL}/doctor/profile`, { headers }),
+        fetch(`${API_BASE_URL}/doctor/patients`, { headers }),
+        fetch(`${API_BASE_URL}/doctor/appointments`, { headers }),
       ]);
 
       if (profileRes.ok) {
@@ -125,7 +126,7 @@ export const DoctorProvider = ({ children }) => {
       const formData = new FormData();
       formData.append("photo", file);
 
-      const resp = await fetch("http://localhost:5000/api/doctor/photo", {
+      const resp = await fetch(`${API_BASE_URL}/doctor/photo`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,

@@ -1,3 +1,5 @@
+import { resolveUploadUrl } from "./api";
+
 export const parseWorkingHours = (workingHours) => {
   if (!workingHours || typeof workingHours !== "string") {
     return { days: [], start: "", end: "", time: "" };
@@ -187,7 +189,7 @@ export const resolveDoctorImage = (doctorObj) => {
   const lc = candidate.toLowerCase();
   if (lc === "null" || lc === "undefined") return "";
   if (candidate.startsWith("/uploads/")) {
-    return `http://localhost:5000${candidate}`;
+    return resolveUploadUrl(candidate);
   }
   return candidate;
 };
