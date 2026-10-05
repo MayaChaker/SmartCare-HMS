@@ -18,21 +18,28 @@ try {
   console.warn("Could not ensure upload directory exists:", e);
 }
 
+// The extension comes from this list, never from the client's filename
+const ALLOWED_IMAGE_TYPES = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+};
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, doctorUploadDir);
   },
   filename: function (req, file, cb) {
-    const userId = req.user?.id || "unknown";
-    const ext = path.extname(file.originalname) || "";
-    const safeExt = ext.toLowerCase();
-    cb(null, `doctor_${userId}_${Date.now()}${safeExt}`);
+    const ext = ALLOWED_IMAGE_TYPES[file.mimetype];
+    cb(null, `doctor_${req.user.id}_${Date.now()}${ext}`);
   },
 });
 
 function imageFileFilter(req, file, cb) {
-  if (!file.mimetype.startsWith("image/")) {
-    return cb(new Error("Only image files are allowed"));
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedExts = [".jpg", ".jpeg", ".png", ".webp"];
+  if (!ALLOWED_IMAGE_TYPES[file.mimetype] || !allowedExts.includes(ext)) {
+    return cb(new Error("Only JPG, PNG or WEBP images are allowed"));
   }
   cb(null, true);
 }
@@ -300,15 +307,13 @@ exports.uploadPhoto = (req, res) => {
   const single = upload.single("photo");
   single(req, res, async (err) => {
     if (err) {
-      console.error("Upload error:", err);
-      return res.status(400).json({ message: err.message || "Upload error" });
+      const message =
+        err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE"
+          ? "Image must be 3MB or smaller"
+          : err.message;
+      return res.status(400).json({ message });
     }
     try {
-      if (!req.user || !req.user.id) {
-        return res
-          .status(401)
-          .json({ message: "Unauthorized: missing user context" });
-      }
       const userId = req.user.id;
       const doctor = await ensureDoctorForUser(userId);
       if (!req.file) {
@@ -323,9 +328,7 @@ exports.uploadPhoto = (req, res) => {
       });
     } catch (error) {
       console.error("Error saving uploaded photo:", error);
-      return res
-        .status(500)
-        .json({ message: "Server error", detail: error.message || "unknown" });
+      return res.status(500).json({ message: "Server error" });
     }
   });
 };
