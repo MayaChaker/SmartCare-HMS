@@ -332,20 +332,36 @@ exports.createAppointment = async (req, res) => {
 exports.updateAppointment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { appointmentDate, status } = req.body;
+    const { appointmentDate, appointmentTime, status } = req.body;
 
     const appointment = await Appointment.findByPk(id);
     if (!appointment) {
       return res.status(404).json({ message: "Appointment not found" });
     }
 
-    if (appointmentDate) {
-      const cleanDate = String(appointmentDate || "").trim();
-      if (!isIsoDate(cleanDate)) {
-        return res
-          .status(400)
-          .json({ message: "appointmentDate must be YYYY-MM-DD" });
-      }
+    const cleanDate = appointmentDate
+      ? String(appointmentDate).trim()
+      : appointment.appointmentDate;
+    const cleanTime = appointmentTime
+      ? normalizeTimeToSql(appointmentTime)
+      : appointment.appointmentTime;
+
+    if (!isIsoDate(cleanDate)) {
+      return res
+        .status(400)
+        .json({ message: "appointmentDate must be YYYY-MM-DD" });
+    }
+    if (appointmentTime && !cleanTime) {
+      return res
+        .status(400)
+        .json({ message: "appointmentTime must be HH:MM or HH:MM:SS" });
+    }
+
+    const slotChanged =
+      cleanDate !== appointment.appointmentDate ||
+      cleanTime !== appointment.appointmentTime;
+
+    if (slotChanged) {
       const doctor = await Doctor.findByPk(appointment.doctorId);
       if (!doctor) {
         return res.status(404).json({ message: "Doctor not found" });
@@ -353,12 +369,8 @@ exports.updateAppointment = async (req, res) => {
       if (doctor.availability === false) {
         return res.status(409).json({ message: "Doctor is not available" });
       }
-      if (appointment.appointmentTime) {
-        const whCheck = isSlotAllowedByWorkingHours(
-          doctor,
-          cleanDate,
-          appointment.appointmentTime,
-        );
+      if (cleanTime) {
+        const whCheck = isSlotAllowedByWorkingHours(doctor, cleanDate, cleanTime);
         if (!whCheck.ok) {
           return res.status(409).json({ message: whCheck.message });
         }
@@ -368,7 +380,7 @@ exports.updateAppointment = async (req, res) => {
             id: { [Op.ne]: appointment.id },
             doctorId: appointment.doctorId,
             appointmentDate: cleanDate,
-            appointmentTime: appointment.appointmentTime,
+            appointmentTime: cleanTime,
             status: { [Op.not]: "cancelled" },
           },
         });
@@ -379,6 +391,7 @@ exports.updateAppointment = async (req, res) => {
         }
       }
       appointment.appointmentDate = cleanDate;
+      appointment.appointmentTime = cleanTime;
     }
     if (status) {
       const next = String(status).toLowerCase();
