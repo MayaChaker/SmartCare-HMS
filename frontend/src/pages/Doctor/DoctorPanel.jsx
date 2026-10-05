@@ -5,14 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { FaUserMd } from "react-icons/fa";
 import { FiCalendar, FiUser, FiBarChart2, FiUsers } from "react-icons/fi";
 
-// Local doctor images used in the photo gallery
-import img1 from "../../assets/doctors/doctor-1.jpg";
-import img2 from "../../assets/doctors/doctor-2.jpg";
-import img3 from "../../assets/doctors/doctor-3.jpg";
-import img4 from "../../assets/doctors/doctor-4.jpg";
-import img5 from "../../assets/doctors/doctor-5.jpg";
-import img6 from "../../assets/doctors/doctor-6.jpg";
-
 // UI & context
 import LogoutButton from "../../components/ui/LogoutButton/LogoutButton";
 import { useAuth } from "../../context/useAuth";
@@ -131,7 +123,8 @@ const DoctorPanel = () => {
   const photoUrlInputRef = useRef(null);
 
   // Images used in the photo gallery modal
-  const galleryImages = [img1, img2, img3, img4, img5, img6];
+  // Served from public/doctors so the saved photoUrl stays valid across builds
+  const galleryImages = [1, 2, 3, 4, 5, 6].map((n) => `/doctors/doctor-${n}.jpg`);
 
   // Handle availability update (factory pattern)
   const getAvailabilityForm = () => availabilityForm;
