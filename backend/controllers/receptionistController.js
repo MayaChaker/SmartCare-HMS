@@ -1,6 +1,8 @@
 const { User, Patient, Doctor, Appointment } = require("../models");
 const bcrypt = require("bcrypt");
 
+const APPOINTMENT_STATUSES = Appointment.getAttributes().status.values;
+
 const isIsoDate = (v) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
 const parseId = (v) => {
   const n = Number.parseInt(String(v), 10);
@@ -381,13 +383,23 @@ exports.updateAppointment = async (req, res) => {
     if (status) {
       const next = String(status).toLowerCase();
       const current = String(appointment.status).toLowerCase();
-      if (
-        (next === "completed" || next === "cancelled") &&
-        !(current === "checked-in" || current === "in-progress")
-      ) {
-        return res
-          .status(400)
-          .json({ message: "Not allowed to finalize before check-in" });
+      if (!APPOINTMENT_STATUSES.includes(next)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      if (next !== current) {
+        if (current === "completed" || current === "cancelled") {
+          return res
+            .status(400)
+            .json({ message: "This visit is already completed or cancelled" });
+        }
+        if (
+          next === "completed" &&
+          !(current === "checked-in" || current === "in-progress")
+        ) {
+          return res
+            .status(400)
+            .json({ message: "A visit can only be completed after check-in" });
+        }
       }
       appointment.status = next;
     }
@@ -414,7 +426,12 @@ exports.checkInPatient = async (req, res) => {
       return res.status(404).json({ message: "Appointment not found" });
     }
 
-    // Update appointment status to indicate check-in
+    if (appointment.status !== "scheduled") {
+      return res
+        .status(400)
+        .json({ message: "Only scheduled visits can be checked in" });
+    }
+
     appointment.status = "checked-in";
     await appointment.save();
 

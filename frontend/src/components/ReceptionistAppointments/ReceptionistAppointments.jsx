@@ -29,6 +29,10 @@ const ReceptionistAppointments = () => {
   };
   const canFinish = (status) =>
     status === "checked-in" || status === "in-progress";
+  const isFinal = (status) => status === "completed" || status === "cancelled";
+  const canChangeStatus = (current, next) =>
+    next === current ||
+    (!isFinal(current) && (next !== "completed" || canFinish(current)));
   const formatStatusLabel = (raw) => {
     const s = String(raw || "").trim();
     if (!s) return "";
@@ -39,11 +43,7 @@ const ReceptionistAppointments = () => {
       .join(" ");
   };
   const handleStatusChange = (appointment, nextStatus) => {
-    // Prevent direct transition
-    if (
-      (nextStatus === "completed" || nextStatus === "cancelled") &&
-      !canFinish(appointment.status)
-    ) {
+    if (!canChangeStatus(appointment.status, nextStatus)) {
       return;
     }
 
@@ -130,10 +130,7 @@ const ReceptionistAppointments = () => {
                           <option
                             key={s}
                             value={s}
-                            disabled={
-                              (s === "completed" || s === "cancelled") &&
-                              !canFinish(appointment.status)
-                            }
+                            disabled={!canChangeStatus(appointment.status, s)}
                           >
                             {formatStatusLabel(s)}
                           </option>
