@@ -37,8 +37,6 @@ const DashboardAppointment = ({
     setMedicalRecords,
     doctors,
     setDoctors,
-    availableSlots,
-    setAvailableSlots,
 
     // Reschedule data
 
@@ -72,13 +70,11 @@ const DashboardAppointment = ({
         profileResponse,
         appointmentsResponse,
         recordsResponse,
-        slotsResponse,
         doctorsResponse,
       ] = await Promise.all([
         patientAPI.getProfile(),
         patientAPI.getAppointments(),
         patientAPI.getMedicalRecords(),
-        patientAPI.getAvailableSlots(),
         patientAPI.getAllDoctors(),
       ]);
 
@@ -87,12 +83,6 @@ const DashboardAppointment = ({
       if (appointmentsResponse.success)
         setAppointments(appointmentsResponse.data);
       if (recordsResponse.success) setMedicalRecords(recordsResponse.data);
-
-      if (slotsResponse.success) {
-        setAvailableSlots(
-          Array.isArray(slotsResponse.data) ? slotsResponse.data : [],
-        );
-      }
 
       if (doctorsResponse.success) {
         setDoctors(
@@ -138,9 +128,7 @@ const DashboardAppointment = ({
           }
         }
 
-        // Find doctor from doctors or availableSlots
-        const sourceList = doctors.length ? doctors : availableSlots;
-        const doc = sourceList.find((d) => d.id === parseInt(doctorId, 10));
+        const doc = doctors.find((d) => d.id === parseInt(doctorId, 10));
 
         // Get doctor working hours
         const {
@@ -205,7 +193,6 @@ const DashboardAppointment = ({
     selectedAppointment,
     selectedDateForReschedule,
     doctors,
-    availableSlots,
   ]);
 
   /* Tab button */

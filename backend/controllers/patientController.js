@@ -405,41 +405,6 @@ exports.cancelAppointment = async (req, res) => {
   }
 };
 
-// Get available appointment slots
-exports.getAvailableSlots = async (req, res) => {
-  try {
-    // Mock available slots for now - in real app, this would check doctor availability
-    const mockSlots = [
-      {
-        id: 1,
-        doctor: "Dr. Sarah Wilson",
-        specialty: "Cardiology",
-        date: "2024-02-15",
-        time: "09:00 AM",
-      },
-      {
-        id: 2,
-        doctor: "Dr. Michael Chen",
-        specialty: "General Practice",
-        date: "2024-02-16",
-        time: "10:30 AM",
-      },
-      {
-        id: 3,
-        doctor: "Dr. Emily Rodriguez",
-        specialty: "Dermatology",
-        date: "2024-02-17",
-        time: "02:00 PM",
-      },
-    ];
-
-    res.json(mockSlots);
-  } catch (error) {
-    console.error("Error fetching available slots:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
 // Get booked dates for a specific doctor (active appointments only)
 exports.getDoctorBookedDates = async (req, res) => {
   try {

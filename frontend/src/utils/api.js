@@ -191,20 +191,6 @@ export const patientAPI = {
     }
   },
 
-  // Fetch available booking slots
-  getAvailableSlots: async () => {
-    try {
-      const response = await patientAPI._getCached("/patient/available-slots");
-      return { success: true, data: response.data };
-    } catch (error) {
-      return {
-        success: false,
-        message:
-          error.response?.data?.message || "Couldn't load available times",
-      };
-    }
-  },
-
   // Fetch a doctor's booked dates (calendar view)
   getDoctorBookedDates: async (doctorId) => {
     try {

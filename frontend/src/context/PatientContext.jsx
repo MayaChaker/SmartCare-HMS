@@ -24,7 +24,6 @@ export const PatientDashboardProvider = ({ children }) => {
   const [appointments, setAppointments] = useState([]);
   const [medicalRecords, setMedicalRecords] = useState([]);
   const [doctors, setDoctors] = useState([]);
-  const [availableSlots, setAvailableSlots] = useState([]);
 
   /*   Booking states */
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
@@ -103,15 +102,7 @@ export const PatientDashboardProvider = ({ children }) => {
       setSuccess("");
 
       try {
-        // Prefer availableSlots
-        const source =
-          Array.isArray(availableSlots) && availableSlots.length
-            ? availableSlots
-            : Array.isArray(doctors)
-            ? doctors
-            : [];
-
-        const doc = source.find(
+        const doc = doctors.find(
           (d) => d.id === parseInt(appointmentData.doctorId, 10)
         );
 
@@ -147,7 +138,7 @@ export const PatientDashboardProvider = ({ children }) => {
         setLoading(false);
       }
     },
-    [availableSlots, doctors, setAppointments, closeModal]
+    [doctors, setAppointments, closeModal]
   );
 
   /*  Compute available times */
@@ -158,9 +149,7 @@ export const PatientDashboardProvider = ({ children }) => {
 
       try {
         const doctorIdNum = parseInt(selectedDoctorId, 10);
-        const doctor =
-          doctors.find((d) => d.id === doctorIdNum) ||
-          availableSlots.find((d) => d.id === doctorIdNum);
+        const doctor = doctors.find((d) => d.id === doctorIdNum);
         const { start, end } = parseWorkingHours(doctor?.workingHours || "");
         const windowTimes = generateTimeSlots(start || "09:00", end || "17:00");
 
@@ -190,7 +179,7 @@ export const PatientDashboardProvider = ({ children }) => {
     };
 
     computeAvailableTimes();
-  }, [selectedDoctorId, selectedDateForBooking, doctors, availableSlots]);
+  }, [selectedDoctorId, selectedDateForBooking, doctors]);
 
   /* 
      Context value  */
@@ -218,8 +207,6 @@ export const PatientDashboardProvider = ({ children }) => {
 
     doctors,
     setDoctors,
-    availableSlots,
-    setAvailableSlots,
 
     // booking
     selectedDoctorId,
