@@ -455,29 +455,32 @@ export const usePatientModalInitEffect = (
   setPatientRecords,
   setPatients
 ) => {
+  // Depend on the id only: the fetch below replaces selectedItem with a new
+  // object, and depending on the object re-ran this effect in an endless loop
+  const selectedId = selectedItem?.id;
+
   useEffect(() => {
-    if (!showModal) return;
-    if (modalType === "addRecord" && selectedItem) {
+    if (!showModal || !selectedId) return;
+    if (modalType === "addRecord") {
       setMedicalRecordForm({
-        patientId: selectedItem.id,
+        patientId: selectedId,
         notes: "",
         prescriptions: "",
         testResults: "",
         diagnosis: "",
         medications: "",
       });
-    } else if (modalType === "viewPatient" && selectedItem) {
-      // Fetch patient details and medical
+    } else if (modalType === "viewPatient") {
       (async () => {
         try {
           const token = localStorage.getItem("token");
           const r = await fetch(
-            `${API_BASE_URL}/doctor/patients/${selectedItem.id}`,
+            `${API_BASE_URL}/doctor/patients/${selectedId}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           if (!r.ok) throw new Error();
           const data = await r.json();
-          setSelectedItem(data.patient || selectedItem);
+          if (data.patient) setSelectedItem(data.patient);
           setPatientRecords(
             Array.isArray(data.medicalRecords) ? data.medicalRecords : []
           );
@@ -486,7 +489,7 @@ export const usePatientModalInitEffect = (
             data.medicalRecords.length > 0;
           setPatients((prev) =>
             prev.map((p) =>
-              p.id === selectedItem.id
+              p.id === selectedId
                 ? {
                     ...p,
                     hasMedicalRecords: hasRecs || p.hasMedicalRecords,
@@ -505,7 +508,7 @@ export const usePatientModalInitEffect = (
   }, [
     showModal,
     modalType,
-    selectedItem,
+    selectedId,
     setMedicalRecordForm,
     setSelectedItem,
     setPatientRecords,
