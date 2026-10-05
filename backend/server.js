@@ -19,20 +19,33 @@ let server;
 
 // Middleware
 app.set("trust proxy", 1);
+app.disable("x-powered-by");
+
+// The API only returns JSON and images, so pages served from it may not run scripts or be framed
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'");
+  if (process.env.NODE_ENV === "production") {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
+  next();
+});
 
 const corsOriginsFromEnv = String(process.env.CORS_ORIGINS || "")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
+const isProduction = process.env.NODE_ENV === "production";
 
 app.use(
   cors({
     origin: (origin, cb) => {
       if (!origin) return cb(null, true);
-      const allowLocalhost = /^http:\/\/localhost:\d+$/i.test(origin);
-      if (allowLocalhost) return cb(null, true);
-      if (corsOriginsFromEnv.includes(origin)) return cb(null, true);
-      return cb(new Error(`CORS blocked for origin: ${origin}`));
+      const allowLocalhost =
+        !isProduction && /^http:\/\/localhost:\d+$/i.test(origin);
+      cb(null, allowLocalhost || corsOriginsFromEnv.includes(origin));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -40,19 +53,6 @@ app.use(
     optionsSuccessStatus: 200,
   }),
 );
-// Ensure preflight requests are handled for all routes
-app.use((req, res, next) => {
-  const origin = req.headers.origin || "unknown-origin";
-  console.log(
-    `[${new Date().toISOString()}] ${req.method} ${
-      req.originalUrl
-    } from ${origin}`,
-  );
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  next();
-});
 app.use(express.json());
 
 // Serve uploaded assets
