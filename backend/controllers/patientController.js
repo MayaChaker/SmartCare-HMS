@@ -411,15 +411,8 @@ exports.getDoctorBookedDates = async (req, res) => {
       order: [["appointmentDate", "ASC"]],
     });
 
-    const bookedDatesSet = new Set(
-      appointments.map((a) => {
-        const d = new Date(a.appointmentDate);
-        // Normalize to YYYY-MM-DD in UTC
-        return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
-          .toISOString()
-          .split("T")[0];
-      }),
-    );
+    // DATEONLY values are already "YYYY-MM-DD" strings; converting to Date could shift the day
+    const bookedDatesSet = new Set(appointments.map((a) => a.appointmentDate));
 
     res.json({
       doctorId: parseInt(doctorId),

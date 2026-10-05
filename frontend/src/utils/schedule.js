@@ -50,6 +50,55 @@ export const parseWorkingHours = (workingHours) => {
   return { days, start, end, time };
 };
 
+const DAY_KEYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// "Monday", "mon" and "Mon" all map to "Mon"
+const toDayKey = (token) => {
+  const prefix = String(token || "").trim().slice(0, 3).toLowerCase();
+  return DAY_KEYS.find((d) => d.toLowerCase() === prefix) || "";
+};
+
+// Working days as day keys, e.g. "Mon - Wed, Fri 09:00 - 17:00" -> ["Mon", "Tue", "Wed", "Fri"].
+// An empty list means no days were set, which the backend treats as every day.
+export const parseWorkingDayKeys = (workingHours) => {
+  const keys = [];
+  parseWorkingHours(workingHours).days.forEach((item) => {
+    const range = item.match(/^(.+?)\s*-\s*(.+)$/);
+    const from = range ? DAY_KEYS.indexOf(toDayKey(range[1])) : -1;
+    const to = range ? DAY_KEYS.indexOf(toDayKey(range[2])) : -1;
+    if (from !== -1 && to !== -1) {
+      for (let i = from; ; i = (i + 1) % 7) {
+        keys.push(DAY_KEYS[i]);
+        if (i === to) break;
+      }
+      return;
+    }
+    const key = toDayKey(item);
+    if (key) keys.push(key);
+  });
+  return [...new Set(keys)];
+};
+
+// YYYY-MM-DD in the user's timezone (toISOString would shift it to UTC)
+export const toLocalDateString = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate()
+  ).padStart(2, "0")}`;
+
+// Dates from today on which the doctor works
+export const getWorkingDates = (workingHours, daysAhead = 30) => {
+  const keys = parseWorkingDayKeys(workingHours);
+  const today = new Date();
+  const dates = [];
+  for (let i = 0; i < daysAhead; i++) {
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
+    if (keys.length === 0 || keys.includes(DAY_KEYS[d.getDay()])) {
+      dates.push(toLocalDateString(d));
+    }
+  }
+  return dates;
+};
+
 // Default slot size in minutes, configurable via Vite env `VITE_SLOT_MINUTES`
 export const DEFAULT_SLOT_MINUTES =
   Number(import.meta.env?.VITE_SLOT_MINUTES) || 20;
@@ -76,48 +125,6 @@ export const generateTimeSlots = (
     slots.push(`${pad(hh)}:${pad(mm)}`);
   }
   return slots;
-};
-
-// Extract normalized day abbreviations from a working hours string
-// Accepts ranges like "Mon - Fri" or lists like "Monday, Tuesday"
-export const parseWorkingDays = (wh) => {
-  const defaultDays = ["Mon", "Tue", "Wed", "Thu", "Fri"];
-  if (!wh || typeof wh !== "string") return defaultDays;
-
-  const daysPart = wh.split(/\d{2}:\d{2}/)[0]?.trim() || "";
-  if (!daysPart) return defaultDays;
-
-  const map = {
-    Sunday: "Sun",
-    Monday: "Mon",
-    Tuesday: "Tue",
-    Wednesday: "Wed",
-    Thursday: "Thu",
-    Friday: "Fri",
-    Saturday: "Sat",
-    Sun: "Sun",
-    Mon: "Mon",
-    Tue: "Tue",
-    Wed: "Wed",
-    Thu: "Thu",
-    Fri: "Fri",
-    Sat: "Sat",
-  };
-
-  if (/^Mon\s*-\s*Fri$/i.test(daysPart)) return defaultDays;
-
-  const parts = daysPart
-    .split(/,\s*/)
-    .map((p) => p.trim())
-    .filter(Boolean);
-
-  const days = parts
-    .map((p) => map[p] || p)
-    .filter((d) =>
-      ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].includes(d)
-    );
-
-  return days.length ? days : defaultDays;
 };
 
 // Enumerated appointment lifecycle statuses used across UI

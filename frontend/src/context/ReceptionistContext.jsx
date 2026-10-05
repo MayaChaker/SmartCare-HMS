@@ -10,7 +10,7 @@ import { useAuth } from "./useAuth";
 import {
   parseWorkingHours,
   generateTimeSlots,
-  parseWorkingDays,
+  getWorkingDates,
   APPOINTMENT_STATUSES,
   formatTimeHHMM,
   toHHMM,
@@ -96,32 +96,12 @@ export const ReceptionistProvider = ({ children }) => {
   );
 
   // helpers for schedule
-  const getAvailableDatesForDoctor = useCallback((doctor, daysAhead = 30) => {
-    if (!doctor) return [];
-    const availableDays = parseWorkingDays(doctor.workingHours);
-    const availableDates = [];
-    const today = new Date();
+  const getAvailableDatesForDoctor = useCallback(
+    (doctor, daysAhead = 30) =>
+      doctor ? getWorkingDates(doctor.workingHours, daysAhead) : [],
+    []
+  );
 
-    for (let i = 0; i < daysAhead; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() + i);
-      const dayName = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
-        d.getDay()
-      ];
-      if (availableDays.includes(dayName)) {
-        const dateStr = new Date(
-          Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())
-        )
-          .toISOString()
-          .split("T")[0];
-        availableDates.push(dateStr);
-      }
-    }
-    return availableDates;
-  }, []);
-
-  // Label helper for working days
-  const formatWorkingDaysLabel = (days) => days.join(", ");
 
   // load data
   const loadReceptionistData = useCallback(async () => {
@@ -1008,8 +988,6 @@ export const ReceptionistProvider = ({ children }) => {
     DEFAULT_APPOINTMENT_REASONS,
     availableTimesForSchedule,
     getAvailableDatesForDoctor,
-    parseWorkingDays,
-    formatWorkingDaysLabel,
 
     // ui helpers
     renderModal,

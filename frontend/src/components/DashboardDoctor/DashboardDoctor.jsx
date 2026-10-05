@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import { FaUserDoctor } from "react-icons/fa6";
 import { patientAPI } from "../../utils/api";
-import { parseWorkingHours, resolveDoctorImage } from "../../utils/schedule";
+import { resolveDoctorImage } from "../../utils/schedule";
 import "./DashboardDoctor.css";
 import { usePatientDashboard } from "../../context/PatientContext";
 
@@ -16,14 +16,7 @@ const DashboardDoctor = ({
   showBookButton = true,
 }) => {
   //  Context values
-  const {
-    doctors,
-    setDoctors,
-    selectedDoctorId,
-    setSelectedDoctorId,
-    setAvailableDates,
-    openModal,
-  } = usePatientDashboard();
+  const { doctors, setDoctors } = usePatientDashboard();
 
   //  Local state
   const [searchTerm, setSearchTerm] = useState("");
@@ -100,63 +93,6 @@ const DashboardDoctor = ({
       return !excludedNames.has(name);
     });
   }, [filteredDoctors, excludedNames]);
-
-  // Compute available dates
-  useEffect(() => {
-    const computeAvailable = async () => {
-      try {
-        if (!selectedDoctorId) {
-          setAvailableDates && setAvailableDates([]);
-          return;
-        }
-
-        // Find selected doctor
-        const doctor = doctors.find(
-          (d) => d.id === parseInt(selectedDoctorId, 10),
-        );
-
-        // Parse working days from workingHours string
-        const { days: workingDays } = parseWorkingHours(
-          doctor?.workingHours || "",
-        );
-
-        const days = [];
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        // Generate next 30 days
-        for (let i = 0; i < 30; i++) {
-          const d = new Date(today);
-          d.setDate(today.getDate() + i);
-
-          const dateStr = new Date(
-            Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()),
-          )
-            .toISOString()
-            .split("T")[0];
-
-          // Check if day matches doctor's working days
-          if (Array.isArray(workingDays) && workingDays.length > 0) {
-            const weekday = d.toLocaleDateString(undefined, {
-              weekday: "long",
-            });
-            if (workingDays.includes(weekday)) days.push(dateStr);
-          } else {
-            days.push(dateStr);
-          }
-        }
-
-        setAvailableDates && setAvailableDates(days);
-      } catch (e) {
-        console.warn("Failed to compute available dates", e);
-        setAvailableDates && setAvailableDates([]);
-      }
-    };
-
-    if (typeof setAvailableDates === "function") {
-      computeAvailable();
-    }
-  }, [selectedDoctorId, doctors, setAvailableDates]);
 
   //Render tab button
   if (variant === "tabButton") {

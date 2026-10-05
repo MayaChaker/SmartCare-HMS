@@ -10,6 +10,7 @@ import { patientAPI } from "../../utils/api";
 import {
   parseWorkingHours,
   generateTimeSlots,
+  getWorkingDates,
   formatTimeWithMeridiem,
   toHHMM,
   resolveDoctorImage,
@@ -130,41 +131,10 @@ const DashboardAppointment = ({
 
         const doc = doctors.find((d) => d.id === parseInt(doctorId, 10));
 
-        // Get doctor working hours
-        const {
-          start,
-          end,
-          days = [],
-        } = parseWorkingHours(doc?.workingHours || "");
-
-        // Generate all time slots
+        const { start, end } = parseWorkingHours(doc?.workingHours || "");
         const windowTimes = generateTimeSlots(start, end);
 
-        // Generate next 14 valid working dates
-        const dayMap = [
-          "sunday",
-          "monday",
-          "tuesday",
-          "wednesday",
-          "thursday",
-          "friday",
-          "saturday",
-        ];
-
-        const allowedDays = days.map((d) => d.toLowerCase());
-        const dates = [];
-        const today = new Date();
-
-        for (let i = 0; i < 14; i++) {
-          const d = new Date(today);
-          d.setDate(today.getDate() + i);
-
-          if (!allowedDays.length || allowedDays.includes(dayMap[d.getDay()])) {
-            dates.push(d.toISOString().split("T")[0]);
-          }
-        }
-
-        setAvailableDatesForReschedule(dates);
+        setAvailableDatesForReschedule(getWorkingDates(doc?.workingHours, 14));
 
         // Remove booked times
         let bookedTimes = [];
@@ -357,47 +327,14 @@ export const BookAppointmentLayer = () => {
   } = usePatientDashboard();
 
   React.useEffect(() => {
-    const computeAvailable = async () => {
-      try {
-        if (!selectedDoctorId) {
-          setAvailableDates && setAvailableDates([]);
-          return;
-        }
-        const doctor = doctors.find(
-          (d) => d.id === parseInt(selectedDoctorId, 10),
-        );
-        const { days: workingDays } = parseWorkingHours(
-          doctor?.workingHours || "",
-        );
-        const days = [];
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        for (let i = 0; i < 30; i++) {
-          const d = new Date(today);
-          d.setDate(today.getDate() + i);
-          const dateStr = new Date(
-            Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()),
-          )
-            .toISOString()
-            .split("T")[0];
-          if (Array.isArray(workingDays) && workingDays.length > 0) {
-            const weekday = d.toLocaleDateString(undefined, {
-              weekday: "long",
-            });
-            if (workingDays.includes(weekday)) days.push(dateStr);
-          } else {
-            days.push(dateStr);
-          }
-        }
-        setAvailableDates && setAvailableDates(days);
-      } catch {
-        setAvailableDates && setAvailableDates([]);
-      }
-    };
-
-    if (typeof setAvailableDates === "function") {
-      computeAvailable();
+    if (!selectedDoctorId) {
+      setAvailableDates([]);
+      return;
     }
+    const doctor = doctors.find(
+      (d) => d.id === parseInt(selectedDoctorId, 10),
+    );
+    setAvailableDates(getWorkingDates(doctor?.workingHours));
   }, [selectedDoctorId, doctors, setAvailableDates]);
 
   const [localError, setLocalError] = React.useState("");
