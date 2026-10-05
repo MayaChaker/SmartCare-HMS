@@ -80,11 +80,14 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// After an unexpected error the process state is unknown; exit and let the host restart it
 process.on("unhandledRejection", (reason) => {
   console.error("Unhandled promise rejection:", reason);
+  process.exit(1);
 });
 process.on("uncaughtException", (err) => {
   console.error("Uncaught exception:", err);
+  process.exit(1);
 });
 
 async function init() {
