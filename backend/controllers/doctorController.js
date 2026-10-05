@@ -71,6 +71,12 @@ async function ensureDoctorForUser(userId) {
   return doctor;
 }
 
+// A doctor may only access patients they have at least one appointment with
+async function isDoctorsPatient(doctorId, patientId) {
+  const count = await Appointment.count({ where: { doctorId, patientId } });
+  return count > 0;
+}
+
 // Get doctor's appointments
 exports.getAppointments = async (req, res) => {
   try {
@@ -124,9 +130,10 @@ exports.getSchedule = async (req, res) => {
 exports.getPatientDetails = async (req, res) => {
   try {
     const { id } = req.params;
+    const doctor = await ensureDoctorForUser(req.user.id);
 
     const patient = await Patient.findByPk(id);
-    if (!patient) {
+    if (!patient || !(await isDoctorsPatient(doctor.id, patient.id))) {
       return res.status(404).json({ message: "Patient not found" });
     }
 
@@ -160,9 +167,8 @@ exports.createMedicalRecord = async (req, res) => {
     } = req.body;
     // Ensure a profile exists; auto-create with safe defaults if missing
     const doctor = await ensureDoctorForUser(userId);
-    // Validate patient exists
     const patient = await Patient.findByPk(patientId);
-    if (!patient) {
+    if (!patient || !(await isDoctorsPatient(doctor.id, patient.id))) {
       return res.status(404).json({ message: "Patient not found" });
     }
 
