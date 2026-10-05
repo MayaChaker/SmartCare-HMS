@@ -22,12 +22,6 @@ const DashboardDoctor = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [brokenImageIds, setBrokenImageIds] = useState(new Set());
 
-  // Doctors to exclude
-  const excludedNames = useMemo(
-    () => new Set(["john doe", "dr. demo", "dr demo"]),
-    [],
-  );
-
   //  Load doctors from API
   useEffect(() => {
     const loadDoctors = async () => {
@@ -49,21 +43,10 @@ const DashboardDoctor = ({
     }
   }, [variant, active, doctors.length, setDoctors]);
 
-  //  Compute doctor fee
-  const computeFee = (doctorObj) => {
-    if (
-      doctorObj &&
-      doctorObj.fee !== undefined &&
-      doctorObj.fee !== null &&
-      String(doctorObj.fee) !== ""
-    ) {
-      return doctorObj.fee;
-    }
-
-    const fees = [20, 25, 30, 35, 40, 45, 50, 60, 75, 80, 100];
-    const idx = (parseInt(doctorObj?.id ?? 0, 10) || 0) % fees.length;
-    return fees[idx];
-  };
+  const formatFee = (fee) =>
+    fee === undefined || fee === null || String(fee) === ""
+      ? "Not set"
+      : `${fee} $`;
 
   // Filter doctors by search
   const filteredDoctors = useMemo(() => {
@@ -82,17 +65,6 @@ const DashboardDoctor = ({
       );
     });
   }, [doctors, searchTerm]);
-
-  //  Remove excluded doctors
-  const visibleDoctors = useMemo(() => {
-    return filteredDoctors.filter((d) => {
-      const name = `${(d.firstName || "").trim()} ${(d.lastName || "").trim()}`
-        .trim()
-        .toLowerCase();
-
-      return !excludedNames.has(name);
-    });
-  }, [filteredDoctors, excludedNames]);
 
   //Render tab button
   if (variant === "tabButton") {
@@ -121,8 +93,8 @@ const DashboardDoctor = ({
             <div className="admin-doctors-header-left">
               <h2>Doctors</h2>
               <span className="doctors-count">
-                {visibleDoctors.length} doctor
-                {visibleDoctors.length !== 1 ? "s" : ""}
+                {filteredDoctors.length} doctor
+                {filteredDoctors.length !== 1 ? "s" : ""}
               </span>
             </div>
 
@@ -143,8 +115,8 @@ const DashboardDoctor = ({
 
           {/* Doctors cards */}
           <div className="cards-grid">
-            {visibleDoctors.length > 0 ? (
-              visibleDoctors.map((doctor) => (
+            {filteredDoctors.length > 0 ? (
+              filteredDoctors.map((doctor) => (
                 <div key={doctor.id} className="doctor-card">
                   {/* Doctor image */}
                   <div className="doctor-image">
@@ -205,7 +177,7 @@ const DashboardDoctor = ({
 
                       <div className="info-row">
                         <span className="label">Fee:</span>
-                        <span className="value">{computeFee(doctor)} $</span>
+                        <span className="value">{formatFee(doctor.fee)}</span>
                       </div>
 
                       <div className="info-row">
