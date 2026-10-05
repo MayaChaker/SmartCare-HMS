@@ -70,7 +70,6 @@ async function ensureDoctorForUser(userId) {
     firstName,
     lastName,
     specialization,
-    email: user?.username || null,
     userId,
     availability: true,
     workingHours: null,
@@ -254,7 +253,6 @@ exports.getProfile = async (req, res) => {
 // Update doctor profile
 exports.updateProfile = async (req, res) => {
   try {
-    console.log("[DoctorController] PUT /api/doctor/profile invoked");
     const userId = req.user.id;
     const {
       firstName,

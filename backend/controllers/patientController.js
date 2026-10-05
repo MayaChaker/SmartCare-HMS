@@ -1,4 +1,5 @@
 const { Patient, Appointment, MedicalRecord, Doctor } = require("../models");
+const { Op } = require("sequelize");
 
 const { isNonEmptyString } = require("../utils/validation");
 const {
@@ -193,26 +194,19 @@ exports.createAppointment = async (req, res) => {
       return res.status(409).json({ message: whCheck.message });
     }
 
-    // Prevent double booking: pre-check for an existing active appointment with same doctor/date/time
-    try {
-      const { Op } = require("sequelize");
-      if (cleanDoctorId && cleanDate && cleanTime) {
-        const existing = await Appointment.findOne({
-          where: {
-            doctorId: cleanDoctorId,
-            appointmentDate: cleanDate,
-            appointmentTime: cleanTime,
-            status: { [Op.not]: "cancelled" },
-          },
-        });
-        if (existing) {
-          return res.status(409).json({
-            message: "Selected date/time is already booked for this doctor",
-          });
-        }
-      }
-    } catch (err) {
-      console.warn("Pre-check for slot conflict failed", err);
+    // Prevent double booking of an active appointment with the same doctor/date/time
+    const existing = await Appointment.findOne({
+      where: {
+        doctorId: cleanDoctorId,
+        appointmentDate: cleanDate,
+        appointmentTime: cleanTime,
+        status: { [Op.not]: "cancelled" },
+      },
+    });
+    if (existing) {
+      return res.status(409).json({
+        message: "Selected date/time is already booked for this doctor",
+      });
     }
 
     const appointment = await Appointment.create({
@@ -229,11 +223,6 @@ exports.createAppointment = async (req, res) => {
       appointment,
     });
   } catch (error) {
-    if (error && String(error.name).includes("UniqueConstraintError")) {
-      return res.status(409).json({
-        message: "Selected date/time is already booked for this doctor",
-      });
-    }
     console.error("Error scheduling appointment:", error);
     res.status(500).json({ message: "Server error" });
   }
@@ -303,7 +292,6 @@ exports.updateAppointment = async (req, res) => {
         return res.status(409).json({ message: whCheck.message });
       }
 
-      const { Op } = require("sequelize");
       const conflict = await Appointment.findOne({
         where: {
           id: { [Op.ne]: appointment.id },
@@ -413,7 +401,6 @@ exports.getDoctorBookedDates = async (req, res) => {
       return res.status(400).json({ message: "doctorId is required" });
     }
 
-    const { Op } = require("sequelize");
 
     const appointments = await Appointment.findAll({
       where: {
@@ -455,7 +442,6 @@ exports.getDoctorBookedTimes = async (req, res) => {
         .json({ message: "doctorId and date are required" });
     }
 
-    const { Op } = require("sequelize");
 
     const appointments = await Appointment.findAll({
       where: {

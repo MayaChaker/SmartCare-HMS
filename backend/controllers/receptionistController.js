@@ -1,4 +1,5 @@
 const { User, Patient, Doctor, Appointment } = require("../models");
+const { Op } = require("sequelize");
 const { sequelize } = require("../config/db");
 const { isValidEmail, getCredentialsError } = require("../utils/validation");
 const { getStatusChangeError } = require("../utils/appointmentStatus");
@@ -150,7 +151,6 @@ exports.createAppointment = async (req, res) => {
       return res.status(409).json({ message: whCheck.message });
     }
 
-    const { Op } = require("sequelize");
     const existing = await Appointment.findOne({
       where: {
         doctorId: cleanDoctorId,
@@ -165,27 +165,17 @@ exports.createAppointment = async (req, res) => {
       });
     }
 
-    const apptPayload = {
+    const appointment = await Appointment.create({
       patientId: cleanPatientId,
       doctorId: cleanDoctorId,
       appointmentDate: cleanDate,
+      appointmentTime: cleanTime,
       reason,
       status: "scheduled",
-    };
-    apptPayload.appointmentTime = cleanTime;
-    try {
-      const appointment = await Appointment.create(apptPayload);
-      return res
-        .status(201)
-        .json({ message: "Appointment scheduled successfully", appointment });
-    } catch (err) {
-      if (err?.name === "SequelizeUniqueConstraintError") {
-        return res.status(409).json({
-          message: "Selected time slot is already booked for this doctor",
-        });
-      }
-      throw err;
-    }
+    });
+    return res
+      .status(201)
+      .json({ message: "Appointment scheduled successfully", appointment });
   } catch (error) {
     console.error("Error scheduling appointment:", error);
     res.status(500).json({ message: "Server error" });
@@ -238,7 +228,6 @@ exports.updateAppointment = async (req, res) => {
         if (!whCheck.ok) {
           return res.status(409).json({ message: whCheck.message });
         }
-        const { Op } = require("sequelize");
         const conflict = await Appointment.findOne({
           where: {
             id: { [Op.ne]: appointment.id },
@@ -332,7 +321,6 @@ exports.getAllPatients = async (req, res) => {
 // Get all doctors
 exports.getAllDoctors = async (req, res) => {
   try {
-    console.log("Fetching all doctors for receptionist...");
     const doctors = await Doctor.findAll({
       attributes: [
         "id",
@@ -346,11 +334,9 @@ exports.getAllDoctors = async (req, res) => {
         "fee",
       ],
     });
-    console.log("Doctors fetched successfully:", doctors.length, "doctors");
     res.json(doctors);
   } catch (error) {
     console.error("Error fetching doctors:", error);
-    console.error("Error stack:", error.stack);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -456,7 +442,6 @@ exports.getDoctorBookedTimes = async (req, res) => {
         .json({ message: "Missing date query parameter (YYYY-MM-DD)" });
     }
 
-    const { Op } = require("sequelize");
     const appts = await Appointment.findAll({
       where: {
         doctorId: id,

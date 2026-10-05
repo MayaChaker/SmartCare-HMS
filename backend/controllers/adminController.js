@@ -6,7 +6,7 @@ const {
   MedicalRecord,
 } = require("../models");
 const { sequelize } = require("../config/db");
-const { Op } = require("sequelize");
+const { Op, fn, col } = require("sequelize");
 const { getCredentialsError } = require("../utils/validation");
 
 // Get all users (doctors, receptionists, patients)
@@ -200,7 +200,7 @@ exports.getAnalytics = async (req, res) => {
       attributes: [
         "status",
         [
-          require("sequelize").fn("COUNT", require("sequelize").col("id")),
+          fn("COUNT", col("id")),
           "count",
         ],
       ],

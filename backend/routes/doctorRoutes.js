@@ -4,10 +4,6 @@ const doctorController = require("../controllers/doctorController");
 const { verifyToken, checkRole } = require("../middlewares/auth");
 
 // Doctor routes - protected by authentication and role
-router.use((req, res, next) => {
-  console.log("[DoctorRoutes]", req.method, req.originalUrl, "->", req.path);
-  next();
-});
 router.use(verifyToken);
 router.use(checkRole(["doctor"]));
 

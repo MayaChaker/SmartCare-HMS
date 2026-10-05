@@ -224,7 +224,6 @@ app.get("/", (req, res) => {
 
 // 404 handler for API routes
 app.use("/api", (req, res) => {
-  console.warn("API 404:", req.method, req.originalUrl);
   res.status(404).json({
     error: "API endpoint not found",
     path: req.path,
