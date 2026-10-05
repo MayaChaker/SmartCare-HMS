@@ -97,7 +97,6 @@ async function init() {
       await sequelize.sync({ alter: false });
       console.log("Database models synchronized successfully.");
       await createAdminUser();
-      console.log("Admin user created successfully.");
       await ensureDoctorFeeColumn();
       startServer();
       return;
@@ -122,20 +121,27 @@ async function init() {
 
 void init();
 
-// Function to create admin user
+// Creates the first admin from ADMIN_USERNAME / ADMIN_PASSWORD; never overwrites an existing account
 async function createAdminUser() {
   const { User } = require("./models");
+  const username = String(process.env.ADMIN_USERNAME || "").trim();
+  const password = String(process.env.ADMIN_PASSWORD || "");
+
+  if (!username || !password) {
+    console.warn("ADMIN_USERNAME / ADMIN_PASSWORD not set; skipping admin seed.");
+    return;
+  }
+  if (password.length < 8) {
+    console.warn("ADMIN_PASSWORD must be at least 8 characters; skipping admin seed.");
+    return;
+  }
 
   try {
-    // Provide plain password; User model hooks handle hashing
-    await User.findOrCreate({
-      where: { username: "admin" },
-      defaults: {
-        username: "admin",
-        password: "admin123",
-        role: "admin",
-      },
+    const [, created] = await User.findOrCreate({
+      where: { username },
+      defaults: { username, password, role: "admin" },
     });
+    if (created) console.log(`Admin user "${username}" created.`);
   } catch (error) {
     console.error("Error creating admin user:", error);
   }
