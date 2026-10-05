@@ -11,6 +11,7 @@ import img2 from "../../assets/doctors/doctor-2.jpg";
 import img3 from "../../assets/doctors/doctor-3.jpg";
 import img4 from "../../assets/doctors/doctor-4.jpg";
 import img5 from "../../assets/doctors/doctor-5.jpg";
+import img6 from "../../assets/doctors/doctor-6.jpg";
 
 // UI & context
 import LogoutButton from "../../components/ui/LogoutButton/LogoutButton";
@@ -130,7 +131,7 @@ const DoctorPanel = () => {
   const photoUrlInputRef = useRef(null);
 
   // Images used in the photo gallery modal
-  const galleryImages = [img1, img2, img3, img4, img5];
+  const galleryImages = [img1, img2, img3, img4, img5, img6];
 
   // Handle availability update (factory pattern)
   const getAvailabilityForm = () => availabilityForm;
