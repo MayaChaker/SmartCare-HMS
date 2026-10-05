@@ -251,19 +251,7 @@ exports.getAnalytics = async (req, res) => {
 // Get all doctors with details
 exports.getAllDoctors = async (req, res) => {
   try {
-    const { Op } = require("sequelize");
     const doctors = await Doctor.findAll({
-      where: {
-        [Op.and]: [
-          {
-            [Op.or]: [
-              { licenseNumber: { [Op.ne]: "DOC-DEMO" } },
-              { licenseNumber: null },
-            ],
-          },
-          { [Op.not]: { firstName: "Dr.", lastName: "Demo" } },
-        ],
-      },
       include: [{ model: User, attributes: ["username", "createdAt"] }],
     });
 

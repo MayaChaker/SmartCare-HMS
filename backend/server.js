@@ -99,10 +99,6 @@ async function init() {
       await createAdminUser();
       console.log("Admin user created successfully.");
       await ensureDoctorFeeColumn();
-      if (String(process.env.SEED_DEMO_DOCTOR || "").toLowerCase() === "true") {
-        await createDoctorUser();
-        console.log("Dev doctor user ensured.");
-      }
       startServer();
       return;
     } catch (error) {
@@ -142,50 +138,6 @@ async function createAdminUser() {
     });
   } catch (error) {
     console.error("Error creating admin user:", error);
-  }
-}
-
-// ensure a doctor user exists for testing
-async function createDoctorUser() {
-  const { User, Doctor } = require("./models");
-  try {
-    const username = "doc";
-    const password = "doc123";
-    const role = "doctor";
-    const [user, created] = await User.findOrCreate({
-      where: { username },
-      defaults: { username, password, role },
-    });
-    let changed = false;
-    if (!created) {
-      if (user.role !== role) {
-        user.role = role;
-        changed = true;
-      }
-      if (password) {
-        user.password = password;
-        changed = true;
-      }
-      if (changed) {
-        await user.save();
-      }
-    }
-    let doctor = await Doctor.findOne({ where: { userId: user.id } });
-    if (!doctor) {
-      await Doctor.create({
-        firstName: "Dr.",
-        lastName: "Demo",
-        specialization: "General Medicine",
-        email: username,
-        phone: "000-000-0000",
-        licenseNumber: "DOC-DEMO",
-        experience: 3,
-        qualification: "MD",
-        userId: user.id,
-      });
-    }
-  } catch (error) {
-    console.error("Error ensuring dev doctor user:", error);
   }
 }
 

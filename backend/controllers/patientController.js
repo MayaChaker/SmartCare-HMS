@@ -678,19 +678,7 @@ exports.getDoctorBookedTimes = async (req, res) => {
 // Get all doctors (for booking)
 exports.getAllDoctors = async (req, res) => {
   try {
-    const { Op } = require("sequelize");
     const doctors = await Doctor.findAll({
-      where: {
-        [Op.and]: [
-          {
-            [Op.or]: [
-              { licenseNumber: { [Op.ne]: "DOC-DEMO" } },
-              { licenseNumber: null },
-            ],
-          },
-          { [Op.not]: { firstName: "Dr.", lastName: "Demo" } },
-        ],
-      },
       attributes: [
         "id",
         "firstName",

@@ -212,19 +212,7 @@ exports.registerPatient = async (req, res) => {
 // View all doctors' schedules
 exports.getAllSchedules = async (req, res) => {
   try {
-    const { Op } = require("sequelize");
     const doctors = await Doctor.findAll({
-      where: {
-        [Op.and]: [
-          {
-            [Op.or]: [
-              { licenseNumber: { [Op.ne]: "DOC-DEMO" } },
-              { licenseNumber: null },
-            ],
-          },
-          { [Op.not]: { firstName: "Dr.", lastName: "Demo" } },
-        ],
-      },
       attributes: ["id", "firstName", "lastName", "specialization"],
     });
 
@@ -466,19 +454,7 @@ exports.getAllPatients = async (req, res) => {
 exports.getAllDoctors = async (req, res) => {
   try {
     console.log("Fetching all doctors for receptionist...");
-    const { Op } = require("sequelize");
     const doctors = await Doctor.findAll({
-      where: {
-        [Op.and]: [
-          {
-            [Op.or]: [
-              { licenseNumber: { [Op.ne]: "DOC-DEMO" } },
-              { licenseNumber: null },
-            ],
-          },
-          { [Op.not]: { firstName: "Dr.", lastName: "Demo" } },
-        ],
-      },
       attributes: [
         "id",
         "firstName",
