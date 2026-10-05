@@ -142,7 +142,7 @@ export const DoctorProvider = ({ children }) => {
       setDoctorProfile(updated);
       setSuccess("Profile photo uploaded successfully.");
       closeModal();
-    } catch (e) {
+    } catch {
       setError("Could not upload photo. Please try another image.");
     } finally {
       setLoading(false);

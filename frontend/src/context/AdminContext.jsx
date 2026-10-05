@@ -270,7 +270,7 @@ export const AdminProvider = ({ children }) => {
         const data = await res.json().catch(() => ({}));
         setError(data.message || "Operation failed");
       }
-    } catch (e) {
+    } catch {
       setError("Operation failed. Please try again.");
     } finally {
       setLoading(false);
@@ -303,7 +303,7 @@ export const AdminProvider = ({ children }) => {
       } else {
         setError("Failed to delete user");
       }
-    } catch (e) {
+    } catch {
       setError("Failed to delete user. Please try again.");
     } finally {
       setLoading(false);

@@ -96,7 +96,15 @@ const DashboardAppointment = ({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [
+    setLoading,
+    setError,
+    setSuccess,
+    setProfile,
+    setAppointments,
+    setMedicalRecords,
+    setDoctors,
+  ]);
 
   /* Load data once on first render */
   React.useEffect(() => {
@@ -158,6 +166,9 @@ const DashboardAppointment = ({
 
     computeRescheduleTimes();
   }, [
+    setAvailableTimesForReschedule,
+    setAvailableDatesForReschedule,
+    setDoctors,
     showModal,
     modalType,
     selectedAppointment,
@@ -229,7 +240,7 @@ const DashboardAppointment = ({
                       className="appointment-doctor-avatar"
                       src={doctorPhoto}
                       alt={doctorDisplayName}
-                      onError={(e) => {
+                      onError={() => {
                         setBrokenDoctorImageIds((prev) => {
                           const next = new Set(prev);
                           next.add(parseInt(appointment.doctorId, 10));
@@ -572,13 +583,12 @@ export const AppointmentActionsLayer = () => {
     showModal && ["cancel", "delete", "reschedule"].includes(modalType);
   if (!isAction || !selectedAppointment) return null;
 
+  // patientAPI methods resolve with { success } instead of throwing
   const refreshAppointments = async () => {
-    try {
-      const apptResp = await patientAPI.getAppointments();
-      if (apptResp.success) {
-        setAppointments(apptResp.data);
-      }
-    } catch (err) {}
+    const apptResp = await patientAPI.getAppointments();
+    if (apptResp.success) {
+      setAppointments(apptResp.data);
+    }
   };
 
   const handleCancel = async (id) => {
@@ -594,7 +604,7 @@ export const AppointmentActionsLayer = () => {
       } else {
         setError(res.message || "Couldn't cancel the visit");
       }
-    } catch (e) {
+    } catch {
       setError("Couldn't cancel the visit. Please try again.");
     } finally {
       setLoading(false);
@@ -614,7 +624,7 @@ export const AppointmentActionsLayer = () => {
       } else {
         setError(res.message || "Couldn't remove the visit");
       }
-    } catch (e) {
+    } catch {
       setError("Couldn't remove the visit. Please try again.");
     } finally {
       setLoading(false);
@@ -646,7 +656,7 @@ export const AppointmentActionsLayer = () => {
       } else {
         setError(res.message || "Couldn't update the appointment");
       }
-    } catch (e) {
+    } catch {
       setError("Couldn't update the appointment. Please try again.");
     } finally {
       setLoading(false);
