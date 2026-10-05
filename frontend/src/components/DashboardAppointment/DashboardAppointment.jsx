@@ -24,7 +24,6 @@ const DashboardAppointment = ({
   /* Context state & actions */
   const {
     // Global UI state
-    loading,
     setLoading,
     error,
     setError,
@@ -52,7 +51,6 @@ const DashboardAppointment = ({
     showModal,
     modalType,
     openModal,
-    closeModal,
     selectedAppointment,
   } = usePatientDashboard();
 
@@ -209,84 +207,6 @@ const DashboardAppointment = ({
     doctors,
     availableSlots,
   ]);
-
-  /* Action handlers */
-
-  // Cancel appointment
-  const handleCancelAppointment = async (id) => {
-    setLoading(true);
-    setError("");
-    setSuccess("");
-
-    try {
-      const res = await patientAPI.cancelAppointment(id);
-      if (res.success) {
-        setSuccess("Visit cancelled.");
-        await loadPatientData();
-        closeModal();
-      } else {
-        setError(res.message || "Couldn't cancel the visit");
-      }
-    } catch {
-      setError("Couldn't cancel the visit. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Delete appointment
-  const handleDeleteAppointment = async (id) => {
-    setLoading(true);
-    setError("");
-    setSuccess("");
-
-    try {
-      const res = await patientAPI.deleteAppointment(id);
-      if (res.success) {
-        setSuccess("Visit removed.");
-        await loadPatientData();
-        closeModal();
-      } else {
-        setError(res.message || "Couldn't remove the visit");
-      }
-    } catch {
-      setError("Couldn't remove the visit. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Reschedule appointment
-  const handleRescheduleAppointment = async (id, data) => {
-    setLoading(true);
-    setError("");
-    setSuccess("");
-
-    try {
-      const payload = {};
-      if (typeof data === "string") {
-        payload.appointmentTime = `${data.slice(0, 5)}:00`;
-      } else {
-        if (data?.appointmentTime)
-          payload.appointmentTime = `${data.appointmentTime.slice(0, 5)}:00`;
-        if (data?.appointmentDate)
-          payload.appointmentDate = data.appointmentDate;
-      }
-
-      const res = await patientAPI.rescheduleAppointment(id, payload);
-      if (res.success) {
-        setSuccess("Appointment updated successfully!");
-        await loadPatientData();
-        closeModal();
-      } else {
-        setError(res.message || "Couldn't update the appointment");
-      }
-    } catch {
-      setError("Couldn't update the appointment. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   /* Tab button */
   if (variant === "tabButton") {
