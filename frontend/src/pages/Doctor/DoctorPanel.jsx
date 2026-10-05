@@ -133,12 +133,6 @@ const DoctorPanel = () => {
   // Images used in the photo gallery modal
   const galleryImages = [img1, img2, img3, img4, img5, img6];
 
-  // Load doctor data once when the panel mounts
-  useEffect(() => {
-    loadDoctorData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // Handle availability update (factory pattern)
   const getAvailabilityForm = () => availabilityForm;
   const handleUpdateAvailability = handleUpdateAvailabilityFactory({
