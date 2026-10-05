@@ -5,6 +5,7 @@ const {
   MedicalRecord,
   User,
 } = require("../models");
+const { getStatusChangeError } = require("../utils/appointmentStatus");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
@@ -393,7 +394,14 @@ exports.updateAppointmentStatus = async (req, res) => {
         });
     }
 
-    if (status) appointment.status = status;
+    if (status) {
+      const next = String(status).toLowerCase();
+      const statusError = getStatusChangeError(appointment.status, next);
+      if (statusError) {
+        return res.status(400).json({ message: statusError });
+      }
+      appointment.status = next;
+    }
     if (notes) appointment.notes = notes;
 
     await appointment.save();
