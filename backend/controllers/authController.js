@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { User, Patient } = require('../models');
-require('dotenv').config();
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
+const { JWT_SECRET } = require('../config/auth');
 
 const isNonEmptyString = (v) => typeof v === 'string' && v.trim().length > 0;
 const isValidEmail = (v) =>
