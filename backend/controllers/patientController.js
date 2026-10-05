@@ -401,7 +401,7 @@ exports.updateAppointment = async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
-    const { appointmentDate, appointmentTime, status } = req.body;
+    const { appointmentDate, appointmentTime } = req.body;
 
     const patient = await Patient.findOne({ where: { userId } });
     if (!patient) {
@@ -416,13 +416,10 @@ exports.updateAppointment = async (req, res) => {
       return res.status(404).json({ message: "Appointment not found" });
     }
 
-    if (
-      appointment.status === "cancelled" &&
-      (appointmentDate || appointmentTime)
-    ) {
+    if (appointment.status !== "scheduled") {
       return res
         .status(400)
-        .json({ message: "Cancelled appointments cannot be rescheduled" });
+        .json({ message: "Only scheduled appointments can be rescheduled" });
     }
 
     const cleanDate = appointmentDate ? String(appointmentDate).trim() : "";
@@ -482,7 +479,6 @@ exports.updateAppointment = async (req, res) => {
 
     if (appointmentDate) appointment.appointmentDate = cleanDate;
     if (appointmentTime !== undefined) appointment.appointmentTime = cleanTime;
-    if (status) appointment.status = status;
 
     await appointment.save();
 
@@ -548,6 +544,11 @@ exports.cancelAppointment = async (req, res) => {
       await appointment.destroy();
       return res.json({ message: "Appointment deleted successfully" });
     } else {
+      if (appointment.status !== "scheduled") {
+        return res
+          .status(400)
+          .json({ message: "Only scheduled appointments can be cancelled" });
+      }
       appointment.status = "cancelled";
       await appointment.save();
       return res.json({

@@ -406,18 +406,18 @@ const DashboardAppointment = ({
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="appointment-actions">
-                  <CancelButton
-                    openModal={openModal}
-                    appointment={appointment}
-                  />
-                  <RescheduleButton
-                    openModal={openModal}
-                    appointment={appointment}
-                  />
-                  {/* Delete action removed per request */}
-                </div>
+                {appointment.status === "scheduled" && (
+                  <div className="appointment-actions">
+                    <CancelButton
+                      openModal={openModal}
+                      appointment={appointment}
+                    />
+                    <RescheduleButton
+                      openModal={openModal}
+                      appointment={appointment}
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
