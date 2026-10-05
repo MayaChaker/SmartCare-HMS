@@ -1,10 +1,12 @@
 const jwt = require('jsonwebtoken');
 const { User, Patient } = require('../models');
+const { sequelize } = require('../config/db');
 const { JWT_SECRET } = require('../config/auth');
-
-const isNonEmptyString = (v) => typeof v === 'string' && v.trim().length > 0;
-const isValidEmail = (v) =>
-  typeof v === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+const {
+  isNonEmptyString,
+  isValidEmail,
+  getCredentialsError,
+} = require('../utils/validation');
 
 // Login controller
 exports.login = async (req, res) => {
@@ -52,14 +54,9 @@ exports.login = async (req, res) => {
 exports.registerPatient = async (req, res) => {
   try {
     const { username, password, firstName, lastName, dob, contact, email, phone, medicalHistory } = req.body;
-    if (!isNonEmptyString(username) || !isNonEmptyString(password)) {
-      return res.status(400).json({ message: 'Username and password are required' });
-    }
-    if (String(username).trim().length < 3) {
-      return res.status(400).json({ message: 'Username must be at least 3 characters' });
-    }
-    if (String(password).trim().length < 6) {
-      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    const credentialsError = getCredentialsError(username, password);
+    if (credentialsError) {
+      return res.status(400).json({ message: credentialsError });
     }
     if (email && !isValidEmail(email)) {
       return res.status(400).json({ message: 'Invalid email address' });
@@ -72,23 +69,32 @@ exports.registerPatient = async (req, res) => {
       return res.status(400).json({ message: 'Username already exists' });
     }
 
-    // Create user with patient role
-    const user = await User.create({
-      username: cleanUsername,
-      password: String(password).trim(),
-      role: 'patient'
-    });
+    // User and profile are created together so a failure never leaves an orphan login
+    const { user, patient } = await sequelize.transaction(async (transaction) => {
+      const user = await User.create(
+        {
+          username: cleanUsername,
+          password: String(password).trim(),
+          role: 'patient'
+        },
+        { transaction }
+      );
 
-    // Create patient profile with all available fields
-    const patient = await Patient.create({
-      firstName: isNonEmptyString(firstName) ? firstName.trim() : 'New',
-      lastName: isNonEmptyString(lastName) ? lastName.trim() : 'Patient',
-      email: isNonEmptyString(email) ? email.trim() : cleanUsername, // Use email if provided, otherwise use username
-      phone: isNonEmptyString(phone) ? phone.trim() : isNonEmptyString(contact) ? contact.trim() : '', // Use phone if provided, otherwise use contact
-      dateOfBirth: dob || null,
-      contact: isNonEmptyString(contact) ? contact.trim() : '',
-      medicalHistory: isNonEmptyString(medicalHistory) ? medicalHistory.trim() : '',
-      userId: user.id
+      const patient = await Patient.create(
+        {
+          firstName: isNonEmptyString(firstName) ? firstName.trim() : 'New',
+          lastName: isNonEmptyString(lastName) ? lastName.trim() : 'Patient',
+          email: isNonEmptyString(email) ? email.trim() : cleanUsername, // Use email if provided, otherwise use username
+          phone: isNonEmptyString(phone) ? phone.trim() : isNonEmptyString(contact) ? contact.trim() : '', // Use phone if provided, otherwise use contact
+          dateOfBirth: dob || null,
+          contact: isNonEmptyString(contact) ? contact.trim() : '',
+          medicalHistory: isNonEmptyString(medicalHistory) ? medicalHistory.trim() : '',
+          userId: user.id
+        },
+        { transaction }
+      );
+
+      return { user, patient };
     });
 
     res.status(201).json({

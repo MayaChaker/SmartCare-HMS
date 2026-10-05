@@ -1,5 +1,6 @@
 const { User, Patient, Doctor, Appointment } = require("../models");
-const bcrypt = require("bcrypt");
+const { sequelize } = require("../config/db");
+const { isValidEmail, getCredentialsError } = require("../utils/validation");
 
 const { getStatusChangeError } = require("../utils/appointmentStatus");
 
@@ -175,30 +176,44 @@ exports.registerPatient = async (req, res) => {
       bloodType,
     } = req.body;
 
-    // Check if username already exists
-    const existingUser = await User.findOne({ where: { username } });
+    const credentialsError = getCredentialsError(username, password);
+    if (credentialsError) {
+      return res.status(400).json({ message: credentialsError });
+    }
+    if (email && !isValidEmail(email)) {
+      return res.status(400).json({ message: "Invalid email address" });
+    }
+    if (dob && !isIsoDate(dob)) {
+      return res.status(400).json({ message: "dob must be YYYY-MM-DD" });
+    }
+
+    const cleanUsername = username.trim();
+    const existingUser = await User.findOne({ where: { username: cleanUsername } });
     if (existingUser) {
       return res.status(400).json({ message: "Username already exists" });
     }
 
-    // Create user with patient role (password will be automatically hashed by the User model)
-    const user = await User.create({
-      username,
-      password,
-      role: "patient",
-    });
+    // User and profile are created together so a failure never leaves an orphan login
+    const patient = await sequelize.transaction(async (transaction) => {
+      const user = await User.create(
+        { username: cleanUsername, password: password.trim(), role: "patient" },
+        { transaction },
+      );
 
-    // Create patient profile
-    const patient = await Patient.create({
-      firstName: firstName || "Patient",
-      lastName: lastName || "User",
-      email: email || username,
-      phone: phone || contact || "00-000-000",
-      dateOfBirth: dob,
-      contact: contact || "00-000-000",
-      medicalHistory: medicalHistory || "",
-      bloodType: bloodType || null,
-      userId: user.id,
+      return Patient.create(
+        {
+          firstName: firstName || "Patient",
+          lastName: lastName || "User",
+          email: email || cleanUsername,
+          phone: phone || contact || "00-000-000",
+          dateOfBirth: dob || null,
+          contact: contact || "00-000-000",
+          medicalHistory: medicalHistory || "",
+          bloodType: bloodType || null,
+          userId: user.id,
+        },
+        { transaction },
+      );
     });
 
     res.status(201).json({

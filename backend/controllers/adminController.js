@@ -6,10 +6,8 @@ const {
   MedicalRecord,
 } = require("../models");
 const { sequelize } = require("../config/db");
-const bcrypt = require("bcryptjs");
 const { Op } = require("sequelize");
-
-const isNonEmptyString = (v) => typeof v === "string" && v.trim().length > 0;
+const { getCredentialsError } = require("../utils/validation");
 
 // Get all users (doctors, receptionists, patients)
 exports.getAllUsers = async (req, res) => {
@@ -40,50 +38,43 @@ exports.createUser = async (req, res) => {
       fee,
     } = req.body;
 
-    if (!isNonEmptyString(username) || !isNonEmptyString(password)) {
-      return res
-        .status(400)
-        .json({ message: "Username and password are required" });
-    }
-    if (String(username).trim().length < 3) {
-      return res
-        .status(400)
-        .json({ message: "Username must be at least 3 characters" });
-    }
-    if (String(password).trim().length < 6) {
-      return res
-        .status(400)
-        .json({ message: "Password must be at least 6 characters" });
+    const credentialsError = getCredentialsError(username, password);
+    if (credentialsError) {
+      return res.status(400).json({ message: credentialsError });
     }
     if (!["doctor", "receptionist", "admin"].includes(role)) {
       return res.status(400).json({ message: "Invalid role" });
     }
 
-    // Check if username already exists
-    const existingUser = await User.findOne({ where: { username } });
+    const cleanUsername = username.trim();
+    const existingUser = await User.findOne({ where: { username: cleanUsername } });
     if (existingUser) {
       return res.status(400).json({ message: "Username already exists" });
     }
 
-    // Create user (password will be automatically hashed by the User model's beforeCreate hook)
-    const user = await User.create({
-      username: String(username).trim(),
-      password: String(password).trim(), // Don't hash here - let the model handle it
-      role,
-    });
+    // Password is hashed by the User model's beforeCreate hook
+    const user = await sequelize.transaction(async (transaction) => {
+      const user = await User.create(
+        { username: cleanUsername, password: password.trim(), role },
+        { transaction },
+      );
 
-    // If doctor, create doctor profile
-    if (role === "doctor" && firstName && lastName && specialization) {
-      await Doctor.create({
-        firstName: String(firstName).trim(),
-        lastName: String(lastName).trim(),
-        specialization: String(specialization).trim(),
-        phone: phone || "000-000-0000",
-        email: email || username,
-        fee: typeof fee === "number" ? fee : fee ? parseFloat(fee) : 0,
-        userId: user.id,
-      });
-    }
+      if (role === "doctor" && firstName && lastName && specialization) {
+        await Doctor.create(
+          {
+            firstName: String(firstName).trim(),
+            lastName: String(lastName).trim(),
+            specialization: String(specialization).trim(),
+            phone: phone || "000-000-0000",
+            fee: typeof fee === "number" ? fee : fee ? parseFloat(fee) : 0,
+            userId: user.id,
+          },
+          { transaction },
+        );
+      }
+
+      return user;
+    });
 
     res.status(201).json({
       message: "User created successfully",
@@ -114,8 +105,14 @@ exports.updateUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid role" });
     }
 
-    // Update user fields
-    if (username) user.username = username;
+    const cleanUsername = typeof username === "string" ? username.trim() : "";
+    if (cleanUsername && cleanUsername !== user.username) {
+      const taken = await User.findOne({ where: { username: cleanUsername } });
+      if (taken) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      user.username = cleanUsername;
+    }
     if (password) user.password = password; // Let the model's beforeUpdate hook handle hashing
     if (role) user.role = role;
 
@@ -144,40 +141,32 @@ exports.deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
-    // Handle cascading deletes based on user role
-    if (user.role === "doctor") {
-      // Delete related appointments and medical records first
-      const doctor = await Doctor.findOne({ where: { userId: id } });
-      if (doctor) {
-        await MedicalRecord.destroy({ where: { doctorId: doctor.id } });
-        await Appointment.destroy({ where: { doctorId: doctor.id } });
-        await doctor.destroy();
-      }
-    } else if (user.role === "patient") {
-      // Delete related appointments and medical records first
-      const patient = await Patient.findOne({ where: { userId: id } });
-      if (patient) {
-        await MedicalRecord.destroy({ where: { patientId: patient.id } });
-        await Appointment.destroy({ where: { patientId: patient.id } });
-        await patient.destroy();
-      }
-    } else if (user.role === "receptionist") {
-      // Delete receptionist record first (using raw query since no model exists)
-      try {
-        await sequelize.query("DELETE FROM receptionists WHERE userId = ?", {
-          replacements: [id],
-          type: sequelize.QueryTypes.DELETE,
-        });
-      } catch (err) {
-        console.warn(
-          "Receptionist table missing or delete failed; continuing with user delete",
-          err?.message || err,
-        );
-      }
+    if (user.id === req.user.id) {
+      return res
+        .status(400)
+        .json({ message: "You cannot delete your own account" });
     }
 
-    await user.destroy();
+    // Related rows are removed in one transaction so a failure cannot leave half a user behind
+    await sequelize.transaction(async (transaction) => {
+      if (user.role === "doctor") {
+        const doctor = await Doctor.findOne({ where: { userId: user.id }, transaction });
+        if (doctor) {
+          await MedicalRecord.destroy({ where: { doctorId: doctor.id }, transaction });
+          await Appointment.destroy({ where: { doctorId: doctor.id }, transaction });
+          await doctor.destroy({ transaction });
+        }
+      } else if (user.role === "patient") {
+        const patient = await Patient.findOne({ where: { userId: user.id }, transaction });
+        if (patient) {
+          await MedicalRecord.destroy({ where: { patientId: patient.id }, transaction });
+          await Appointment.destroy({ where: { patientId: patient.id }, transaction });
+          await patient.destroy({ transaction });
+        }
+      }
+
+      await user.destroy({ transaction });
+    });
 
     res.json({ message: "User deleted successfully" });
   } catch (error) {
