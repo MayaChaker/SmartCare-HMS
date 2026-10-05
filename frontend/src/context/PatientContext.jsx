@@ -85,7 +85,7 @@ export const PatientDashboardProvider = ({ children }) => {
         const response = await patientAPI.updateProfile(updated);
         if (response.success) {
           setSuccess("Profile updated successfully!");
-          setProfile(response.data);
+          setProfile((prev) => ({ ...prev, ...response.data.patient }));
         } else {
           setError(response.message || "Failed to update profile");
         }
