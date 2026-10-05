@@ -98,6 +98,7 @@ async function init() {
       console.log("Database models synchronized successfully.");
       await createAdminUser();
       await ensureDoctorFeeColumn();
+      await ensureAppointmentSlotIndexNotUnique();
       startServer();
       return;
     } catch (error) {
@@ -166,6 +167,28 @@ async function ensureDoctorFeeColumn() {
     }
   } catch (error) {
     console.error("Failed to ensure doctor fee column:", error);
+  }
+}
+
+// Older databases have a UNIQUE slot index that also counted cancelled visits,
+// which blocked rebooking a cancelled slot. Swap it for a regular index.
+async function ensureAppointmentSlotIndexNotUnique() {
+  const { Appointment } = require("./models");
+  const tableName = Appointment.getTableName();
+  const indexName = "appointments_doctor_id_appointment_date_appointment_time";
+  try {
+    const [rows] = await sequelize.query(
+      "SELECT NON_UNIQUE FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND LOWER(TABLE_NAME) = LOWER(?) AND INDEX_NAME = ? LIMIT 1",
+      { replacements: [tableName, indexName] },
+    );
+    if (Array.isArray(rows) && rows.length > 0 && Number(rows[0].NON_UNIQUE) === 0) {
+      await sequelize.query(
+        `ALTER TABLE \`${tableName}\` DROP INDEX ${indexName}, ADD INDEX ${indexName} (doctorId, appointmentDate, appointmentTime)`,
+      );
+      console.log("Appointment slot index is no longer unique");
+    }
+  } catch (error) {
+    console.error("Failed to update appointment slot index:", error);
   }
 }
 

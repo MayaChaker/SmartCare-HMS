@@ -34,9 +34,9 @@ const Appointment = sequelize.define('Appointment', {
     defaultValue: 'Consultation'
   }
 }, {
+  // Not unique: cancelled visits keep their slot row, so double booking is checked in the controllers
   indexes: [
     {
-      unique: true,
       fields: ['doctorId', 'appointmentDate', 'appointmentTime']
     }
   ]
