@@ -21,15 +21,19 @@ Demo accounts can use every main flow: booking, rescheduling, cancelling, check-
 
 ## Screenshots
 
-<!-- Add screenshots here, for example: ![Patient dashboard](docs/screenshots/patient-dashboard.png) -->
+![Login page with demo sign-in](docs/screenshots/login.jpg)
 
-| Patient dashboard | Doctor panel |
+| Patient: appointments | Patient: choose a doctor |
 | --- | --- |
-| _coming soon_ | _coming soon_ |
+| ![Patient appointments](docs/screenshots/patient-appointments.png) | ![Doctors list](docs/screenshots/patient-doctors.jpg) |
 
-| Receptionist panel | Admin panel |
+| Doctor dashboard | Receptionist: appointments |
 | --- | --- |
-| _coming soon_ | _coming soon_ |
+| ![Doctor dashboard](docs/screenshots/doctor-dashboard.png) | ![Receptionist appointments](docs/screenshots/receptionist-appointments.png) |
+
+**Admin overview**
+
+![Admin overview](docs/screenshots/admin-dashboard.png)
 
 ## My Role
 
