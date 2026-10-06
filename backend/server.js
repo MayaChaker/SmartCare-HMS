@@ -11,6 +11,9 @@ const adminRoutes = require("./routes/adminRoutes");
 const patientRoutes = require("./routes/patientRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const receptionistRoutes = require("./routes/receptionistRoutes");
+const demoRoutes = require("./routes/demoRoutes");
+const { DEMO_ACCOUNTS, isDemoEnabled } = require("./config/demo");
+const { resetDemoData } = require("./demo/resetDemo");
 
 // Initialize express app
 const app = express();
@@ -102,6 +105,7 @@ async function init() {
       await createAdminUser();
       await ensureDoctorFeeColumn();
       await ensureAppointmentSlotIndexNotUnique();
+      await ensureDemoData();
       startServer();
       return;
     } catch (error) {
@@ -124,6 +128,21 @@ async function init() {
 }
 
 void init();
+
+// Fills the demo the first time the server starts with DEMO_PASSWORD set
+async function ensureDemoData() {
+  if (!isDemoEnabled()) return;
+  const { User } = require("./models");
+  try {
+    const exists = await User.findOne({ where: { username: DEMO_ACCOUNTS.admin } });
+    if (!exists) {
+      await resetDemoData();
+      console.log("Demo data created.");
+    }
+  } catch (error) {
+    console.error("Failed to create demo data:", error);
+  }
+}
 
 // Creates the first admin from ADMIN_USERNAME / ADMIN_PASSWORD; never overwrites an existing account
 async function createAdminUser() {
@@ -208,6 +227,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/patient", patientRoutes);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/receptionist", receptionistRoutes);
+app.use("/api/demo", demoRoutes);
 
 // Public doctor route for patients (no authentication required)
 const patientController = require("./controllers/patientController");

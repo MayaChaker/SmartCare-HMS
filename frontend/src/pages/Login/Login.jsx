@@ -4,6 +4,15 @@ import { useAuth } from "../../context/useAuth";
 import "./Login.css";
 import loginImage from "../../assets/login.jpg";
 
+// Public demo accounts; the buttons only appear when VITE_DEMO_PASSWORD is set
+const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD;
+const DEMO_ACCOUNTS = [
+  { label: "Patient", username: "demo.patient" },
+  { label: "Doctor", username: "dr.karim.mansour" },
+  { label: "Receptionist", username: "demo.reception" },
+  { label: "Admin", username: "demo.admin" },
+];
+
 const Login = () => {
   // Store the form input values
   const [formData, setFormData] = useState({
@@ -30,14 +39,18 @@ const Login = () => {
   };
 
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault(); // prevent page refresh
+    signIn(formData.username, formData.password);
+  };
+
+  const signIn = async (rawUsername, rawPassword) => {
     setError("");
     setLoading(true); // show loading state
 
     try {
-      const username = String(formData.username || "").trim();
-      const password = String(formData.password || "").trim();
+      const username = String(rawUsername || "").trim();
+      const password = String(rawPassword || "").trim();
       if (!username || !password) {
         setError("Please enter username and password");
         setLoading(false);
@@ -150,6 +163,25 @@ const Login = () => {
                 Sign In
               </button>
             </form>
+
+            {DEMO_PASSWORD && (
+              <div className="demo-accounts">
+                <p className="demo-accounts-title">Try the demo as</p>
+                <div className="demo-accounts-buttons">
+                  {DEMO_ACCOUNTS.map((account) => (
+                    <button
+                      key={account.username}
+                      type="button"
+                      className="demo-account-button"
+                      disabled={loading}
+                      onClick={() => signIn(account.username, DEMO_PASSWORD)}
+                    >
+                      {account.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

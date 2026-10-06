@@ -37,7 +37,6 @@ export const saveProfileFactory =
     getProfileForm,
     setLoading,
     clearMessages,
-    user,
     setDoctorProfile,
     setSuccess,
     closeModal,
@@ -111,10 +110,6 @@ export const saveProfileFactory =
         } catch (e) {
           void e;
         }
-        if (resp.status === 403) {
-          const role = user && user.role ? user.role : "unknown";
-          msg = `${msg}. You are logged in as '${role}'. Only doctors can update doctor profiles.`;
-        }
         throw new Error(msg);
       }
 
@@ -182,8 +177,8 @@ export const savePhotoFromGalleryFactory =
       });
 
       if (!resp.ok) {
-        const t = await resp.text();
-        throw new Error(t || "Failed to update profile photo");
+        const data = await resp.json().catch(() => ({}));
+        throw new Error(data.message || "Could not update photo. Please try again.");
       }
 
       const data = await resp.json();
@@ -192,8 +187,8 @@ export const savePhotoFromGalleryFactory =
       setProfileForm((prev) => ({ ...prev, photoUrl: url }));
       setSuccess("Profile photo updated successfully.");
       closeModal();
-    } catch {
-      setError("Could not update photo. Please try again.");
+    } catch (err) {
+      setError(err?.message || "Could not update photo. Please try again.");
     } finally {
       setLoading(false);
     }
