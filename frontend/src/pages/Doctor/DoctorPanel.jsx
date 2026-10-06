@@ -229,7 +229,6 @@ const DoctorPanel = () => {
     getProfileForm,
     setLoading,
     clearMessages,
-    user,
     setDoctorProfile,
     setSuccess,
     closeModal,

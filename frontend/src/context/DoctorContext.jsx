@@ -132,18 +132,16 @@ export const DoctorProvider = ({ children }) => {
         body: formData,
       });
 
+      const data = await resp.json().catch(() => ({}));
       if (!resp.ok) {
-        const t = await resp.text();
-        throw new Error(t || "Failed to upload photo");
+        throw new Error(data.message || "Could not upload photo. Please try another image.");
       }
 
-      const data = await resp.json();
-      const updated = data.doctor || data;
-      setDoctorProfile(updated);
+      setDoctorProfile(data.doctor || data);
       setSuccess("Profile photo uploaded successfully.");
       closeModal();
-    } catch {
-      setError("Could not upload photo. Please try another image.");
+    } catch (err) {
+      setError(err?.message || "Could not upload photo. Please try another image.");
     } finally {
       setLoading(false);
     }
