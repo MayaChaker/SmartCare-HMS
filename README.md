@@ -6,6 +6,19 @@ SmartCare is a full-stack web application for managing a small hospital or clini
 
 > The backend runs on a free hosting tier, so the first request after a period of inactivity can take up to a minute while the server wakes up.
 
+## Try the Demo
+
+Open the [login page](https://smart-care-hms.vercel.app/login) and click a role under **Try the demo as**, or sign in with:
+
+| Role | Username | Password |
+| --- | --- | --- |
+| Patient | `demo.patient` | `SmartCareDemo` |
+| Doctor | `dr.karim.mansour` | `SmartCareDemo` |
+| Receptionist | `demo.reception` | `SmartCareDemo` |
+| Admin | `demo.admin` | `SmartCareDemo` |
+
+Demo accounts can use every main flow: booking, rescheduling, cancelling, check-in, completing visits and adding medical records. Managing users and editing profiles are disabled for them. The demo data is reset every night.
+
 ## Screenshots
 
 <!-- Add screenshots here, for example: ![Patient dashboard](docs/screenshots/patient-dashboard.png) -->
@@ -145,6 +158,8 @@ All sample doctors share that password; their usernames are printed by the scrip
 | `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` | one of | Local MySQL connection settings |
 | `CORS_ORIGINS` | production | Comma-separated frontend URLs allowed to call the API |
 | `NODE_ENV` | production | Set to `production` when deployed |
+| `DEMO_PASSWORD` | no | Enables the public demo accounts and sets their password (8+ characters) |
+| `DEMO_RESET_TOKEN` | no | Secret required by `POST /api/demo/reset` |
 | `PORT` | no | API port, default `5000` |
 
 **Frontend** (`frontend/.env`, see [frontend/.env.example](frontend/.env.example))
@@ -152,11 +167,13 @@ All sample doctors share that password; their usernames are printed by the scrip
 | Variable | Description |
 | --- | --- |
 | `VITE_API_BASE_URL` | Backend URL ending in `/api`; only needed for production builds |
+| `VITE_DEMO_PASSWORD` | Shows the demo sign-in buttons on the login page; must match the backend's `DEMO_PASSWORD` |
 
 ## Deployment
 
 - **Frontend (Vercel):** root directory `frontend`, set `VITE_API_BASE_URL=https://<backend-host>/api`. `vercel.json` sends every route to `index.html`, so refreshing `/dashboard` works.
 - **Backend (Render or similar):** root directory `backend`, start command `npm start`, and set `NODE_ENV=production`, `JWT_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `DATABASE_URL` and `CORS_ORIGINS=https://<frontend-host>`.
+- **Public demo (optional):** set `DEMO_PASSWORD` and `DEMO_RESET_TOKEN` on the backend and `VITE_DEMO_PASSWORD` on the frontend. The first start creates the demo data. The [Reset demo data](.github/workflows/demo-reset.yml) workflow restores it every night; it needs the same token as a `DEMO_RESET_TOKEN` repository secret on GitHub.
 - **Database:** any hosted MySQL-compatible service that provides a connection URL.
 
 ## API Overview
@@ -169,6 +186,7 @@ All routes are under `/api`. Apart from the auth routes and the public doctor li
 | | `POST /auth/register-patient` | public |
 | Doctors | `GET /doctors` | public |
 | Health | `GET /health` (checks the database too; 503 when it is down) | public |
+| Demo | `POST /demo/reset` (header `X-Demo-Reset-Token`) | reset token |
 | Patient | `GET`, `PUT /patient/profile` | patient |
 | | `GET`, `POST /patient/appointments` | patient |
 | | `PUT /patient/appointments/:id` (reschedule) | patient |
