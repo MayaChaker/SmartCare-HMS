@@ -524,6 +524,34 @@
 .receptionist-panel .status-badge {
   padding: 0.5rem 1rem;
   border-radius: 9999px;
+  text-transform: capitalize;
+}
+
+/* One color per visit status, shared by the dashboard and appointments tables */
+.receptionist-panel .status-badge.status-scheduled {
+  background: #e0e7ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+}
+.receptionist-panel .status-badge.status-checked-in {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+.receptionist-panel .status-badge.status-in-progress {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+.receptionist-panel .status-badge.status-completed {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.receptionist-panel .status-badge.status-cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
 }
 
 /* Minimize size of buttons in Appointments table */

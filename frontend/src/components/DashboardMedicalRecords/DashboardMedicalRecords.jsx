@@ -67,11 +67,11 @@ const DashboardMedicalRecords = ({
                       : record.specialization || "General"}
                   </div>
 
-                  {/* Record creation date */}
+                  {/* Visit date (a DATEONLY string, parsed as local time so it does not shift a day) */}
                   <div className="record-date">
-                    {new Date(
-                      record.createdAt || record.date
-                    ).toLocaleDateString()}
+                    {record.visitDate
+                      ? new Date(`${record.visitDate}T00:00:00`).toLocaleDateString()
+                      : new Date(record.createdAt).toLocaleDateString()}
                   </div>
                 </div>
 

@@ -211,7 +211,7 @@ const ReceptionistDashboard = () => {
 
                     <td className="status-cell">
                       {/* Status badge shows current appointment status */}
-                      <span className={`status-badge ${appointment.status}`}>
+                      <span className={`status-badge status-${appointment.status}`}>
                         {appointment.status}
                       </span>
                     </td>

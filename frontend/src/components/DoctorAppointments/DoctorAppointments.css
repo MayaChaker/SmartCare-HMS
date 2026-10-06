@@ -130,6 +130,10 @@
   background-color: #fee2e2;
   color: #b91c1c;
 }
+.status-badge.checked-in {
+  background-color: #fef3c7;
+  color: #b45309;
+}
 .status-badge.in-progress {
   background-color: #dbeafe;
   color: #1d4ed8;
@@ -145,4 +149,9 @@
   gap: 0.5rem;
   align-items: center;
   justify-content: flex-end;
+}
+
+.awaiting-checkin {
+  font-size: 0.8rem;
+  color: #6b7280;
 }

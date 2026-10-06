@@ -294,7 +294,7 @@ const DashboardAppointment = ({
                   </div>
                 </div>
 
-                {appointment.status === "scheduled" && (
+                {appointment.status === "scheduled" ? (
                   <div className="appointment-actions">
                     <CancelButton
                       openModal={openModal}
@@ -305,6 +305,12 @@ const DashboardAppointment = ({
                       appointment={appointment}
                     />
                   </div>
+                ) : (
+                  <span
+                    className={`appointment-status status-${appointment.status}`}
+                  >
+                    {appointment.status.replace("-", " ")}
+                  </span>
                 )}
               </div>
             );

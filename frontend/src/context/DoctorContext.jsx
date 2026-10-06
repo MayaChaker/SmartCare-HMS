@@ -147,6 +147,35 @@ export const DoctorProvider = ({ children }) => {
     }
   };
 
+  // Move a visit to its next status (start or complete it)
+  const updateAppointmentStatus = async (appointmentId, status) => {
+    setLoading(true);
+    clearMessages();
+    try {
+      const token = localStorage.getItem("token");
+      const resp = await fetch(`${API_BASE_URL}/doctor/appointments/${appointmentId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        throw new Error(data.message || "Couldn't update the visit.");
+      }
+      setAppointments((prev) =>
+        prev.map((a) => (a.id === appointmentId ? { ...a, status } : a))
+      );
+      setSuccess(status === "completed" ? "Visit completed." : "Visit started.");
+    } catch (err) {
+      setError(err?.message || "Couldn't update the visit.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // grouped state, flags, modal controls, and actions
   const value = {
     // data
@@ -179,6 +208,7 @@ export const DoctorProvider = ({ children }) => {
     // shared
     fileInputRef,
     uploadPhotoFile,
+    updateAppointmentStatus,
 
     // reload
     loadDoctorData,
