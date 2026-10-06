@@ -291,7 +291,9 @@ const DoctorPanel = () => {
             <FaUserMd className="doctor-icon" />
             <div className="doctor-brand-text">
               <h1 className="doctor-header-title">SmartCare Doctor</h1>
-              <p className="doctor-user-name">Welcome, Dr. {user?.username}</p>
+              <p className="doctor-user-name">
+                Welcome, Dr. {doctorProfile?.name || user?.username}
+              </p>
             </div>
           </div>
           <div className="doctor-header-right">
