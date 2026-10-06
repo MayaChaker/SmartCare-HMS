@@ -1,0 +1,22 @@
+name: Reset demo data
+
+on:
+  schedule:
+    # Every night at 01:00 UTC (03:00 or 04:00 in Beirut)
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the reset endpoint
+        env:
+          API_URL: https://smartcare-rtbx.onrender.com
+          DEMO_RESET_TOKEN: ${{ secrets.DEMO_RESET_TOKEN }}
+        # Retries cover the free Render instance waking up from sleep
+        run: |
+          curl --fail --silent --show-error \
+            --retry 5 --retry-delay 30 --retry-all-errors --max-time 120 \
+            -X POST "$API_URL/api/demo/reset" \
+            -H "X-Demo-Reset-Token: $DEMO_RESET_TOKEN"
