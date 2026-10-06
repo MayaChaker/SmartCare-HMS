@@ -1,72 +1,10 @@
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
+const app = require("./app");
 const { sequelize } = require("./config/db");
-require("dotenv").config();
-require("./models");
-
-// Import routes
-const authRoutes = require("./routes/authRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const patientRoutes = require("./routes/patientRoutes");
-const doctorRoutes = require("./routes/doctorRoutes");
-const receptionistRoutes = require("./routes/receptionistRoutes");
-const demoRoutes = require("./routes/demoRoutes");
+const { User, Appointment } = require("./models");
 const { DEMO_ACCOUNTS, isDemoEnabled } = require("./config/demo");
 const { resetDemoData } = require("./demo/resetDemo");
 
-// Initialize express app
-const app = express();
 const PORT = process.env.PORT || 5000;
-let server;
-
-// Middleware
-app.set("trust proxy", 1);
-app.disable("x-powered-by");
-
-// The API only returns JSON and images, so pages served from it may not run scripts or be framed
-app.use((req, res, next) => {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("Referrer-Policy", "no-referrer");
-  res.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'");
-  if (process.env.NODE_ENV === "production") {
-    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-  }
-  next();
-});
-
-const corsOriginsFromEnv = String(process.env.CORS_ORIGINS || "")
-  .split(",")
-  .map((s) => s.trim())
-  .filter(Boolean);
-const isProduction = process.env.NODE_ENV === "production";
-
-app.use(
-  cors({
-    origin: (origin, cb) => {
-      if (!origin) return cb(null, true);
-      const allowLocalhost =
-        !isProduction && /^http:\/\/localhost:\d+$/i.test(origin);
-      cb(null, allowLocalhost || corsOriginsFromEnv.includes(origin));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    optionsSuccessStatus: 200,
-  }),
-);
-app.use(express.json());
-
-// Serve uploaded assets
-app.use(
-  "/uploads",
-  (req, res, next) => {
-    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-    next();
-  },
-  express.static(path.join(__dirname, "uploads")),
-);
 
 const allowStartWithoutDb =
   String(process.env.ALLOW_START_WITHOUT_DB || "").toLowerCase() === "true" ||
@@ -132,7 +70,6 @@ void init();
 // Fills the demo the first time the server starts with DEMO_PASSWORD set
 async function ensureDemoData() {
   if (!isDemoEnabled()) return;
-  const { User } = require("./models");
   try {
     const exists = await User.findOne({ where: { username: DEMO_ACCOUNTS.admin } });
     if (!exists) {
@@ -146,7 +83,6 @@ async function ensureDemoData() {
 
 // Creates the first admin from ADMIN_USERNAME / ADMIN_PASSWORD; never overwrites an existing account
 async function createAdminUser() {
-  const { User } = require("./models");
   const username = String(process.env.ADMIN_USERNAME || "").trim();
   const password = String(process.env.ADMIN_PASSWORD || "");
 
@@ -195,7 +131,6 @@ async function ensureDoctorFeeColumn() {
 // Older databases have a UNIQUE slot index that also counted cancelled visits,
 // which blocked rebooking a cancelled slot. Swap it for a regular index.
 async function ensureAppointmentSlotIndexNotUnique() {
-  const { Appointment } = require("./models");
   const tableName = Appointment.getTableName();
   const indexName = "appointments_doctor_id_appointment_date_appointment_time";
   try {
@@ -216,61 +151,7 @@ async function ensureAppointmentSlotIndexNotUnique() {
 
 // Function to start the server
 function startServer() {
-  server = app.listen(PORT, () => {
+  app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
 }
-
-// Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/patient", patientRoutes);
-app.use("/api/doctor", doctorRoutes);
-app.use("/api/receptionist", receptionistRoutes);
-app.use("/api/demo", demoRoutes);
-
-// Public doctor route for patients (no authentication required)
-const patientController = require("./controllers/patientController");
-app.get("/api/doctors", patientController.getAllDoctors);
-
-// Health check for uptime monitoring: also verifies the database connection
-app.get("/api/health", async (req, res) => {
-  try {
-    await sequelize.authenticate();
-    res.json({ status: "ok", database: "up" });
-  } catch {
-    res.status(503).json({ status: "error", database: "down" });
-  }
-});
-
-// Root route
-app.get("/", (req, res) => {
-  res.json({
-    message: "SmartCare Hospital Management System API",
-    status: "running",
-    version: "1.0.0",
-  });
-});
-
-// 404 handler for API routes
-app.use("/api", (req, res) => {
-  res.status(404).json({
-    error: "API endpoint not found",
-    path: req.path,
-    method: req.method,
-  });
-});
-
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error("Server error:", err);
-  res.status(500).json({
-    error: "Internal server error",
-    message:
-      process.env.NODE_ENV === "development"
-        ? err.message
-        : "Something went wrong",
-  });
-});
-
-module.exports = app;
