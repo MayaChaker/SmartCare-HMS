@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import "./Login.css";
@@ -23,6 +23,17 @@ const Login = () => {
   // Error message + loading state
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [slowServer, setSlowServer] = useState(false);
+
+  // The free backend sleeps when idle; explain the wait if sign-in takes a while
+  useEffect(() => {
+    if (!loading) {
+      setSlowServer(false);
+      return undefined;
+    }
+    const timer = setTimeout(() => setSlowServer(true), 3000);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   // Auth context → login function
   const { login } = useAuth();
@@ -160,8 +171,14 @@ const Login = () => {
 
               {/* Submit button */}
               <button type="submit" disabled={loading} className="auth-button">
-                Sign In
+                {loading ? "Signing in..." : "Sign In"}
               </button>
+
+              {slowServer && (
+                <p className="server-wakeup-note" role="status">
+                  Waking up the server, this can take up to a minute...
+                </p>
+              )}
             </form>
 
             {DEMO_PASSWORD && (
