@@ -213,6 +213,16 @@ app.use("/api/receptionist", receptionistRoutes);
 const patientController = require("./controllers/patientController");
 app.get("/api/doctors", patientController.getAllDoctors);
 
+// Health check for uptime monitoring: also verifies the database connection
+app.get("/api/health", async (req, res) => {
+  try {
+    await sequelize.authenticate();
+    res.json({ status: "ok", database: "up" });
+  } catch {
+    res.status(503).json({ status: "error", database: "down" });
+  }
+});
+
 // Root route
 app.get("/", (req, res) => {
   res.json({

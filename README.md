@@ -157,6 +157,7 @@ All routes are under `/api`. Apart from the auth routes and the public doctor li
 | Auth | `POST /auth/login` | public |
 | | `POST /auth/register-patient` | public |
 | Doctors | `GET /doctors` | public |
+| Health | `GET /health` (checks the database too; 503 when it is down) | public |
 | Patient | `GET`, `PUT /patient/profile` | patient |
 | | `GET`, `POST /patient/appointments` | patient |
 | | `PUT /patient/appointments/:id` (reschedule) | patient |
