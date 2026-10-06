@@ -1,5 +1,7 @@
 # SmartCare
 
+[![CI](https://github.com/MayaChaker/SmartCare-HMS/actions/workflows/ci.yml/badge.svg)](https://github.com/MayaChaker/SmartCare-HMS/actions/workflows/ci.yml)
+
 **Live demo:** https://smart-care-hms.vercel.app/
 
 SmartCare is a full-stack web application for managing a small hospital or clinic. It supports four roles (Admin, Doctor, Receptionist, Patient), and each user only sees the tools their role needs.
@@ -150,6 +152,19 @@ All sample doctors share that password; their usernames are printed by the scrip
 3. Open http://localhost:5173/register, create a patient account, and book a visit.
 4. Sign in as the receptionist to check the patient in, then as the doctor to complete the visit and add a medical record.
 
+## Tests
+
+The backend has 49 tests built on Node's test runner. They cover authentication, role checks, data ownership (IDOR), booking rules, the visit status flow, upload validation and the demo restrictions. They run against a real MySQL database named `smartcare_test`, which is created automatically and wiped on every run. The tests refuse to start against any database whose name does not end with `_test`.
+
+```bash
+cd backend
+npm test
+```
+
+They use the `DB_USER`, `DB_PASSWORD` and `DB_HOST` values from `backend/.env`.
+
+[GitHub Actions](.github/workflows/ci.yml) runs these tests, plus the frontend lint and build, on every push to `main` and on every pull request.
+
 ## Environment Variables
 
 **Backend** (`backend/.env`, see [backend/.env.example](backend/.env.example))
@@ -228,11 +243,15 @@ SmartCare-HMS/
   backend/
     config/        database and auth settings
     controllers/   request handlers per role
-    middlewares/   token and role checks
+    middlewares/   token, role and demo checks
+    demo/          sample data and the demo reset
+    scripts/       seed script
+    tests/         API and rule tests
     models/        Sequelize models
     routes/        Express routers per role
     utils/         shared validation, scheduling and status rules
-    server.js      app setup and startup
+    app.js         Express app: middleware and routes
+    server.js      database connection, startup tasks, listen
   frontend/
     src/
       pages/       one page per role, plus home, login and register

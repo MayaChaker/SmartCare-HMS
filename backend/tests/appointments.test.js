@@ -1,0 +1,156 @@
+const { startApp, client, login, createStaff, createDoctor, registerPatient, dateFromToday } = require("./helpers");
+const { describe, it, before, after } = require("node:test");
+const assert = require("node:assert/strict");
+
+describe("appointments", () => {
+  let app;
+  let request;
+  let doctor;
+  let weekdayDoctor;
+  let patientToken;
+  let receptionToken;
+  let doctorToken;
+  let walkIn;
+  const day = dateFromToday(1);
+
+  // Next Saturday, for the weekday-only doctor
+  const nextSaturday = () => {
+    for (let i = 1; i <= 7; i++) {
+      const ymd = dateFromToday(i);
+      if (new Date(`${ymd}T00:00:00`).getDay() === 6) return ymd;
+    }
+    return null;
+  };
+
+  before(async () => {
+    app = await startApp();
+    request = client(app.baseUrl);
+    doctor = (await createDoctor("dr.allweek")).doctor;
+    weekdayDoctor = (await createDoctor("dr.weekdays", { workingHours: "Mon - Fri 09:00 AM - 05:00 PM" })).doctor;
+    await createStaff("front.desk", "receptionist");
+    await registerPatient(request, "booker");
+    walkIn = await registerPatient(request, "walkin");
+    patientToken = await login(request, "booker");
+    receptionToken = await login(request, "front.desk");
+    doctorToken = await login(request, "dr.allweek");
+  });
+  after(() => app.stop());
+
+  const book = (time, date = day, doctorId = doctor.id) =>
+    request("POST", "/patient/appointments", {
+      token: patientToken,
+      body: { doctorId, appointmentDate: date, appointmentTime: time, reason: "Checkup" },
+    });
+
+  describe("booking", () => {
+    it("books a free slot in the doctor's working hours", async () => {
+      const res = await book("10:00");
+      assert.equal(res.status, 201);
+      assert.equal(res.body.appointment.status, "scheduled");
+    });
+
+    it("rejects a slot that is already taken", async () => {
+      const res = await book("10:00");
+      assert.equal(res.status, 409);
+    });
+
+    it("rejects times outside working hours and days off", async () => {
+      assert.equal((await book("07:00")).status, 409);
+      const saturday = nextSaturday();
+      const res = await book("10:00", saturday, weekdayDoctor.id);
+      assert.equal(res.status, 409);
+      assert.match(res.body.message, /not available on Sat/);
+    });
+
+    it("validates the date and time format", async () => {
+      assert.equal((await book("10:00", "05/10/2026")).status, 400);
+      assert.equal((await book("10am")).status, 400);
+    });
+
+    it("frees the slot again when a visit is cancelled", async () => {
+      const first = await book("11:00");
+      const cancel = await request("DELETE", `/patient/appointments/${first.body.appointment.id}`, { token: patientToken });
+      assert.equal(cancel.status, 200);
+      const again = await book("11:00");
+      assert.equal(again.status, 201);
+    });
+  });
+
+  describe("patient changes", () => {
+    it("reschedules a scheduled visit", async () => {
+      const created = await book("12:00");
+      const res = await request("PUT", `/patient/appointments/${created.body.appointment.id}`, {
+        token: patientToken,
+        body: { appointmentTime: "12:20:00" },
+      });
+      assert.equal(res.status, 200);
+      assert.equal(res.body.appointment.appointmentTime, "12:20:00");
+    });
+
+    it("ignores a status sent by the patient", async () => {
+      const created = await book("13:00");
+      const id = created.body.appointment.id;
+      await request("PUT", `/patient/appointments/${id}`, { token: patientToken, body: { status: "completed" } });
+      const list = await request("GET", "/patient/appointments", { token: patientToken });
+      assert.equal(list.body.find((a) => a.id === id).status, "scheduled");
+    });
+  });
+
+  describe("visit status flow", () => {
+    let visitId;
+
+    before(async () => {
+      const res = await request("POST", "/receptionist/appointments", {
+        token: receptionToken,
+        body: { patientId: walkIn.id, doctorId: doctor.id, appointmentDate: day, appointmentTime: "14:00", reason: "Walk-in" },
+      });
+      visitId = res.body.appointment.id;
+    });
+
+    it("does not complete a visit before check-in", async () => {
+      const res = await request("PUT", `/receptionist/appointments/${visitId}`, { token: receptionToken, body: { status: "completed" } });
+      assert.equal(res.status, 400);
+    });
+
+    it("checks in, starts and completes a visit", async () => {
+      let res = await request("PUT", `/receptionist/checkin/${visitId}`, { token: receptionToken });
+      assert.equal(res.status, 200);
+      res = await request("PUT", `/doctor/appointments/${visitId}`, { token: doctorToken, body: { status: "in-progress" } });
+      assert.equal(res.status, 200);
+      res = await request("PUT", `/doctor/appointments/${visitId}`, { token: doctorToken, body: { status: "completed" } });
+      assert.equal(res.status, 200);
+    });
+
+    it("keeps completed visits final", async () => {
+      let res = await request("PUT", `/doctor/appointments/${visitId}`, { token: doctorToken, body: { status: "scheduled" } });
+      assert.equal(res.status, 400);
+      res = await request("PUT", `/receptionist/checkin/${visitId}`, { token: receptionToken });
+      assert.equal(res.status, 400);
+    });
+
+    it("rejects unknown statuses", async () => {
+      const res = await request("PUT", `/doctor/appointments/${visitId}`, { token: doctorToken, body: { status: "done" } });
+      assert.equal(res.status, 400);
+    });
+
+    it("lets the receptionist cancel before check-in", async () => {
+      const created = await request("POST", "/receptionist/appointments", {
+        token: receptionToken,
+        body: { patientId: walkIn.id, doctorId: doctor.id, appointmentDate: day, appointmentTime: "15:00" },
+      });
+      const res = await request("PUT", `/receptionist/appointments/${created.body.appointment.id}`, {
+        token: receptionToken,
+        body: { status: "cancelled" },
+      });
+      assert.equal(res.status, 200);
+    });
+
+    it("returns 404 when booking for an unknown patient", async () => {
+      const res = await request("POST", "/receptionist/appointments", {
+        token: receptionToken,
+        body: { patientId: 999999, doctorId: doctor.id, appointmentDate: day, appointmentTime: "16:00" },
+      });
+      assert.equal(res.status, 404);
+    });
+  });
+});
