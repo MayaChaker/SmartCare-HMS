@@ -6,11 +6,18 @@ import {
   FiRefreshCcw,
   FiXCircle,
   FiFileText,
+  FiPlayCircle,
+  FiUserCheck,
 } from "react-icons/fi";
 import { useDoctor } from "../../context/DoctorContext";
 
 const DoctorAppointments = () => {
-  const { appointments = [], openModal } = useDoctor();
+  const {
+    appointments = [],
+    openModal,
+    updateAppointmentStatus,
+    loading,
+  } = useDoctor();
   const toDateStr = (d) => {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -140,6 +147,7 @@ const DoctorAppointments = () => {
                     >
                       {/* Status icons based on appointment status */}
                       {appointment.status === "scheduled" && <FiClock />}
+                      {appointment.status === "checked-in" && <FiUserCheck />}
                       {appointment.status === "in-progress" && <FiRefreshCcw />}
                       {appointment.status === "completed" && <FiCheckCircle />}
                       {appointment.status === "cancelled" && <FiXCircle />}
@@ -152,6 +160,35 @@ const DoctorAppointments = () => {
                   {/* Actions column*/}
                   <td>
                     <div className="table-actions">
+                      {appointment.status === "scheduled" && (
+                        <span className="awaiting-checkin">
+                          Waiting for check-in
+                        </span>
+                      )}
+                      {appointment.status === "checked-in" && (
+                        <button
+                          className="action-btn primary"
+                          disabled={loading}
+                          onClick={() =>
+                            updateAppointmentStatus(appointment.id, "in-progress")
+                          }
+                        >
+                          <FiPlayCircle />
+                          Start Visit
+                        </button>
+                      )}
+                      {appointment.status === "in-progress" && (
+                        <button
+                          className="action-btn complete"
+                          disabled={loading}
+                          onClick={() =>
+                            updateAppointmentStatus(appointment.id, "completed")
+                          }
+                        >
+                          <FiCheckCircle />
+                          Complete Visit
+                        </button>
+                      )}
                       {appointment.status === "completed" && (
                         <button
                           className="action-btn primary"
