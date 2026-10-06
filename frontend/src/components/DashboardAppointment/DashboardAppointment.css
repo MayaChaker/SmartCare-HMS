@@ -123,6 +123,16 @@
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.patient-dashboard .status-checked-in {
+  background: #fef3c7;
+  color: #b45309;
+}
+.patient-dashboard .status-in-progress {
+  background: #dbeafe;
+  color: #1d4ed8;
 }
 .patient-dashboard .status-scheduled {
   background: #e0f2fe;
