@@ -115,10 +115,21 @@ npm run dev
 
 The app runs at http://localhost:5173. In development, Vite forwards `/api` and `/uploads` to the backend, so no frontend configuration is needed.
 
-### 4. Try it
+### 4. Sample data (optional)
 
-1. Sign in with your admin account and create a doctor and a receptionist.
-2. Sign in as the doctor and set working days and hours under **Profile**.
+To create six sample doctors with profiles, working hours and photos:
+
+| OS | Command (in `backend`) |
+| --- | --- |
+| macOS / Linux | `SEED_DOCTOR_PASSWORD=<8+ characters> npm run seed` |
+| Windows (PowerShell) | `$env:SEED_DOCTOR_PASSWORD="<8+ characters>"; npm run seed` |
+
+All sample doctors share that password; their usernames are printed by the script (for example `dr.karim.mansour`). Running it again skips accounts that already exist.
+
+### 5. Try it
+
+1. Sign in with your admin account and create a receptionist (and more doctors if you like).
+2. Sign in as a doctor and check the working days and hours under **Profile**.
 3. Open http://localhost:5173/register, create a patient account, and book a visit.
 4. Sign in as the receptionist to check the patient in, then as the doctor to complete the visit and add a medical record.
 
