@@ -2,7 +2,7 @@ const { User, Patient, Doctor, Appointment } = require("../models");
 const { Op } = require("sequelize");
 const { sequelize } = require("../config/db");
 const { isValidEmail, getCredentialsError } = require("../utils/validation");
-const { getStatusChangeError } = require("../utils/appointmentStatus");
+const { getStatusChangeError, INACTIVE_STATUSES } = require("../utils/appointmentStatus");
 const {
   isIsoDate,
   parseId,
@@ -10,6 +10,7 @@ const {
   isSlotAllowedByWorkingHours,
 } = require("../utils/schedule");
 const { clinicToday, isSlotInPast } = require("../utils/clinicTime");
+const { getSlotConflictError } = require("../utils/bookingConflicts");
 
 // Register new patient
 exports.registerPatient = async (req, res) => {
@@ -159,18 +160,14 @@ exports.createAppointment = async (req, res) => {
       return res.status(409).json({ message: whCheck.message });
     }
 
-    const existing = await Appointment.findOne({
-      where: {
-        doctorId: cleanDoctorId,
-        appointmentDate: cleanDate,
-        appointmentTime: cleanTime,
-        status: { [Op.not]: "cancelled" },
-      },
+    const conflictError = await getSlotConflictError({
+      doctorId: cleanDoctorId,
+      patientId: patient.id,
+      date: cleanDate,
+      time: cleanTime,
     });
-    if (existing) {
-      return res.status(409).json({
-        message: "Selected time slot is already booked for this doctor",
-      });
+    if (conflictError) {
+      return res.status(409).json({ message: conflictError });
     }
 
     const appointment = await Appointment.create({
@@ -242,19 +239,15 @@ exports.updateAppointment = async (req, res) => {
         if (!whCheck.ok) {
           return res.status(409).json({ message: whCheck.message });
         }
-        const conflict = await Appointment.findOne({
-          where: {
-            id: { [Op.ne]: appointment.id },
-            doctorId: appointment.doctorId,
-            appointmentDate: cleanDate,
-            appointmentTime: cleanTime,
-            status: { [Op.not]: "cancelled" },
-          },
+        const conflictError = await getSlotConflictError({
+          doctorId: appointment.doctorId,
+          patientId: appointment.patientId,
+          date: cleanDate,
+          time: cleanTime,
+          excludeId: appointment.id,
         });
-        if (conflict) {
-          return res.status(409).json({
-            message: "Selected time slot is already booked for this doctor",
-          });
+        if (conflictError) {
+          return res.status(409).json({ message: conflictError });
         }
       }
       appointment.appointmentDate = cleanDate;
@@ -265,6 +258,9 @@ exports.updateAppointment = async (req, res) => {
       const statusError = getStatusChangeError(appointment.status, next, "receptionist");
       if (statusError) {
         return res.status(400).json({ message: statusError });
+      }
+      if (next === "no-show" && !isSlotInPast(appointment.appointmentDate, appointment.appointmentTime)) {
+        return res.status(400).json({ message: "A visit can only be marked as a no-show after its time has passed" });
       }
       appointment.status = next;
     }
@@ -449,7 +445,7 @@ exports.getDoctorBookedTimes = async (req, res) => {
       where: {
         doctorId: id,
         appointmentDate: date,
-        status: { [Op.not]: "cancelled" },
+        status: { [Op.notIn]: INACTIVE_STATUSES },
       },
       attributes: ["appointmentTime"],
       order: [["appointmentTime", "ASC"]],

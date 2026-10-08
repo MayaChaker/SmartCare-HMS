@@ -2237,3 +2237,9 @@
     gap: 6px;
   }
 }
+
+/* Booked but the patient did not come */
+.status-badge.no-show {
+  background-color: #fef3c7;
+  color: #92400e;
+}

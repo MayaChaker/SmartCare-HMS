@@ -1128,3 +1128,9 @@
   border-top: 0;
   z-index: auto;
 }
+
+/* Booked but the patient did not come */
+.receptionist-panel .status-badge.status-no-show {
+  background-color: #fef3c7;
+  color: #92400e;
+}

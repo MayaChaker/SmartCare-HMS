@@ -43,6 +43,7 @@ async function init() {
       await createAdminUser();
       await ensureDoctorFeeColumn();
       await ensureMedicalRecordAppointmentColumn();
+      await ensureAppointmentStatusValues();
       await ensureAppointmentSlotIndexNotUnique();
       await ensureDemoData();
       startServer();
@@ -155,6 +156,32 @@ async function ensureDoctorFeeColumn() {
 
 // Older databases have a UNIQUE slot index that also counted cancelled visits,
 // which blocked rebooking a cancelled slot. Swap it for a regular index.
+// The status column is an ENUM; existing databases need new statuses (such as no-show) added to it
+async function ensureAppointmentStatusValues() {
+  const tableName = Appointment.getTableName();
+  const statuses = Appointment.getAttributes().status.values;
+  try {
+    const [rows] = await sequelize.query(
+      "SELECT COLUMN_TYPE AS type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND LOWER(TABLE_NAME) = LOWER(?) AND COLUMN_NAME = 'status' LIMIT 1",
+      { replacements: [tableName] },
+    );
+    const columnType = rows?.[0]?.type;
+    if (!columnType) {
+      return;
+    }
+    const missing = statuses.filter((s) => !columnType.includes(`'${s}'`));
+    if (missing.length > 0) {
+      const values = statuses.map((s) => `'${s}'`).join(", ");
+      await sequelize.query(
+        `ALTER TABLE \`${tableName}\` MODIFY COLUMN status ENUM(${values}) NOT NULL DEFAULT 'scheduled'`,
+      );
+      console.log(`Appointment statuses added: ${missing.join(", ")}`);
+    }
+  } catch (error) {
+    console.error("Failed to update appointment statuses:", error);
+  }
+}
+
 async function ensureAppointmentSlotIndexNotUnique() {
   const tableName = Appointment.getTableName();
   const indexName = "appointments_doctor_id_appointment_date_appointment_time";

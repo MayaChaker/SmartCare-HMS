@@ -1,7 +1,7 @@
 import React from "react";
 import "./ReceptionistAppointments.css";
 import { useReceptionist } from "../../context/ReceptionistContext";
-import { APPOINTMENT_STATUSES } from "../../utils/schedule";
+import { APPOINTMENT_STATUSES, hasVisitTimePassed } from "../../utils/schedule";
 
 const ReceptionistAppointments = () => {
   const {
@@ -29,12 +29,15 @@ const ReceptionistAppointments = () => {
   };
   // Reception checks patients in and can cancel before the visit starts.
   // Starting and completing the visit belongs to the doctor (same rule as the API).
+  // A no-show can only be recorded once the visit time has passed.
   const RECEPTION_CHANGES = {
-    scheduled: ["checked-in", "cancelled"],
+    scheduled: ["checked-in", "cancelled", "no-show"],
     "checked-in": ["cancelled"],
   };
-  const canChangeStatus = (current, next) =>
-    next === current || (RECEPTION_CHANGES[current] || []).includes(next);
+  const canChangeStatus = (appointment, next) =>
+    next === appointment.status ||
+    ((RECEPTION_CHANGES[appointment.status] || []).includes(next) &&
+      (next !== "no-show" || hasVisitTimePassed(appointment.appointmentDate, appointment.appointmentTime)));
   const formatStatusLabel = (raw) => {
     const s = String(raw || "").trim();
     if (!s) return "";
@@ -45,7 +48,7 @@ const ReceptionistAppointments = () => {
       .join(" ");
   };
   const handleStatusChange = (appointment, nextStatus) => {
-    if (!canChangeStatus(appointment.status, nextStatus)) {
+    if (!canChangeStatus(appointment, nextStatus)) {
       return;
     }
 
@@ -132,7 +135,7 @@ const ReceptionistAppointments = () => {
                           <option
                             key={s}
                             value={s}
-                            disabled={!canChangeStatus(appointment.status, s)}
+                            disabled={!canChangeStatus(appointment, s)}
                           >
                             {formatStatusLabel(s)}
                           </option>
@@ -147,6 +150,16 @@ const ReceptionistAppointments = () => {
                           title="Mark as arrived"
                         >
                           Mark arrived
+                        </button>
+                      )}
+
+                      {canChangeStatus(appointment, "no-show") && appointment.status === "scheduled" && (
+                        <button
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => handleUpdateAppointmentStatus(appointment.id, "no-show")}
+                          title="The patient did not come"
+                        >
+                          No-show
                         </button>
                       )}
 

@@ -9,6 +9,8 @@ const {
   isSlotAllowedByWorkingHours,
 } = require("../utils/schedule");
 const { isSlotInPast } = require("../utils/clinicTime");
+const { getSlotConflictError } = require("../utils/bookingConflicts");
+const { INACTIVE_STATUSES } = require("../utils/appointmentStatus");
 
 // Get patient profile
 exports.getProfile = async (req, res) => {
@@ -198,19 +200,14 @@ exports.createAppointment = async (req, res) => {
       return res.status(409).json({ message: whCheck.message });
     }
 
-    // Prevent double booking of an active appointment with the same doctor/date/time
-    const existing = await Appointment.findOne({
-      where: {
-        doctorId: cleanDoctorId,
-        appointmentDate: cleanDate,
-        appointmentTime: cleanTime,
-        status: { [Op.not]: "cancelled" },
-      },
+    const conflictError = await getSlotConflictError({
+      doctorId: cleanDoctorId,
+      patientId: patient.id,
+      date: cleanDate,
+      time: cleanTime,
     });
-    if (existing) {
-      return res.status(409).json({
-        message: "Selected date/time is already booked for this doctor",
-      });
+    if (conflictError) {
+      return res.status(409).json({ message: conflictError });
     }
 
     const appointment = await Appointment.create({
@@ -299,19 +296,15 @@ exports.updateAppointment = async (req, res) => {
         return res.status(409).json({ message: whCheck.message });
       }
 
-      const conflict = await Appointment.findOne({
-        where: {
-          id: { [Op.ne]: appointment.id },
-          doctorId: appointment.doctorId,
-          appointmentDate: nextDate,
-          appointmentTime: nextTime,
-          status: { [Op.not]: "cancelled" },
-        },
+      const conflictError = await getSlotConflictError({
+        doctorId: appointment.doctorId,
+        patientId: appointment.patientId,
+        date: nextDate,
+        time: nextTime,
+        excludeId: appointment.id,
       });
-      if (conflict) {
-        return res.status(409).json({
-          message: "Selected date/time is already booked for this doctor",
-        });
+      if (conflictError) {
+        return res.status(409).json({ message: conflictError });
       }
     }
 
@@ -407,7 +400,7 @@ exports.getDoctorBookedDates = async (req, res) => {
     const appointments = await Appointment.findAll({
       where: {
         doctorId: parseInt(doctorId),
-        status: { [Op.not]: "cancelled" },
+        status: { [Op.notIn]: INACTIVE_STATUSES },
       },
       attributes: ["appointmentDate", "status"],
       order: [["appointmentDate", "ASC"]],
@@ -442,7 +435,7 @@ exports.getDoctorBookedTimes = async (req, res) => {
       where: {
         doctorId: parseInt(doctorId),
         appointmentDate: date,
-        status: { [Op.not]: "cancelled" },
+        status: { [Op.notIn]: INACTIVE_STATUSES },
       },
       attributes: ["appointmentTime"],
       order: [["appointmentTime", "ASC"]],

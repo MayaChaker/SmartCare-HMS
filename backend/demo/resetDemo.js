@@ -129,6 +129,7 @@ async function resetDemoData() {
       { patient: others[2], doctor: karim, offset: -6, time: "13:00:00", status: "completed", reason: "ECG review",
         record: { diagnosis: "Normal sinus rhythm", treatment: "No treatment needed", notes: "Annual review recommended" } },
       { patient: others[0], doctor: doctors["dr.rania.nasr"], offset: -2, time: "09:00:00", status: "cancelled", reason: "Vaccination" },
+      { patient: others[3], doctor: karim, offset: -1, time: "11:00:00", status: "no-show", reason: "Follow-up" },
     ];
 
     for (const visit of plan) {
