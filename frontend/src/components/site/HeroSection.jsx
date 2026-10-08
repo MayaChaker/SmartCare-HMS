@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import ArrowIcon from "./ArrowIcon";
 import usePrefersReducedMotion from "../../hooks/usePrefersReducedMotion";
 import { actions } from "../../content/site";
+import { requestBooking } from "../../utils/bookingIntent";
 
 export default function HeroSection() {
   const photoRef = useRef(null);
@@ -49,10 +50,14 @@ export default function HeroSection() {
           </h1>
           <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-5">
             <a
-              href={actions.book.href}
+              href={actions.consultation.href}
+              onClick={(e) => {
+                e.preventDefault();
+                requestBooking({ type: "consultation" });
+              }}
               className="inline-flex items-center gap-4 bg-ivory px-7 py-4 text-[15px] tracking-wide text-forest transition-colors hover:bg-champagne"
             >
-              {actions.book.label}
+              {actions.consultation.label}
               <ArrowIcon />
             </a>
             <a href="#doctors" className="border-b border-ivory/50 pb-1 text-[15px] tracking-wide transition-colors hover:border-champagne hover:text-champagne-light">

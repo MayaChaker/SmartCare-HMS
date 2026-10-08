@@ -10,11 +10,26 @@ export const contact = {
   address: "Hamra Street, Beirut, Lebanon",
 };
 
-// The two actions used across the site. Each has one label and one destination, everywhere.
+// The actions used across the site. Each has one label, everywhere it appears.
+// "book" and "consultation" both open the booking form, each with its own request type selected.
 export const actions = {
   book: { label: "Book an appointment", href: "#book" },
+  consultation: { label: "Request a private consultation", href: "#book" },
   portal: { label: "Patient portal", href: "/login" },
 };
+
+export const requestTypes = [
+  {
+    value: "appointment",
+    label: "Appointment",
+    hint: "A regular visit with one of our specialists.",
+  },
+  {
+    value: "consultation",
+    label: "Private consultation",
+    hint: "A 60-minute meeting with a senior specialist, in person or by video, to review your case in depth.",
+  },
+];
 
 export const navLinks = [
   { label: "Centers", href: "#centers" },
@@ -43,7 +58,7 @@ export const centers = [
     imageAlt: "Two doctors reviewing brain MRI scans",
   },
   {
-    name: "Orthopaedics & Sports",
+    name: "Orthopaedics",
     summary: "Bone, joint and sports injury care, with surgery and physiotherapy in the same team.",
     services: ["Knee and hip replacement", "Arthroscopic surgery", "Sports injury clinic", "Physiotherapy"],
     lead: "Dr. Elie Nassar",
@@ -182,7 +197,7 @@ export const testimonials = [
 export const footerColumns = [
   {
     title: "Centers",
-    links: centers.map((c) => ({ label: c.name.replace(" & Sports", ""), href: "#centers" })),
+    links: centers.map((c) => ({ label: c.name, href: "#centers" })),
   },
   {
     title: "Patients & Visitors",

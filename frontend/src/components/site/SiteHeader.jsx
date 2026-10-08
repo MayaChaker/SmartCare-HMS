@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Logo from "./Logo";
 import { actions, navLinks } from "../../content/site";
+import { requestBooking } from "../../utils/bookingIntent";
 
 // Transparent over the hero photo, then solid ivory once the visitor scrolls past it.
 // Two actions with different roles: "Patient portal" (a link, for existing patients)
-// and "Book an appointment" (the one button, for new visits).
+// and "Book an appointment" (the one button, for new visits). The hero offers the private consultation.
 export default function SiteHeader() {
   const [solid, setSolid] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -18,6 +19,11 @@ export default function SiteHeader() {
   }, []);
 
   const closeMenu = () => setMenuOpen(false);
+  const bookAppointment = (e) => {
+    e.preventDefault();
+    closeMenu();
+    requestBooking({ type: "appointment" });
+  };
   const tone = menuOpen
     ? "bg-forest text-ivory"
     : solid
@@ -52,6 +58,7 @@ export default function SiteHeader() {
           </Link>
           <a
             href={actions.book.href}
+            onClick={bookAppointment}
             className="hidden bg-champagne px-5 py-2.5 text-[14px] tracking-wide text-forest-deep transition-colors hover:bg-champagne-light md:inline-flex"
           >
             {actions.book.label}
@@ -79,7 +86,7 @@ export default function SiteHeader() {
             </a>
           ))}
           <div className="mt-6 grid gap-3 border-t border-ivory/15 pt-6">
-            <a href={actions.book.href} onClick={closeMenu} className="bg-champagne px-5 py-3 text-center text-forest-deep">
+            <a href={actions.book.href} onClick={bookAppointment} className="bg-champagne px-5 py-3 text-center text-forest-deep">
               {actions.book.label}
             </a>
             <Link to={actions.portal.href} className="border border-ivory/40 px-5 py-3 text-center">
