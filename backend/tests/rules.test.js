@@ -122,3 +122,32 @@ describe("credential validation", () => {
     assert.equal(getCredentialsError("abc", "123456"), null);
   });
 });
+
+describe("free slots", () => {
+  const { getFreeSlots } = require("../utils/availability");
+  // Monday 5 October 2026, 10:05 in the clinic
+  const now = { date: MONDAY, time: "10:05:00" };
+  const workingHours = "Mon - Fri 09:00 AM - 11:00 AM";
+
+  it("offers 20-minute slots on working days, from now on", () => {
+    const [monday] = getFreeSlots({ workingHours, from: MONDAY, days: 1, now });
+    assert.deepEqual(monday, { date: MONDAY, working: true, times: ["10:20", "10:40"] });
+  });
+
+  it("leaves out booked times", () => {
+    const booked = { "2026-10-06": new Set(["09:20", "10:00"]) };
+    const [, tuesday] = getFreeSlots({ workingHours, booked, from: MONDAY, days: 2, now });
+    assert.deepEqual(tuesday.times, ["09:00", "09:40", "10:20", "10:40"]);
+  });
+
+  it("marks days off as not working, and walks across months", () => {
+    const days = getFreeSlots({ workingHours, from: "2026-10-30", days: 4, now });
+    assert.deepEqual(days.map((d) => [d.date, d.working]), [
+      ["2026-10-30", true],
+      ["2026-10-31", false],
+      ["2026-11-01", false],
+      ["2026-11-02", true],
+    ]);
+    assert.deepEqual(days[1].times, []);
+  });
+});

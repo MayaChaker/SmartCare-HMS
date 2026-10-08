@@ -233,4 +233,27 @@ describe("appointments", () => {
       assert.equal(res.status, 404);
     });
   });
+  describe("availability", () => {
+    it("lists free times per doctor, without booked slots or days off", async () => {
+      const res = await request("GET", "/patient/availability?days=7", { token: patientToken });
+      assert.equal(res.status, 200);
+      assert.equal(res.body.days, 7);
+      assert.equal(res.body.slotMinutes, 20);
+
+      const allWeek = res.body.doctors.find((d) => d.doctorId === doctor.id);
+      const booked = allWeek.days.find((d) => d.date === day);
+      assert.ok(booked, "tomorrow is in the range");
+      assert.ok(!booked.times.includes("10:00"), "the slot booked earlier is not offered");
+      assert.ok(booked.times.includes("09:00"));
+
+      const weekdays = res.body.doctors.find((d) => d.doctorId === weekdayDoctor.id);
+      const saturday = weekdays.days.find((d) => new Date(`${d.date}T00:00:00Z`).getUTCDay() === 6);
+      assert.deepEqual(saturday, { date: saturday.date, working: false, times: [] });
+    });
+
+    it("is only for patients", async () => {
+      const res = await request("GET", "/patient/availability", { token: receptionToken });
+      assert.equal(res.status, 403);
+    });
+  });
 });

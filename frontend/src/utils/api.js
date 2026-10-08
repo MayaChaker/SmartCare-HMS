@@ -207,6 +207,19 @@ export const patientAPI = {
     }
   },
 
+  // Free times for every doctor over the next `days` days: { from, days, doctors: [{ doctorId, days: [{ date, working, times }] }] }
+  getAvailability: async (days = 14) => {
+    try {
+      const response = await patientAPI._getCached("/patient/availability", { days });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || "Couldn't load free times",
+      };
+    }
+  },
+
   // Public doctor listing
   getDoctors: async () => {
     try {

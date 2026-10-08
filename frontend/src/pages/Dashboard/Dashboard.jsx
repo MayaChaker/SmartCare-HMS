@@ -1,219 +1,92 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { FaUserInjured } from "react-icons/fa6";
-import LogoutButton from "../../components/ui/LogoutButton/LogoutButton";
-import DashboardAppointment from "../../components/DashboardAppointment/DashboardAppointment";
-import DashboardDoctor from "../../components/DashboardDoctor/DashboardDoctor";
-import DashboardMedicalRecords from "../../components/DashboardMedicalRecords/DashboardMedicalRecords";
-import DashboardProfile from "../../components/DashboardProfile/DashboardProfile";
-import { EditProfileLayer } from "../../components/DashboardProfile/DashboardProfile";
-import {
-  BookAppointmentLayer,
-  AppointmentActionsLayer,
-} from "../../components/DashboardAppointment/DashboardAppointment";
-
-import "./Dashboard.css";
-
+import { useEffect, useState } from "react";
+import PortalLayout from "../../components/portal/PortalLayout";
+import HomeSection from "../../components/portal/patient/HomeSection";
+import VisitsSection from "../../components/portal/patient/VisitsSection";
+import BookSection from "../../components/portal/patient/BookSection";
+import RecordsSection from "../../components/portal/patient/RecordsSection";
+import ProfileSection from "../../components/portal/patient/ProfileSection";
+import { patientNumber } from "../../components/portal/format";
+import { ui } from "../../components/portal/ui";
+import usePatientPortal from "../../hooks/usePatientPortal";
 import { useAuth } from "../../context/useAuth";
-import {
-  PatientDashboardProvider,
-  usePatientDashboard,
-} from "../../context/PatientContext";
 
-/* 
-   Helpers 
-    */
+const SECTIONS = [
+  { id: "home", label: "Home", Component: HomeSection },
+  { id: "visits", label: "Visits", Component: VisitsSection },
+  { id: "book", label: "Book a visit", short: "Book", Component: BookSection },
+  { id: "records", label: "Records", Component: RecordsSection },
+  { id: "profile", label: "Profile", Component: ProfileSection },
+];
 
-const getFirstNameDisplay = (profile, user) => {
-  const pickFirstWord = (text) =>
-    (text || "").toString().trim().split(" ")[0] || "";
-
-  return (
-    (profile?.firstName && profile.firstName.trim()) ||
-    pickFirstWord(profile?.name) ||
-    pickFirstWord(user?.name) ||
-    pickFirstWord(user?.username) ||
-    ""
-  );
+// The section lives in the URL hash (#book, #records…), so it survives a refresh and the back button works
+const sectionFromHash = () => {
+  const id = window.location.hash.slice(1);
+  return SECTIONS.some((s) => s.id === id) ? id : "home";
 };
 
-// Decide which profile fields are missing
-const getMissingProfileFields = (profile) => {
-  const requiredFields = ["bloodType", "allergies", "gender"];
-
-  return requiredFields.filter((field) => {
-    const value = (profile?.[field] ?? "").toString().trim();
-    return !value;
-  });
-};
-
-// Convert field key into a user-friendly label (same wording as before)
-const formatFieldLabel = (field) => {
-  if (field === "bloodType") return "Blood Type";
-  if (field === "allergies") return "Allergies";
-  if (field === "gender") return "Gender";
-  return field;
-};
-
-/* ======================================================
-   Header
-   ====================================================== */
-const DashboardHeader = () => {
-  const navigate = useNavigate();
+// Patient portal
+export default function Dashboard() {
+  const portal = usePatientPortal();
   const { user } = useAuth();
-  const { profile } = usePatientDashboard();
+  const [active, setActive] = useState(sectionFromHash);
+  // What to open a section with: a doctor or visit for Book, a visit's summary for Records
+  const [intent, setIntent] = useState({ key: 0 });
 
-  const firstNameDisplay = getFirstNameDisplay(profile, user);
+  useEffect(() => {
+    const onHashChange = () => {
+      const id = sectionFromHash();
+      // Keep the details only for the section they were meant for; a plain menu click starts fresh
+      setIntent((current) => (current.section === id && current.fresh ? { ...current, fresh: false } : { key: current.key + 1 }));
+      setActive(id);
+      window.scrollTo({ top: 0 });
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
-  // Click + keyboard support for navigating back home (same behavior)
-  const goHome = () => navigate("/");
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" || e.key === " ") goHome();
+  const open = (id, details = {}) => {
+    setIntent((current) => ({ key: current.key + 1, section: id, fresh: true, ...details }));
+    if (window.location.hash === `#${id}`) {
+      setActive(id);
+      window.scrollTo({ top: 0 });
+    } else {
+      window.location.hash = id;
+    }
+  };
+
+  const findDoctor = (id) => portal.doctors.find((d) => Number(d.id) === Number(id));
+  const name = [portal.profile.firstName, portal.profile.lastName].filter(Boolean).join(" ") || user?.username || "Patient";
+  const { Component } = SECTIONS.find((s) => s.id === active);
+
+  const actions = {
+    onReschedule: (visit) => open("book", { doctorId: visit.doctorId, moving: visit }),
+    onRebook: (doctor) => open("book", { doctorId: doctor.id }),
+    onOpenRecord: (appointmentId) => open("records", { appointmentId }),
   };
 
   return (
-    <header className="dashboard-header">
-      <div className="container">
-        <nav className="dashboard-nav">
-          {/* Title + icon block (clickable) */}
-          <div
-            className="dashboard-title-group"
-            role="button"
-            tabIndex={0}
-            onClick={goHome}
-            onKeyDown={handleKeyDown}
-            style={{ cursor: "pointer" }}
-          >
-            <div className="title-icon" aria-hidden="true">
-              <FaUserInjured />
-            </div>
-
-            <h1 className="dashboard-title">
-              My Dashboard
-              <span className="user-name">
-                {`Welcome${firstNameDisplay ? ", " + firstNameDisplay : ""}`}
-              </span>
-            </h1>
-          </div>
-
-          {/* Right side actions */}
-          <div className="user-info">
-            <LogoutButton>Logout</LogoutButton>
-          </div>
-        </nav>
-      </div>
-    </header>
-  );
-};
-
-/* ======================================================
-   Main content (warning + tabs + tab content)
-   ====================================================== */
-const DashboardMain = () => {
-  const { activeTab, setActiveTab, loading, profile } = usePatientDashboard();
-
-  // Profile completeness warning (same fields and same UI)
-  const missingFields = getMissingProfileFields(profile);
-
-  return (
-    <main className="dashboard-content">
-      <div className="container">
-        {/* Warning if profile incomplete */}
-        {!loading && missingFields.length > 0 && (
-          <div
-            className="alert alert-warning"
-            style={{
-              marginBottom: 16,
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-            }}
-          >
-            <span className="alert-icon">⚠️</span>
-            <span className="alert-message">
-              {`Please complete your profile. Add: ${missingFields
-                .map(formatFieldLabel)
-                .join(", ")}.`}
-            </span>
-          </div>
-        )}
-
-        {/* Tabs (buttons) */}
-        <div className="dashboard-tabs">
-          <DashboardAppointment
-            variant="tabButton"
-            active={activeTab === "appointments"}
-            onClick={() => setActiveTab("appointments")}
-          />
-          <DashboardDoctor
-            variant="tabButton"
-            active={activeTab === "doctors"}
-            onClick={() => setActiveTab("doctors")}
-          />
-          <DashboardMedicalRecords
-            variant="tabButton"
-            active={activeTab === "records"}
-            onClick={() => setActiveTab("records")}
-          />
-          <DashboardProfile
-            variant="tabButton"
-            active={activeTab === "profile"}
-            onClick={() => setActiveTab("profile")}
-          />
+    <PortalLayout sections={SECTIONS} active={active} userName={name} userDetail={portal.profile.id ? `Patient ${patientNumber(portal.profile.id)}` : ""}>
+      {portal.status === "loading" && <p className={`${ui.page} py-16 text-[16px] text-muted`}>Loading your portal…</p>}
+      {portal.status === "error" && (
+        <div role="alert" className={`${ui.page} py-16`}>
+          <p className="font-serif text-3xl text-ink">We could not load your portal.</p>
+          <p className="mt-2 text-[15px] text-muted">Please check your connection and try again.</p>
+          <button type="button" onClick={portal.reload} className={`${ui.primary} mt-6`}>
+            Try again
+          </button>
         </div>
-
-        {/* Tab content (only render after loading) */}
-        {!loading && (
-          <>
-            <DashboardAppointment
-              variant="content"
-              active={activeTab === "appointments"}
-            />
-            <DashboardMedicalRecords
-              variant="content"
-              active={activeTab === "records"}
-            />
-            <DashboardDoctor
-              variant="content"
-              active={activeTab === "doctors"}
-            />
-            <DashboardProfile
-              variant="content"
-              active={activeTab === "profile"}
-            />
-          </>
-        )}
-      </div>
-    </main>
+      )}
+      {portal.status === "ready" && (
+        <Component
+          // A new key starts the section fresh when it is opened with new details
+          key={`${active}-${intent.key}`}
+          portal={portal}
+          findDoctor={findDoctor}
+          preset={active === "book" && intent.section === "book" ? intent : undefined}
+          focusAppointmentId={active === "records" && intent.section === "records" ? intent.appointmentId : undefined}
+          {...actions}
+        />
+      )}
+    </PortalLayout>
   );
-};
-
-/* ======================================================
-   Inner wrapper (layout + layers)
-   ====================================================== */
-const DashboardInner = () => {
-  return (
-    <div className="dashboard patient-dashboard">
-      <DashboardHeader />
-      <DashboardMain />
-
-      {/* Global layers (stay mounted for modals/overlays) */}
-      <EditProfileLayer />
-      <BookAppointmentLayer />
-      <AppointmentActionsLayer />
-    </div>
-  );
-};
-
-/* ======================================================
-    (Provider)
-   ====================================================== */
-const Dashboard = () => {
-  return (
-    <PatientDashboardProvider>
-      <DashboardInner />
-    </PatientDashboardProvider>
-  );
-};
-
-export default Dashboard;
+}

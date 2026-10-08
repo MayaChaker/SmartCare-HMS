@@ -15,6 +15,7 @@ router.post('/appointments', patientController.createAppointment);
 router.put('/appointments/:id', patientController.updateAppointment);
 router.delete('/appointments/:id', patientController.cancelAppointment);
 router.get('/records', patientController.getMedicalRecords);
+router.get('/availability', patientController.getAvailability);
 router.get('/doctors/:doctorId/booked-dates', patientController.getDoctorBookedDates);
 router.get('/doctors/:doctorId/booked-times', patientController.getDoctorBookedTimes);
 
