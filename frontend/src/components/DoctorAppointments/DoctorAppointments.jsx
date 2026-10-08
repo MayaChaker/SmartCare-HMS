@@ -189,18 +189,22 @@ const DoctorAppointments = () => {
                           Complete Visit
                         </button>
                       )}
-                      {appointment.status === "completed" && (
-                        <button
-                          className="action-btn primary"
-                          onClick={() =>
-                            openModal("addRecord", appointment.Patient)
-                          }
-                          title="Add Medical Record"
-                        >
-                          <FiFileText />
-                          Add Record
-                        </button>
-                      )}
+                      {/* The visit note can be written during the visit or after it, once per visit */}
+                      {["in-progress", "completed"].includes(appointment.status) &&
+                        (appointment.MedicalRecord ? (
+                          <span className="awaiting-checkin">Record saved</span>
+                        ) : (
+                          <button
+                            className="action-btn primary"
+                            onClick={() =>
+                              openModal("addRecord", { ...appointment.Patient, appointmentId: appointment.id })
+                            }
+                            title="Add Medical Record"
+                          >
+                            <FiFileText />
+                            Add Record
+                          </button>
+                        ))}
                     </div>
                   </td>
                 </tr>

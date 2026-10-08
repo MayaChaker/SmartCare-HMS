@@ -244,8 +244,8 @@ const DoctorDashboard = ({ setActiveSection }) => {
                         </span>
                       </div>
 
-                      {/* add record for completed appointments */}
-                      {appointment.status === "completed" && (
+                      {/* Each visit gets one record, written from the visit itself */}
+                      {appointment.status === "completed" && !appointment.MedicalRecord && (
                         <div
                           className="appointment-actions"
                           style={{ marginLeft: "auto" }}
@@ -255,7 +255,7 @@ const DoctorDashboard = ({ setActiveSection }) => {
                             type="button"
                             onClick={() =>
                               openModal &&
-                              openModal("addRecord", appointment.Patient)
+                              openModal("addRecord", { ...appointment.Patient, appointmentId: appointment.id })
                             }
                             title="Add Medical Record"
                           >

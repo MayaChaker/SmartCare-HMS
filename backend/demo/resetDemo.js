@@ -6,6 +6,7 @@ const { User, Patient, Doctor, Appointment, MedicalRecord } = require("../models
 const { DEMO_PASSWORD, DEMO_ACCOUNTS } = require("../config/demo");
 const { SAMPLE_DOCTORS, toDoctorProfile } = require("./sampleData");
 const { isSlotAllowedByWorkingHours } = require("../utils/schedule");
+const { clinicToday } = require("../utils/clinicTime");
 
 const DEMO_PATIENT_PROFILE = {
   firstName: "Jana",
@@ -32,16 +33,18 @@ const OTHER_PATIENTS = [
 // Login is never used for these accounts, so they get a random password
 const randomPassword = () => crypto.randomBytes(24).toString("hex");
 
-const toYmd = (date) =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+// `days` days after the clinic's today, as YYYY-MM-DD (calendar maths in UTC so it never shifts a day)
+const clinicDateFromToday = (days) => {
+  const date = new Date(`${clinicToday()}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+};
 
 // Nearest date from `offset` days away (moving away from today) on which the doctor works at `time`
 function findWorkingDate(doctor, offset, time) {
   const step = offset < 0 ? -1 : 1;
   for (let i = 0; i < 14; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() + offset + i * step);
-    const ymd = toYmd(date);
+    const ymd = clinicDateFromToday(offset + i * step);
     if (isSlotAllowedByWorkingHours(doctor, ymd, time).ok) return ymd;
     if (offset === 0) return null;
   }
@@ -131,7 +134,7 @@ async function resetDemoData() {
     for (const visit of plan) {
       const date = findWorkingDate(visit.doctor, visit.offset, visit.time);
       if (!date) continue;
-      await Appointment.create(
+      const appointment = await Appointment.create(
         {
           patientId: visit.patient.id,
           doctorId: visit.doctor.id,
@@ -144,7 +147,7 @@ async function resetDemoData() {
       );
       if (visit.record) {
         await MedicalRecord.create(
-          { patientId: visit.patient.id, doctorId: visit.doctor.id, visitDate: date, ...visit.record },
+          { appointmentId: appointment.id, patientId: visit.patient.id, doctorId: visit.doctor.id, visitDate: date, ...visit.record },
           { transaction },
         );
       }

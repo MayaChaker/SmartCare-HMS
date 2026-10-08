@@ -245,7 +245,6 @@ export const renderDoctorModal = ({
   fileInputRef,
   selectedItem,
   patientRecords,
-  openModal,
   medicalRecordForm,
   setMedicalRecordForm,
   handleAddMedicalRecord,
@@ -362,7 +361,6 @@ export const renderDoctorModal = ({
               selectedItem={selectedItem}
               patientRecords={patientRecords}
               closeModal={closeModal}
-              openModal={openModal}
             />
           )}
 

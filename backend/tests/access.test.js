@@ -62,17 +62,28 @@ describe("role-based access and data ownership", () => {
     assert.equal(res.status, 404);
   });
 
-  it("lets a doctor add records only for their own patients", async () => {
-    let res = await request("POST", "/doctor/records", {
-      token: tokens.doctorA,
-      body: { patientId: ownPatient.id, diagnosis: "Healthy" },
-    });
+  it("ties each medical record to one of the doctor's own started visits", async () => {
+    const visits = await request("GET", "/patient/appointments", { token: tokens.patient });
+    const visit = visits.body[0];
+    const addRecord = (token, body) => request("POST", "/doctor/records", { token, body });
+
+    // No visit, or a visit that has not started yet
+    assert.equal((await addRecord(tokens.doctorA, { patientId: ownPatient.id, diagnosis: "Healthy" })).status, 400);
+    assert.equal((await addRecord(tokens.doctorA, { appointmentId: visit.id, diagnosis: "Healthy" })).status, 400);
+
+    await request("PUT", `/receptionist/checkin/${visit.id}`, { token: tokens.reception });
+    await request("PUT", `/doctor/appointments/${visit.id}`, { token: tokens.doctorA, body: { status: "in-progress" } });
+
+    // Another doctor's visit
+    assert.equal((await addRecord(tokens.doctorB, { appointmentId: visit.id, diagnosis: "Not my patient" })).status, 404);
+
+    const res = await addRecord(tokens.doctorA, { appointmentId: visit.id, diagnosis: "Healthy" });
     assert.equal(res.status, 201);
-    res = await request("POST", "/doctor/records", {
-      token: tokens.doctorB,
-      body: { patientId: ownPatient.id, diagnosis: "Not my patient" },
-    });
-    assert.equal(res.status, 404);
+    assert.equal(res.body.record.patientId, ownPatient.id);
+    assert.equal(res.body.record.visitDate, visit.appointmentDate);
+
+    // One record per visit
+    assert.equal((await addRecord(tokens.doctorA, { appointmentId: visit.id, diagnosis: "Again" })).status, 409);
   });
 
   it("keeps patients to their own appointments", async () => {

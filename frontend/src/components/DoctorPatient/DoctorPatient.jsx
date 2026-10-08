@@ -84,14 +84,6 @@ const DoctorPatient = () => {
                     <FiEye />
                     View
                   </button>
-                  <button
-                    className="action-btn secondary"
-                    onClick={() => openModal("addRecord", patient)}
-                    title="Add Medical Record"
-                  >
-                    <FiFileText />
-                    <span className="btn-label">Record</span>
-                  </button>
                 </div>
               </div>
             </div>
@@ -287,7 +279,6 @@ export const ViewPatientModal = ({
   selectedItem,
   patientRecords,
   closeModal,
-  openModal,
 }) => {
   return (
     <div className="patient-profile">
@@ -385,16 +376,6 @@ export const ViewPatientModal = ({
       </div>
 
       <div className="modal-actions">
-        <button
-          className="btn btn-primary"
-          onClick={() => {
-            closeModal();
-            openModal("addRecord", selectedItem);
-          }}
-        >
-          <FiFileText />
-          Add Medical Record
-        </button>
         <button className="btn btn-secondary" onClick={closeModal}>
           Close
         </button>
@@ -458,12 +439,14 @@ export const usePatientModalInitEffect = (
   // Depend on the id only: the fetch below replaces selectedItem with a new
   // object, and depending on the object re-ran this effect in an endless loop
   const selectedId = selectedItem?.id;
+  const selectedAppointmentId = selectedItem?.appointmentId;
 
   useEffect(() => {
     if (!showModal || !selectedId) return;
     if (modalType === "addRecord") {
+      // A record always belongs to the visit it was opened from
       setMedicalRecordForm({
-        patientId: selectedId,
+        appointmentId: selectedAppointmentId,
         notes: "",
         prescriptions: "",
         testResults: "",
@@ -509,6 +492,7 @@ export const usePatientModalInitEffect = (
     showModal,
     modalType,
     selectedId,
+    selectedAppointmentId,
     setMedicalRecordForm,
     setSelectedItem,
     setPatientRecords,

@@ -8,6 +8,7 @@ const {
   normalizeTimeToSql,
   isSlotAllowedByWorkingHours,
 } = require("../utils/schedule");
+const { isSlotInPast } = require("../utils/clinicTime");
 
 // Get patient profile
 exports.getProfile = async (req, res) => {
@@ -176,6 +177,9 @@ exports.createAppointment = async (req, res) => {
     if (!cleanTime) {
       return res.status(400).json({ message: "appointmentTime is required" });
     }
+    if (isSlotInPast(cleanDate, cleanTime)) {
+      return res.status(400).json({ message: "Please choose a date and time in the future" });
+    }
 
     const patient = await Patient.findOne({ where: { userId } });
     if (!patient) {
@@ -280,6 +284,9 @@ exports.updateAppointment = async (req, res) => {
       appointmentTime !== undefined ? cleanTime : appointment.appointmentTime;
 
     if ((appointmentDate || appointmentTime) && nextDate && nextTime) {
+      if (isSlotInPast(nextDate, nextTime)) {
+        return res.status(400).json({ message: "Please choose a date and time in the future" });
+      }
       const doctor = await Doctor.findByPk(appointment.doctorId);
       if (!doctor) {
         return res.status(404).json({ message: "Doctor not found" });
@@ -356,7 +363,6 @@ exports.cancelAppointment = async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
-    const hard = String(req.query.hard || "").toLowerCase() === "true";
 
     const patient = await Patient.findOne({ where: { userId } });
     if (!patient) {
@@ -371,22 +377,18 @@ exports.cancelAppointment = async (req, res) => {
       return res.status(404).json({ message: "Appointment not found" });
     }
 
-    if (hard) {
-      await appointment.destroy();
-      return res.json({ message: "Appointment deleted successfully" });
-    } else {
-      if (appointment.status !== "scheduled") {
-        return res
-          .status(400)
-          .json({ message: "Only scheduled appointments can be cancelled" });
-      }
-      appointment.status = "cancelled";
-      await appointment.save();
-      return res.json({
-        message: "Appointment cancelled successfully",
-        appointment,
-      });
+    // Visits are never deleted: they are part of the medical history, so they are only cancelled
+    if (appointment.status !== "scheduled") {
+      return res
+        .status(400)
+        .json({ message: "Only scheduled appointments can be cancelled" });
     }
+    appointment.status = "cancelled";
+    await appointment.save();
+    return res.json({
+      message: "Appointment cancelled successfully",
+      appointment,
+    });
   } catch (error) {
     console.error("Error cancelling appointment:", error);
     res.status(500).json({ message: "Server error" });

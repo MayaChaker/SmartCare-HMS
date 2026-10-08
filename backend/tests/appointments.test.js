@@ -67,6 +67,12 @@ describe("appointments", () => {
       assert.equal((await book("10am")).status, 400);
     });
 
+    it("rejects a date that has already passed", async () => {
+      const res = await book("10:00", dateFromToday(-1));
+      assert.equal(res.status, 400);
+      assert.match(res.body.message, /in the future/);
+    });
+
     it("frees the slot again when a visit is cancelled", async () => {
       const first = await book("11:00");
       const cancel = await request("DELETE", `/patient/appointments/${first.body.appointment.id}`, { token: patientToken });
@@ -85,6 +91,24 @@ describe("appointments", () => {
       });
       assert.equal(res.status, 200);
       assert.equal(res.body.appointment.appointmentTime, "12:20:00");
+    });
+
+    it("does not reschedule into the past", async () => {
+      const created = await book("12:40");
+      const res = await request("PUT", `/patient/appointments/${created.body.appointment.id}`, {
+        token: patientToken,
+        body: { appointmentDate: dateFromToday(-1) },
+      });
+      assert.equal(res.status, 400);
+    });
+
+    it("never deletes a visit, even when asked for a hard delete", async () => {
+      const created = await book("16:00");
+      const id = created.body.appointment.id;
+      const res = await request("DELETE", `/patient/appointments/${id}?hard=true`, { token: patientToken });
+      assert.equal(res.status, 200);
+      const list = await request("GET", "/patient/appointments", { token: patientToken });
+      assert.equal(list.body.find((a) => a.id === id)?.status, "cancelled");
     });
 
     it("ignores a status sent by the patient", async () => {
@@ -121,10 +145,27 @@ describe("appointments", () => {
       assert.equal(res.status, 200);
     });
 
+    it("keeps each step with its own role", async () => {
+      const created = await request("POST", "/receptionist/appointments", {
+        token: receptionToken,
+        body: { patientId: walkIn.id, doctorId: doctor.id, appointmentDate: day, appointmentTime: "14:20" },
+      });
+      const id = created.body.appointment.id;
+      let res = await request("PUT", `/doctor/appointments/${id}`, { token: doctorToken, body: { status: "checked-in" } });
+      assert.equal(res.status, 400);
+      await request("PUT", `/receptionist/checkin/${id}`, { token: receptionToken });
+      res = await request("PUT", `/receptionist/appointments/${id}`, { token: receptionToken, body: { status: "in-progress" } });
+      assert.equal(res.status, 400);
+      res = await request("PUT", `/doctor/appointments/${id}`, { token: doctorToken, body: { status: "scheduled" } });
+      assert.equal(res.status, 400);
+    });
+
     it("keeps completed visits final", async () => {
       let res = await request("PUT", `/doctor/appointments/${visitId}`, { token: doctorToken, body: { status: "scheduled" } });
       assert.equal(res.status, 400);
       res = await request("PUT", `/receptionist/checkin/${visitId}`, { token: receptionToken });
+      assert.equal(res.status, 400);
+      res = await request("PUT", `/receptionist/appointments/${visitId}`, { token: receptionToken, body: { appointmentTime: "16:20" } });
       assert.equal(res.status, 400);
     });
 
@@ -143,6 +184,14 @@ describe("appointments", () => {
         body: { status: "cancelled" },
       });
       assert.equal(res.status, 200);
+    });
+
+    it("does not book a walk-in in the past", async () => {
+      const res = await request("POST", "/receptionist/appointments", {
+        token: receptionToken,
+        body: { patientId: walkIn.id, doctorId: doctor.id, appointmentDate: dateFromToday(-1), appointmentTime: "10:00" },
+      });
+      assert.equal(res.status, 400);
     });
 
     it("returns 404 when booking for an unknown patient", async () => {
