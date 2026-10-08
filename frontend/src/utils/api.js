@@ -144,21 +144,6 @@ export const patientAPI = {
       };
     }
   },
-  // Permanently delete an appointment (hard delete)
-  deleteAppointment: async (appointmentId) => {
-    try {
-      const response = await api.delete(
-        `/patient/appointments/${appointmentId}`,
-        { params: { hard: true } },
-      );
-      return { success: true, data: response.data };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Couldn't remove the visit",
-      };
-    }
-  },
 
   // Reschedule appointment with new slot data
   rescheduleAppointment: async (appointmentId, newSlotData) => {

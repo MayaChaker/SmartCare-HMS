@@ -4,7 +4,6 @@ import "./DashboardAppointment.css";
 import CancelButton from "../ui/CancelButton/CancelButton";
 import RescheduleButton from "../ui/RescheduleButton/RescheduleButton";
 import { CancelModal } from "../ui/CancelButton/CancelButton";
-import { DeleteModal } from "../ui/DeleteButton/DeleteButton";
 import { RescheduleModal } from "../ui/RescheduleButton/RescheduleButton";
 import { patientAPI } from "../../utils/api";
 import {
@@ -586,7 +585,7 @@ export const AppointmentActionsLayer = () => {
   } = usePatientDashboard();
 
   const isAction =
-    showModal && ["cancel", "delete", "reschedule"].includes(modalType);
+    showModal && ["cancel", "reschedule"].includes(modalType);
   if (!isAction || !selectedAppointment) return null;
 
   // patientAPI methods resolve with { success } instead of throwing
@@ -612,26 +611,6 @@ export const AppointmentActionsLayer = () => {
       }
     } catch {
       setError("Couldn't cancel the visit. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    setLoading(true);
-    setError("");
-    setSuccess("");
-    try {
-      const res = await patientAPI.deleteAppointment(id);
-      if (res.success) {
-        setSuccess("Visit removed.");
-        await refreshAppointments();
-        closeModal();
-      } else {
-        setError(res.message || "Couldn't remove the visit");
-      }
-    } catch {
-      setError("Couldn't remove the visit. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -675,7 +654,6 @@ export const AppointmentActionsLayer = () => {
         <div className="modal-header">
           <h3 className="modal-title">
             {modalType === "cancel" && "Cancel visit"}
-            {modalType === "delete" && "Remove visit"}
             {modalType === "reschedule" && "Change time"}
           </h3>
           <button className="modal-close" onClick={closeModal}>
@@ -690,14 +668,6 @@ export const AppointmentActionsLayer = () => {
             <CancelModal
               selectedAppointment={selectedAppointment}
               onCancel={handleCancel}
-            />
-          )}
-
-          {modalType === "delete" && (
-            <DeleteModal
-              selectedAppointment={selectedAppointment}
-              closeModal={closeModal}
-              onDelete={handleDelete}
             />
           )}
 
