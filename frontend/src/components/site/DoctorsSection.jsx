@@ -1,7 +1,6 @@
-import { Link } from "react-router-dom";
 import Reveal from "./Reveal";
 import SectionHeading from "./SectionHeading";
-import { doctors } from "../../content/site";
+import { actions, doctors } from "../../content/site";
 
 export default function DoctorsSection() {
   return (
@@ -33,12 +32,12 @@ export default function DoctorsSection() {
           ))}
         </ul>
 
-        <Link
-          to="/register"
+        <a
+          href={actions.book.href}
           className="mt-14 inline-flex items-center gap-3 border-b border-champagne pb-1 text-[15px] tracking-wide text-forest transition-colors hover:text-champagne"
         >
-          Book with one of our 32 specialists <span aria-hidden="true">→</span>
-        </Link>
+          {actions.book.label} with one of our 32 specialists <span aria-hidden="true">→</span>
+        </a>
       </div>
     </section>
   );

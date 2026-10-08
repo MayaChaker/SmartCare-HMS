@@ -7,7 +7,7 @@ import DoctorsSection from "../../components/site/DoctorsSection";
 import ExperienceSection from "../../components/site/ExperienceSection";
 import FacilitiesSection from "../../components/site/FacilitiesSection";
 import TestimonialsSection from "../../components/site/TestimonialsSection";
-import ContactSection from "../../components/site/ContactSection";
+import BookingSection from "../../components/site/BookingSection";
 import SiteFooter from "../../components/site/SiteFooter";
 
 // Public website of the hospital
@@ -28,7 +28,7 @@ export default function Home() {
         <ExperienceSection />
         <FacilitiesSection />
         <TestimonialsSection />
-        <ContactSection />
+        <BookingSection />
       </main>
       <SiteFooter />
     </div>

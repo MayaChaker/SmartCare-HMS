@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Logo from "./Logo";
-import { navLinks } from "../../content/site";
+import { actions, navLinks } from "../../content/site";
 
 // Transparent over the hero photo, then solid ivory once the visitor scrolls past it.
+// Two actions with different roles: "Patient portal" (a link, for existing patients)
+// and "Book an appointment" (the one button, for new visits).
 export default function SiteHeader() {
   const [solid, setSolid] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -35,45 +37,55 @@ export default function SiteHeader() {
               {link.label}
             </a>
           ))}
-          <Link to="/login" className="transition-colors hover:text-champagne">
-            Log in
-          </Link>
         </nav>
 
-        <a
-          href="#contact"
-          className="ml-auto hidden items-center border border-current px-5 py-2.5 text-[14px] tracking-wide transition-colors hover:border-champagne hover:bg-champagne hover:text-forest md:inline-flex lg:ml-2"
-        >
-          Private consultation
-        </a>
-
-        <button
-          type="button"
-          className="-mr-2 ml-auto p-2 md:ml-2 lg:hidden"
-          aria-expanded={menuOpen}
-          aria-controls="mobile-menu"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-            {menuOpen ? <path d="M6 6l14 14M20 6L6 20" /> : <path d="M3 8h20M3 13h20M3 18h20" />}
-          </svg>
-        </button>
+        <div className="ml-auto flex items-center gap-6 lg:ml-4">
+          <Link
+            to={actions.portal.href}
+            className="hidden items-center gap-2 border-l border-current/30 pl-6 text-[15px] transition-colors hover:text-champagne md:inline-flex"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
+              <circle cx="8" cy="5.5" r="3" />
+              <path d="M2.5 14.5c.6-3 2.8-4.5 5.5-4.5s4.9 1.5 5.5 4.5" />
+            </svg>
+            {actions.portal.label}
+          </Link>
+          <a
+            href={actions.book.href}
+            className="hidden bg-champagne px-5 py-2.5 text-[14px] tracking-wide text-forest-deep transition-colors hover:bg-champagne-light md:inline-flex"
+          >
+            {actions.book.label}
+          </a>
+          <button
+            type="button"
+            className="-mr-2 p-2 lg:hidden"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              {menuOpen ? <path d="M6 6l14 14M20 6L6 20" /> : <path d="M3 8h20M3 13h20M3 18h20" />}
+            </svg>
+          </button>
+        </div>
       </div>
 
       {menuOpen && (
-        <nav id="mobile-menu" aria-label="Mobile" className="grid gap-1 px-5 pt-2 pb-8 font-serif text-3xl lg:hidden">
+        <nav id="mobile-menu" aria-label="Mobile" className="grid gap-1 px-5 pt-2 pb-8 lg:hidden">
           {navLinks.map((link) => (
-            <a key={link.href} href={link.href} className="py-2" onClick={closeMenu}>
+            <a key={link.href} href={link.href} className="py-2 font-serif text-3xl" onClick={closeMenu}>
               {link.label}
             </a>
           ))}
-          <Link to="/login" className="py-2">
-            Log in
-          </Link>
-          <a href="#contact" onClick={closeMenu} className="mt-4 bg-champagne px-5 py-3 text-center font-sans text-base text-forest">
-            Request a Private Consultation
-          </a>
+          <div className="mt-6 grid gap-3 border-t border-ivory/15 pt-6">
+            <a href={actions.book.href} onClick={closeMenu} className="bg-champagne px-5 py-3 text-center text-forest-deep">
+              {actions.book.label}
+            </a>
+            <Link to={actions.portal.href} className="border border-ivory/40 px-5 py-3 text-center">
+              {actions.portal.label}
+            </Link>
+          </div>
         </nav>
       )}
     </header>

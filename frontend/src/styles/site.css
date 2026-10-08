@@ -47,6 +47,8 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     line-height: 1.55;
+    /* Cormorant uses old-style numbers by default ("1" looks like "I"); use lining numbers everywhere */
+    font-variant-numeric: lining-nums;
     -webkit-font-smoothing: antialiased;
   }
   .site *,

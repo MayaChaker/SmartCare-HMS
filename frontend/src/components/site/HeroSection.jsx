@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import ArrowIcon from "./ArrowIcon";
 import usePrefersReducedMotion from "../../hooks/usePrefersReducedMotion";
+import { actions } from "../../content/site";
 
 export default function HeroSection() {
   const photoRef = useRef(null);
@@ -46,13 +47,18 @@ export default function HeroSection() {
             <br />
             <em className="text-champagne-light">quietly</em> delivered.
           </h1>
-          <a
-            href="#contact"
-            className="mt-10 inline-flex items-center gap-4 bg-ivory px-7 py-4 text-[15px] tracking-wide text-forest transition-colors hover:bg-champagne"
-          >
-            Request a Private Consultation
-            <ArrowIcon />
-          </a>
+          <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-5">
+            <a
+              href={actions.book.href}
+              className="inline-flex items-center gap-4 bg-ivory px-7 py-4 text-[15px] tracking-wide text-forest transition-colors hover:bg-champagne"
+            >
+              {actions.book.label}
+              <ArrowIcon />
+            </a>
+            <a href="#doctors" className="border-b border-ivory/50 pb-1 text-[15px] tracking-wide transition-colors hover:border-champagne hover:text-champagne-light">
+              Find a doctor
+            </a>
+          </div>
         </div>
         <p className="hidden max-w-[32ch] border-l border-champagne/60 pl-5 text-[15px] leading-relaxed text-ivory/80 md:col-span-4 md:block md:justify-self-end motion-safe:animate-rise">
           Leading specialists, private rooms and a dedicated coordinator for every patient, from the first call to full recovery.

@@ -10,21 +10,74 @@ export const contact = {
   address: "Hamra Street, Beirut, Lebanon",
 };
 
+// The two actions used across the site. Each has one label and one destination, everywhere.
+export const actions = {
+  book: { label: "Book an appointment", href: "#book" },
+  portal: { label: "Patient portal", href: "/login" },
+};
+
 export const navLinks = [
   { label: "Centers", href: "#centers" },
   { label: "Doctors", href: "#doctors" },
   { label: "Patient Experience", href: "#experience" },
   { label: "Facilities", href: "#facilities" },
-  { label: "Contact", href: "#contact" },
 ];
 
 export const centers = [
-  { name: "Cardiology", summary: "Heart rhythm, imaging and minimally invasive procedures", image: "/images/site/cardio.jpg" },
-  { name: "Neurosciences", summary: "Brain, spine and memory care", image: "/images/site/neuro.jpg" },
-  { name: "Orthopaedics & Sports", summary: "Joint replacement and return-to-play programs", image: "/images/site/xray.jpg" },
-  { name: "Oncology", summary: "Precision diagnostics and personalised treatment plans", image: "/images/site/lab.jpg" },
-  { name: "Women's Health", summary: "Gynaecology, fertility and maternity suites", image: "/images/site/consultation.jpg" },
-  { name: "Executive Health", summary: "A complete check-up in one morning, results the same day", image: "/images/site/scan-review.jpg" },
+  {
+    name: "Cardiology",
+    summary: "Diagnosis and treatment of heart and blood vessel disease, from the first check to rehabilitation.",
+    services: ["Echocardiography and cardiac CT", "Catheterisation and stenting", "Heart rhythm clinic", "Cardiac rehabilitation"],
+    lead: "Dr. Karim Mansour",
+    specialists: 5,
+    image: "/images/site/center-cardiology.jpg",
+    imageAlt: "A patient monitor showing a heart rhythm",
+  },
+  {
+    name: "Neurosciences",
+    summary: "Neurologists and neurosurgeons who review every brain and spine case together.",
+    services: ["Stroke unit", "Epilepsy and sleep studies", "Spine surgery", "Memory clinic"],
+    lead: "Dr. Samir Aoun",
+    specialists: 5,
+    image: "/images/site/center-neuro.jpg",
+    imageAlt: "Two doctors reviewing brain MRI scans",
+  },
+  {
+    name: "Orthopaedics & Sports",
+    summary: "Bone, joint and sports injury care, with surgery and physiotherapy in the same team.",
+    services: ["Knee and hip replacement", "Arthroscopic surgery", "Sports injury clinic", "Physiotherapy"],
+    lead: "Dr. Elie Nassar",
+    specialists: 6,
+    image: "/images/site/center-ortho.jpg",
+    imageAlt: "A specialist examining a patient's knee",
+  },
+  {
+    name: "Oncology",
+    summary: "Every new diagnosis is reviewed by a tumour board before a personal treatment plan is agreed.",
+    services: ["Tumour board review", "Chemotherapy day unit", "Radiation therapy", "Genetic counselling"],
+    lead: "Dr. Joseph Farah",
+    specialists: 6,
+    image: "/images/site/center-oncology.jpg",
+    imageAlt: "A radiation therapy room",
+  },
+  {
+    name: "Women's Health",
+    summary: "Care through every stage of life, with private maternity suites and a dedicated midwife team.",
+    services: ["High-risk pregnancy", "Fertility clinic", "Private maternity suites", "Breast health"],
+    lead: "Dr. Nadine Khoury",
+    specialists: 6,
+    image: "/images/site/center-womens.jpg",
+    imageAlt: "An expecting mother holding an ultrasound photo",
+  },
+  {
+    name: "Executive Health",
+    summary: "A complete health assessment in one morning, with your results explained the same afternoon.",
+    services: ["Full check-up in one morning", "Heart and cancer screening", "Same-day results review", "Personal health plan"],
+    lead: "Dr. Ziad Haddad",
+    specialists: 4,
+    image: "/images/site/center-executive.jpg",
+    imageAlt: "A doctor measuring a patient's blood pressure",
+  },
 ];
 
 export const doctors = [
@@ -67,10 +120,8 @@ export const experienceStories = [
     image: "/images/site/patient-room.jpg",
     imageAlt: "A private inpatient room with a medical bed, infusion stand and a recliner for family",
     facts: [
-      { label: "Nurse to patient", value: "1 : 3", big: true },
-      { label: "Nurse response", value: "< 3 min", big: true },
-      { label: "Family stay", value: "Recliner bed and meals" },
-      { label: "Quiet hours", value: "9 PM to 7 AM" },
+      { label: "Nurse to patient", value: "1 : 3" },
+      { label: "Nurse response", value: "< 3 min" },
     ],
   },
   {
@@ -79,12 +130,10 @@ export const experienceStories = [
     title: "One person who knows your whole file.",
     text: "From the first call to your follow-up visit, your coordinator books every appointment and test, chases results, and explains the next step.",
     image: "/images/site/consultation.jpg",
-    imageAlt: "A doctor talking calmly with a patient",
+    imageAlt: "A doctor talking with a patient in her hospital room",
     facts: [
-      { label: "Call back", value: "2 h", big: true },
-      { label: "Test results", value: "Same day", big: true },
-      { label: "Reach them", value: "Phone or WhatsApp" },
-      { label: "Urgent visits", value: "Same-day slots" },
+      { label: "Call back", value: "2 h" },
+      { label: "Test results", value: "Same day" },
     ],
   },
   {
@@ -95,20 +144,17 @@ export const experienceStories = [
     image: "/images/site/scan-review.jpg",
     imageAlt: "A specialist reviewing a scan with a patient",
     facts: [
-      { label: "Second opinion", value: "72 h", big: true },
-      { label: "Visa letter", value: "48 h", big: true },
-      { label: "Languages", value: "Arabic, English, French" },
-      { label: "Insurance", value: "Direct international billing" },
+      { label: "Second opinion", value: "72 h" },
+      { label: "Visa letter", value: "48 h" },
     ],
   },
 ];
 
 export const facilities = [
-  { title: "Hybrid operating theatres", detail: "imaging and surgery in one room", image: "/images/site/theatre.jpg", alt: "A modern hybrid operating theatre", featured: true },
-  { title: "Molecular laboratory", image: "/images/site/lab.jpg", alt: "Scientists working in a modern laboratory" },
-  { title: "Digital imaging", image: "/images/site/xray.jpg", alt: "Digital X-ray images on a light panel" },
-  { title: "Day-surgery rooms", image: "/images/site/day-surgery.jpg", alt: "A bright, clean treatment room" },
-  { title: "Neuro-navigation", image: "/images/site/neuro.jpg", alt: "An anatomical model of the human brain" },
+  { title: "Hybrid operating theatres", detail: "Imaging and surgery in the same room, so surgeons see live scans while they operate.", image: "/images/site/theatre.jpg", alt: "A modern hybrid operating theatre" },
+  { title: "Advanced imaging", detail: "3T MRI, low-dose CT and digital X-ray, reported by a radiologist the same day.", image: "/images/site/imaging.jpg", alt: "A CT scanner in a calm imaging room" },
+  { title: "On-site laboratory", detail: "Most blood results reach your doctor within the hour.", image: "/images/site/lab.jpg", alt: "Scientists working in a modern laboratory" },
+  { title: "Day-surgery suites", detail: "Planned procedures with a private recovery room and home the same evening.", image: "/images/site/day-surgery.jpg", alt: "A bright, clean treatment room" },
 ];
 
 export const hospitalNumbers = [
@@ -141,10 +187,10 @@ export const footerColumns = [
   {
     title: "Patients & Visitors",
     links: [
-      { label: "Book an appointment", href: "/register" },
+      { label: "Book an appointment", href: "#book" },
       { label: "Patient portal", href: "/login" },
       { label: "Visiting hours", href: "#visiting-hours" },
-      { label: "Insurance & billing", href: "#contact" },
+      { label: "Insurance & billing", href: "#book" },
       { label: "Medical records", href: "/login" },
     ],
   },
@@ -154,7 +200,7 @@ export const footerColumns = [
       { label: "Second opinion", href: "#experience" },
       { label: "Travel & visas", href: "#experience" },
       { label: "Interpreters", href: "#experience" },
-      { label: "Cost estimate", href: "#contact" },
+      { label: "Cost estimate", href: "#book" },
     ],
   },
   {
@@ -162,7 +208,7 @@ export const footerColumns = [
     links: [
       { label: "Our doctors", href: "#doctors" },
       { label: "Facilities", href: "#facilities" },
-      { label: "Contact us", href: "#contact" },
+      { label: "Contact us", href: "#book" },
     ],
   },
 ];

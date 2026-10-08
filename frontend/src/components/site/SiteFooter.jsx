@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import Logo from "./Logo";
-import ArrowIcon from "./ArrowIcon";
 import { contact, footerColumns, openingHours } from "../../content/site";
 
 // Links starting with "/" are app pages (router), the rest are anchors on this page
@@ -20,15 +19,18 @@ export default function SiteFooter() {
       <div className="border-b border-ivory/10">
         <div className="mx-auto grid max-w-site items-center gap-10 px-5 py-14 md:grid-cols-12 md:px-10 md:py-20">
           <div className="md:col-span-6">
-            <h2 className="font-serif text-4xl leading-tight md:text-5xl">Speak with a patient coordinator.</h2>
-            <p className="mt-3 text-ivory/70">Monday to Saturday, 8 AM to 8 PM. We call back within two hours.</p>
-            <a
-              href="#contact"
-              className="mt-7 inline-flex items-center gap-4 bg-ivory px-7 py-4 text-[15px] tracking-wide text-forest transition-colors hover:bg-champagne"
-            >
-              Request a Private Consultation
-              <ArrowIcon />
-            </a>
+            <h2 className="font-serif text-4xl leading-tight md:text-5xl">Questions before your visit?</h2>
+            <p className="mt-3 text-ivory/70">Our patient coordinators answer Monday to Saturday, 8 AM to 8 PM.</p>
+            <dl className="mt-8 grid gap-6 sm:grid-cols-2">
+              <div className="border-t border-ivory/15 pt-4">
+                <dt className="text-[14px] text-ivory/60">Call or WhatsApp</dt>
+                <dd className="mt-1 text-xl select-all">{contact.coordinators}</dd>
+              </div>
+              <div className="border-t border-ivory/15 pt-4">
+                <dt className="text-[14px] text-ivory/60">International desk</dt>
+                <dd className="mt-1 text-xl break-all select-all">{contact.internationalEmail}</dd>
+              </div>
+            </dl>
           </div>
           <div className="grid gap-2 border border-champagne/50 p-7 md:col-span-5 md:col-start-8 md:p-8">
             <p className="eyebrow flex items-center gap-3 text-champagne-light">
