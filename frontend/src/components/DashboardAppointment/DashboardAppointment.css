@@ -176,3 +176,9 @@
 .patient-dashboard .appointments-card {
   margin-bottom: 1.5rem;
 }
+
+/* Booked but the patient did not come */
+.patient-dashboard .status-no-show {
+  background-color: #fef3c7;
+  color: #92400e;
+}

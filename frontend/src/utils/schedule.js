@@ -134,7 +134,15 @@ export const APPOINTMENT_STATUSES = [
   "in-progress",
   "completed",
   "cancelled",
+  "no-show",
 ];
+
+// True once the visit's date and time are behind us (a no-show can only be recorded then)
+export const hasVisitTimePassed = (date, time) => {
+  if (!date || !time) return false;
+  const start = new Date(`${String(date).slice(0, 10)}T${String(time).slice(0, 8)}`);
+  return !Number.isNaN(start.getTime()) && start <= new Date();
+};
 
 // Format "HH:MM" into localized time (e.g., "10:15 PM"), leveraging toHHMM normalization
 export const formatTimeHHMM = (hhmm) => {

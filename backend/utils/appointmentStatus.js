@@ -1,12 +1,19 @@
 const { Appointment } = require("../models");
 
 const APPOINTMENT_STATUSES = Appointment.getAttributes().status.values;
+const FINAL_STATUSES = ["completed", "cancelled", "no-show"];
+// Visits that no longer hold a slot for the doctor or the patient
+const INACTIVE_STATUSES = ["cancelled", "no-show"];
 
 // Who may move a visit from one status to the next. A visit only moves forward:
 // reception checks the patient in, the doctor starts and completes the visit.
-// Completed and cancelled visits are final.
+// Completed, cancelled and no-show visits are final.
 const ALLOWED_CHANGES = {
-  scheduled: { "checked-in": ["receptionist"], cancelled: ["receptionist", "patient"] },
+  scheduled: {
+    "checked-in": ["receptionist"],
+    cancelled: ["receptionist", "patient"],
+    "no-show": ["receptionist"],
+  },
   "checked-in": { "in-progress": ["doctor"], cancelled: ["receptionist"] },
   "in-progress": { completed: ["doctor"] },
 };
@@ -19,8 +26,8 @@ const getStatusChangeError = (current, next, role) => {
   if (next === current) {
     return null;
   }
-  if (current === "completed" || current === "cancelled") {
-    return "This visit is already completed or cancelled";
+  if (FINAL_STATUSES.includes(current)) {
+    return "This visit is already closed";
   }
   const allowedRoles = ALLOWED_CHANGES[current]?.[next];
   if (!allowedRoles) {
@@ -33,4 +40,4 @@ const getStatusChangeError = (current, next, role) => {
   return null;
 };
 
-module.exports = { APPOINTMENT_STATUSES, ALLOWED_CHANGES, getStatusChangeError };
+module.exports = { APPOINTMENT_STATUSES, FINAL_STATUSES, INACTIVE_STATUSES, ALLOWED_CHANGES, getStatusChangeError };

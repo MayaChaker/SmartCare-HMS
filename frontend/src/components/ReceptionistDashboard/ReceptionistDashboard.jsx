@@ -10,6 +10,7 @@ import { FaUserDoctor } from "react-icons/fa6";
 import RegisterButton from "../ui/RegisterButton/RegisterButton";
 import ScheduleButton from "../ui/ScheduleButton/ScheduleButton";
 import { useReceptionist } from "../../context/ReceptionistContext";
+import { hasVisitTimePassed } from "../../utils/schedule";
 
 const ReceptionistDashboard = () => {
   const {
@@ -19,6 +20,7 @@ const ReceptionistDashboard = () => {
     appointments = [],
     openModal,
     handleCheckIn,
+    handleUpdateAppointmentStatus,
   } = useReceptionist();
   const toYmd = (d) => {
     if (!d) return "";
@@ -237,6 +239,18 @@ const ReceptionistDashboard = () => {
                             Check In
                           </button>
                         )}
+
+                        {appointment.status === "scheduled" &&
+                          hasVisitTimePassed(appointment.appointmentDate, appointment.appointmentTime) && (
+                            <button
+                              className="btn btn-sm btn-secondary"
+                              onClick={() => handleUpdateAppointmentStatus(appointment.id, "no-show")}
+                              title="The patient did not come"
+                              style={{ marginLeft: "8px" }}
+                            >
+                              No-show
+                            </button>
+                          )}
 
                       </div>
                     </td>

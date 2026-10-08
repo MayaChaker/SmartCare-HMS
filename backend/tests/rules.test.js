@@ -81,9 +81,16 @@ describe("visit status rules", () => {
     assert.match(getStatusChangeError("checked-in", "completed", "doctor"), /after it has started/);
   });
 
-  it("treats completed and cancelled visits as final", () => {
-    assert.match(getStatusChangeError("completed", "scheduled", "doctor"), /already completed or cancelled/);
-    assert.match(getStatusChangeError("cancelled", "checked-in", "receptionist"), /already completed or cancelled/);
+  it("treats completed, cancelled and no-show visits as final", () => {
+    assert.match(getStatusChangeError("completed", "scheduled", "doctor"), /already closed/);
+    assert.match(getStatusChangeError("cancelled", "checked-in", "receptionist"), /already closed/);
+    assert.match(getStatusChangeError("no-show", "checked-in", "receptionist"), /already closed/);
+  });
+
+  it("lets only reception mark a booked visit as a no-show", () => {
+    assert.equal(getStatusChangeError("scheduled", "no-show", "receptionist"), null);
+    assert.match(getStatusChangeError("scheduled", "no-show", "doctor"), /Your role cannot/);
+    assert.ok(getStatusChangeError("checked-in", "no-show", "receptionist"));
   });
 
   it("rejects unknown statuses", () => {
