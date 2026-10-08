@@ -176,36 +176,23 @@ export const hospitalNumbers = [
   { label: "Results", value: "1 h" },
 ];
 
-export const footerColumns = [
+export const footerLinks = [
   {
-    title: "Centers",
-    links: centers.map((c) => ({ label: c.name, href: "#centers" })),
-  },
-  {
-    title: "Patients & Visitors",
+    title: "Patients",
     links: [
       { label: "Book an appointment", href: "#book" },
+      { label: "Private consultation", href: "#book" },
       { label: "Patient portal", href: "/login" },
-      { label: "Visiting hours", href: "#visiting-hours" },
-      { label: "Insurance & billing", href: "#book" },
-      { label: "Medical records", href: "/login" },
+      { label: "International patients", href: "#experience" },
     ],
   },
   {
-    title: "International",
+    title: "Hospital",
     links: [
-      { label: "Second opinion", href: "#experience" },
-      { label: "Travel & visas", href: "#experience" },
-      { label: "Interpreters", href: "#experience" },
-      { label: "Cost estimate", href: "#book" },
-    ],
-  },
-  {
-    title: "About",
-    links: [
+      { label: "Centers of excellence", href: "#centers" },
       { label: "Our doctors", href: "#doctors" },
-      { label: "Facilities", href: "#facilities" },
-      { label: "Contact us", href: "#book" },
+      { label: "Patient experience", href: "#experience" },
+      { label: "Technology & facilities", href: "#facilities" },
     ],
   },
 ];

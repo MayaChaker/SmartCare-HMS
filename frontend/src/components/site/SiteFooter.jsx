@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import Logo from "./Logo";
-import { contact, footerColumns, openingHours } from "../../content/site";
+import { contact, footerLinks, openingHours } from "../../content/site";
 
 // Links starting with "/" are app pages (router), the rest are anchors on this page
 function FooterLink({ href, children }) {
-  const className = "transition-colors hover:text-ivory";
+  const className = "text-ivory/70 transition-colors hover:text-ivory";
   return href.startsWith("/") ? (
     <Link to={href} className={className}>{children}</Link>
   ) : (
@@ -12,77 +12,75 @@ function FooterLink({ href, children }) {
   );
 }
 
+function Column({ title, wide = false, children }) {
+  return (
+    <div className={wide ? "col-span-2 md:col-span-1" : ""}>
+      <h2 className="text-[15px] font-medium text-ivory">{title}</h2>
+      <div className="mt-5 grid gap-3 text-[15px]">{children}</div>
+    </div>
+  );
+}
+
 export default function SiteFooter() {
   return (
-    <footer className="bg-forest-deep text-ivory">
-      {/* Action band */}
-      <div className="border-b border-ivory/10">
-        <div className="mx-auto grid max-w-site items-center gap-10 px-5 py-14 md:grid-cols-12 md:px-10 md:py-20">
-          <div className="md:col-span-6">
-            <h2 className="font-serif text-4xl leading-tight md:text-5xl">Questions before your visit?</h2>
-            <p className="mt-3 text-ivory/70">Our patient coordinators answer Monday to Saturday, 8 AM to 8 PM.</p>
-            <dl className="mt-8 grid gap-6 sm:grid-cols-2">
-              <div className="border-t border-ivory/15 pt-4">
-                <dt className="text-[14px] text-ivory/60">Call or WhatsApp</dt>
-                <dd className="mt-1 text-xl select-all">{contact.coordinators}</dd>
-              </div>
-              <div className="border-t border-ivory/15 pt-4">
-                <dt className="text-[14px] text-ivory/60">International desk</dt>
-                <dd className="mt-1 text-xl break-all select-all">{contact.internationalEmail}</dd>
-              </div>
-            </dl>
-          </div>
-          <div className="grid gap-2 border border-champagne/50 p-7 md:col-span-5 md:col-start-8 md:p-8">
-            <p className="eyebrow flex items-center gap-3 text-champagne-light">
-              <i className="block h-2 w-2 rounded-full bg-emergency" />
-              Emergency · open 24/7
+    <footer id="site-footer" className="bg-forest-deep text-ivory">
+      <div className="mx-auto max-w-site px-5 md:px-10">
+        {/* Brand and emergency line */}
+        <div className="grid gap-10 border-b border-ivory/10 py-16 md:grid-cols-2 md:items-end md:py-20">
+          <div className="grid gap-5">
+            <Logo />
+            <p className="max-w-[40ch] text-[15px] leading-relaxed text-ivory/65">
+              A private hospital in Beirut with six centers of excellence, 32 specialists and 48 private inpatient rooms.
             </p>
-            <p className="font-serif text-5xl select-all md:text-6xl">{contact.emergency}</p>
-            <p className="text-[15px] text-ivory/70">Emergency entrance at Gate B, Hamra Street. Ambulance on request.</p>
+          </div>
+          <div className="md:justify-self-end md:text-right">
+            <p className="flex items-center gap-2 text-[15px] text-ivory/70 md:justify-end">
+              <span className="h-2 w-2 rounded-full bg-emergency" aria-hidden="true" />
+              Emergency, open 24 hours
+            </p>
+            <p className="mt-2 font-serif text-6xl leading-none select-all md:text-7xl">{contact.emergency}</p>
+            <p className="mt-3 text-[15px] text-ivory/60">Gate B, Hamra Street</p>
           </div>
         </div>
-      </div>
 
-      {/* Link columns */}
-      <div className="mx-auto grid max-w-site grid-cols-2 gap-x-8 gap-y-12 px-5 py-14 md:grid-cols-12 md:px-10 md:py-20">
-        <div className="col-span-2 grid content-start gap-5 md:col-span-4">
-          <Logo />
-          <p className="max-w-[34ch] text-[15px] leading-relaxed text-ivory/65">
-            A private hospital in Beirut with six centers of excellence, 32 specialists and 48 private inpatient rooms.
-          </p>
-          <address className="grid gap-1 text-[15px] text-ivory/80 not-italic">
-            <span>{contact.address}</span>
-            <span>Main line <span className="select-all">{contact.mainLine}</span></span>
-            <span>Coordinators <span className="select-all">{contact.coordinators}</span></span>
-            <span className="select-all">{contact.email}</span>
-          </address>
-        </div>
-        {footerColumns.map((column) => (
-          <nav key={column.title} aria-label={column.title} className="grid content-start gap-3 text-[15px] text-ivory/75 md:col-span-2">
-            <p className="eyebrow mb-1 text-champagne-light">{column.title}</p>
-            {column.links.map((link) => (
-              <FooterLink key={link.label} href={link.href}>{link.label}</FooterLink>
+        {/* Four columns */}
+        <div className="grid grid-cols-2 gap-x-8 gap-y-12 py-14 md:grid-cols-4">
+          <Column title="Visit us" wide>
+            <address className="text-ivory/70 not-italic">{contact.address}</address>
+            {openingHours.map((item) => (
+              <p key={item.label} className="text-ivory/70">
+                {item.label}
+                <span className="block text-ivory/50">{item.value}</span>
+              </p>
             ))}
-          </nav>
-        ))}
-      </div>
-
-      {/* Opening hours */}
-      <div id="visiting-hours" className="border-t border-ivory/10">
-        <div className="mx-auto grid max-w-site gap-4 px-5 py-6 text-[14px] text-ivory/70 sm:grid-cols-3 md:px-10">
-          {openingHours.map((item) => (
-            <p key={item.label}>
-              <span className="text-ivory">{item.label}</span> · {item.value}
+          </Column>
+          <Column title="Contact" wide>
+            <p className="text-ivory/70">
+              Main line
+              <span className="block text-ivory select-all">{contact.mainLine}</span>
             </p>
+            <p className="text-ivory/70">
+              Coordinators, call or WhatsApp
+              <span className="block text-ivory select-all">{contact.coordinators}</span>
+            </p>
+            <p className="text-ivory/70">
+              International desk
+              <span className="block text-ivory select-all">{contact.internationalEmail}</span>
+            </p>
+          </Column>
+          {footerLinks.map((column) => (
+            <Column key={column.title} title={column.title}>
+              {column.links.map((link) => (
+                <FooterLink key={link.label} href={link.href}>{link.label}</FooterLink>
+              ))}
+            </Column>
           ))}
         </div>
-      </div>
 
-      {/* Legal bar */}
-      <div className="border-t border-ivory/10">
-        <div className="mx-auto flex max-w-site flex-col justify-between gap-4 px-5 py-6 text-[13px] text-ivory/55 md:flex-row md:items-center md:px-10">
-          <span>© {new Date().getFullYear()} SmartCare Private Hospital · Demo project with example content · Photos from Unsplash</span>
-          <span>Privacy policy · Terms of use · Accessibility</span>
+        {/* Legal */}
+        <div className="flex flex-col gap-3 border-t border-ivory/10 py-6 text-[13px] text-ivory/50 md:flex-row md:items-center md:justify-between">
+          <p>© {new Date().getFullYear()} SmartCare Private Hospital. Demo project with example content. Photos from Unsplash.</p>
+          <p>Privacy policy · Terms of use · Accessibility</p>
         </div>
       </div>
     </footer>
