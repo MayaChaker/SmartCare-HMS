@@ -80,7 +80,7 @@ export default function BookingSection() {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <section id="book" className="border-t border-ivory-line py-24 md:py-40">
+    <section id="book" className="bg-ivory-warm py-24 md:py-40">
       <div className="mx-auto grid max-w-site gap-16 px-5 md:px-10 lg:grid-cols-12 lg:gap-8">
         <Reveal className="lg:col-span-5">
           <h2 className="font-serif text-5xl leading-[1.05] text-ink md:text-6xl">Book your visit.</h2>

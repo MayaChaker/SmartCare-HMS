@@ -176,27 +176,6 @@ export const hospitalNumbers = [
   { label: "Results", value: "1 h" },
 ];
 
-export const testimonials = [
-  {
-    quote: "From the airport to the day I flew home, I never had to ask for anything twice. It felt like being looked after by family.",
-    initials: "L. M.",
-    center: "Cardiology",
-    city: "London",
-  },
-  {
-    quote: "My doctor spent an hour with me before deciding anything. I left understanding my own treatment.",
-    initials: "R. S.",
-    center: "Orthopaedics",
-    city: "Dubai",
-  },
-  {
-    quote: "Quiet, discreet and kind. My family could stay with me every night, and the nurses knew us by name.",
-    initials: "N. A.",
-    center: "Women's Health",
-    city: "Beirut",
-  },
-];
-
 export const footerColumns = [
   {
     title: "Centers",

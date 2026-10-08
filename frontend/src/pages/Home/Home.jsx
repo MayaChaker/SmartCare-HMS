@@ -6,7 +6,6 @@ import CentersSection from "../../components/site/CentersSection";
 import DoctorsSection from "../../components/site/DoctorsSection";
 import ExperienceSection from "../../components/site/ExperienceSection";
 import FacilitiesSection from "../../components/site/FacilitiesSection";
-import TestimonialsSection from "../../components/site/TestimonialsSection";
 import BookingSection from "../../components/site/BookingSection";
 import SiteFooter from "../../components/site/SiteFooter";
 
@@ -27,7 +26,6 @@ export default function Home() {
         <DoctorsSection />
         <ExperienceSection />
         <FacilitiesSection />
-        <TestimonialsSection />
         <BookingSection />
       </main>
       <SiteFooter />
