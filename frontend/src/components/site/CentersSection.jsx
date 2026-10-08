@@ -9,7 +9,6 @@ export default function CentersSection() {
     <section id="centers" className="py-24 md:py-40">
       <div className="mx-auto max-w-site px-5 md:px-10">
         <SectionHeading
-          eyebrow="Centers of Excellence"
           title="Six centers. One standard of care."
           intro="Each center brings specialists, diagnostics and treatment under one roof, so you never repeat your story twice."
         />

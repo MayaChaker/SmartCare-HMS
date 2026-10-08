@@ -83,8 +83,7 @@ export default function BookingSection() {
     <section id="book" className="border-t border-ivory-line py-24 md:py-40">
       <div className="mx-auto grid max-w-site gap-16 px-5 md:px-10 lg:grid-cols-12 lg:gap-8">
         <Reveal className="lg:col-span-5">
-          <p className="eyebrow text-champagne">Appointments &amp; consultations</p>
-          <h2 className="mt-5 font-serif text-5xl leading-[1.05] text-ink md:text-6xl">Book your visit.</h2>
+          <h2 className="font-serif text-5xl leading-[1.05] text-ink md:text-6xl">Book your visit.</h2>
           <p className="mt-6 max-w-[40ch] text-[17px] leading-relaxed text-muted">
             Tell us what you need and a patient coordinator will arrange the rest. Everything you share stays confidential.
           </p>

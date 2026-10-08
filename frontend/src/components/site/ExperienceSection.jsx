@@ -9,7 +9,6 @@ export default function ExperienceSection() {
       <div className="mx-auto max-w-site px-5 md:px-10">
         <SectionHeading
           dark
-          eyebrow="Patient Experience"
           title="The care of a leading hospital. The calm of a private room."
           intro="What changes when you are admitted to SmartCare, from the room you recover in to the person who answers your call."
         />
@@ -20,9 +19,8 @@ export default function ExperienceSection() {
               <div className="aspect-[4/5] overflow-hidden">
                 <img src={story.image} alt={story.imageAlt} loading="lazy" className="photo-grade h-full w-full object-cover" />
               </div>
-              <p className="eyebrow mt-8 text-champagne-light">{story.label}</p>
-              <h3 className="mt-3 font-serif text-[32px] leading-[1.1] text-balance">{story.title}</h3>
-              <p className="mt-4 text-[16px] leading-relaxed text-ivory/75">{story.text}</p>
+              <h3 className="mt-8 font-serif text-[32px] leading-[1.1] text-balance">{story.title}</h3>
+              <p className="mt-4 mb-8 text-[16px] leading-relaxed text-ivory/75">{story.text}</p>
               <dl className="mt-auto grid grid-cols-2 border-t border-ivory/15 pt-6">
                 {story.facts.map((fact, i) => (
                   <div key={fact.label} className={i ? "border-l border-ivory/15 pl-5" : "pr-5"}>

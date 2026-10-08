@@ -128,7 +128,6 @@ export const doctors = [
 
 export const experienceStories = [
   {
-    label: "Your room",
     caption: "Private inpatient room",
     title: "A private room, never a shared ward.",
     text: "Every inpatient room is private, with full medical monitoring built into the wall and a recliner so one family member can stay the night.",
@@ -140,7 +139,6 @@ export const experienceStories = [
     ],
   },
   {
-    label: "Your coordinator",
     caption: "Your patient coordinator",
     title: "One person who knows your whole file.",
     text: "From the first call to your follow-up visit, your coordinator books every appointment and test, chases results, and explains the next step.",
@@ -152,7 +150,6 @@ export const experienceStories = [
     ],
   },
   {
-    label: "From abroad",
     caption: "International patients",
     title: "Your scans reviewed before you fly.",
     text: "Send your reports and imaging. A specialist gives a written opinion and treatment estimate, and our international desk handles the rest.",

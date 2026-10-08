@@ -7,7 +7,6 @@ export default function FacilitiesSection() {
     <section id="facilities" className="py-24 md:py-40">
       <div className="mx-auto max-w-site px-5 md:px-10">
         <SectionHeading
-          eyebrow="Technology & Facilities"
           title="Precision you rarely see, and never feel."
           intro="Diagnostics, surgery and recovery on four connected floors, so results reach your doctor within the hour."
         />

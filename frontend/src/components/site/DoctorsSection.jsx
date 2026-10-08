@@ -8,7 +8,6 @@ export default function DoctorsSection() {
     <section id="doctors" className="bg-ivory-warm py-24 md:py-40">
       <div className="mx-auto max-w-site px-5 md:px-10">
         <SectionHeading
-          eyebrow="Our Doctors"
           title="Specialists who take the time."
           intro="Every consultation lasts at least 45 minutes. Your doctor reads your file before you arrive."
         />
