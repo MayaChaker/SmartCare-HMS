@@ -94,17 +94,15 @@ export default function Register() {
         </p>
       )}
 
-      <form onSubmit={handleSubmit} noValidate className="mt-8 grid gap-10">
-        <fieldset className="grid gap-6 sm:grid-cols-2">
-          <legend className="mb-6 font-serif text-2xl text-ink">About you</legend>
+      <form onSubmit={handleSubmit} noValidate className="mt-8 grid gap-6">
+        <div className="grid gap-6 sm:grid-cols-2">
           <TextField label="First name" autoComplete="given-name" placeholder="e.g. Lina" {...field("firstName")} />
           <TextField label="Last name" autoComplete="family-name" placeholder="e.g. Haddad" {...field("lastName")} />
           <TextField label="Date of birth" type="date" max={today} autoComplete="bday" {...field("dob")} />
           <TextField label="Phone number" type="tel" autoComplete="tel" placeholder="+961 70 123 456" {...field("contact")} />
-        </fieldset>
+        </div>
 
-        <fieldset className="grid gap-6">
-          <legend className="mb-6 font-serif text-2xl text-ink">Your account</legend>
+        <div className="grid gap-6">
           <TextField
             label="Username"
             autoComplete="username"
@@ -128,7 +126,7 @@ export default function Register() {
               {...field("confirmPassword")}
             />
           </div>
-        </fieldset>
+        </div>
 
         <div className="grid gap-6">
           <button
