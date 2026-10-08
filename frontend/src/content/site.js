@@ -6,6 +6,7 @@ export const contact = {
   mainLine: "+961 1 555 000",
   coordinators: "+961 1 555 100",
   email: "info@smartcare.example",
+  whatsapp: "+961 70 555 100",
   internationalEmail: "international@smartcare.example",
   address: "Hamra Street, Beirut, Lebanon",
 };
@@ -178,24 +179,47 @@ export const hospitalNumbers = [
 
 export const footerLinks = [
   {
-    title: "Patients",
+    title: "Appointments",
     links: [
       { label: "Book an appointment", href: "#book" },
       { label: "Private consultation", href: "#book" },
+      { label: "Find a doctor", href: "#doctors" },
       { label: "Patient portal", href: "/login" },
-      { label: "International patients", href: "#experience" },
     ],
   },
   {
-    title: "Hospital",
+    title: "Centers",
+    links: centers.map((c) => ({ label: c.name, href: "#centers" })),
+  },
+  {
+    title: "Patients",
     links: [
-      { label: "Centers of excellence", href: "#centers" },
-      { label: "Our doctors", href: "#doctors" },
       { label: "Patient experience", href: "#experience" },
       { label: "Technology & facilities", href: "#facilities" },
+      { label: "Insurance & billing", href: "#book" },
+      { label: "Share your feedback", href: "#book" },
+    ],
+  },
+  {
+    title: "International",
+    links: [
+      { label: "Second opinion", href: "#experience" },
+      { label: "Travel & visas", href: "#experience" },
+      { label: "Interpreters", href: "#experience" },
+      { label: "Cost estimate", href: "#book" },
     ],
   },
 ];
+
+// Placeholder accounts: replace with the hospital's real profiles
+export const socialLinks = [
+  { label: "Instagram", href: "#site-footer" },
+  { label: "LinkedIn", href: "#site-footer" },
+  { label: "Facebook", href: "#site-footer" },
+  { label: "YouTube", href: "#site-footer" },
+];
+
+export const legalLinks = ["Privacy policy", "Cookie settings", "Terms of use", "Accessibility", "Patient rights"];
 
 export const openingHours = [
   { label: "Outpatient clinics", value: "Mon to Sat, 8 AM to 8 PM" },
