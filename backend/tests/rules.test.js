@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const { isSlotAllowedByWorkingHours, normalizeTimeToSql, isIsoDate } = require("../utils/schedule");
 const { getStatusChangeError } = require("../utils/appointmentStatus");
 const { getCredentialsError } = require("../utils/validation");
+const { clinicToday, isSlotInPast } = require("../utils/clinicTime");
 
 // 2026-10-05 is a Monday
 const MONDAY = "2026-10-05";
@@ -53,27 +54,56 @@ describe("date and time parsing", () => {
 });
 
 describe("visit status rules", () => {
-  it("allows the normal flow", () => {
-    assert.equal(getStatusChangeError("scheduled", "checked-in"), null);
-    assert.equal(getStatusChangeError("checked-in", "in-progress"), null);
-    assert.equal(getStatusChangeError("in-progress", "completed"), null);
+  it("allows the normal flow, each step by its own role", () => {
+    assert.equal(getStatusChangeError("scheduled", "checked-in", "receptionist"), null);
+    assert.equal(getStatusChangeError("checked-in", "in-progress", "doctor"), null);
+    assert.equal(getStatusChangeError("in-progress", "completed", "doctor"), null);
   });
 
-  it("allows cancelling before the visit is completed", () => {
-    assert.equal(getStatusChangeError("scheduled", "cancelled"), null);
+  it("does not let a role take another role's step", () => {
+    assert.match(getStatusChangeError("scheduled", "checked-in", "doctor"), /Your role cannot/);
+    assert.match(getStatusChangeError("checked-in", "in-progress", "receptionist"), /Your role cannot/);
   });
 
-  it("does not complete a visit before check-in", () => {
-    assert.match(getStatusChangeError("scheduled", "completed"), /after check-in/);
+  it("allows cancelling before the visit starts", () => {
+    assert.equal(getStatusChangeError("scheduled", "cancelled", "patient"), null);
+    assert.equal(getStatusChangeError("checked-in", "cancelled", "receptionist"), null);
+    assert.ok(getStatusChangeError("in-progress", "cancelled", "receptionist"));
+  });
+
+  it("never moves a visit backwards", () => {
+    assert.ok(getStatusChangeError("in-progress", "scheduled", "doctor"));
+    assert.ok(getStatusChangeError("checked-in", "scheduled", "receptionist"));
+  });
+
+  it("does not complete a visit before it starts", () => {
+    assert.match(getStatusChangeError("scheduled", "completed", "doctor"), /after it has started/);
+    assert.match(getStatusChangeError("checked-in", "completed", "doctor"), /after it has started/);
   });
 
   it("treats completed and cancelled visits as final", () => {
-    assert.match(getStatusChangeError("completed", "scheduled"), /already completed or cancelled/);
-    assert.match(getStatusChangeError("cancelled", "checked-in"), /already completed or cancelled/);
+    assert.match(getStatusChangeError("completed", "scheduled", "doctor"), /already completed or cancelled/);
+    assert.match(getStatusChangeError("cancelled", "checked-in", "receptionist"), /already completed or cancelled/);
   });
 
   it("rejects unknown statuses", () => {
-    assert.equal(getStatusChangeError("scheduled", "done"), "Invalid status");
+    assert.equal(getStatusChangeError("scheduled", "done", "doctor"), "Invalid status");
+  });
+});
+
+describe("clinic time zone", () => {
+  // 22:30 UTC on 7 October is 01:30 on 8 October in Beirut (UTC+3)
+  const lateEveningUtc = new Date("2026-10-07T22:30:00Z");
+
+  it("uses Beirut's date, not the server's UTC date", () => {
+    assert.equal(clinicToday(lateEveningUtc), "2026-10-08");
+  });
+
+  it("treats a slot as past once it has started in Beirut", () => {
+    assert.equal(isSlotInPast("2026-10-08", "01:00:00", lateEveningUtc), true);
+    assert.equal(isSlotInPast("2026-10-08", "01:30:00", lateEveningUtc), true);
+    assert.equal(isSlotInPast("2026-10-08", "09:00:00", lateEveningUtc), false);
+    assert.equal(isSlotInPast("2026-10-07", "23:00:00", lateEveningUtc), true);
   });
 });
 
