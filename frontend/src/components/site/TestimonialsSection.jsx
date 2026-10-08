@@ -1,69 +1,39 @@
-import { useEffect, useState } from "react";
-import usePrefersReducedMotion from "../../hooks/usePrefersReducedMotion";
+import Reveal from "./Reveal";
+import SectionHeading from "./SectionHeading";
 import { testimonials } from "../../content/site";
 
-const INTERVAL_MS = 7000;
-
-// One quote at a time with a slow crossfade. It pauses while the visitor hovers or uses the keyboard inside it.
+// All quotes visible side by side (no carousel), so nothing is hidden behind arrows.
 export default function TestimonialsSection() {
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const reduced = usePrefersReducedMotion();
-
-  useEffect(() => {
-    if (paused || reduced) return;
-    const timer = setInterval(() => setIndex((i) => (i + 1) % testimonials.length), INTERVAL_MS);
-    return () => clearInterval(timer);
-  }, [paused, reduced, index]);
-
-  const go = (step) => setIndex((i) => (i + step + testimonials.length) % testimonials.length);
-
   return (
-    <section
-      aria-roledescription="carousel"
-      aria-label="What our patients say"
-      className="bg-ivory-warm py-24 md:py-36"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={() => setPaused(false)}
-    >
-      <div className="mx-auto grid max-w-site gap-8 px-5 md:grid-cols-12 md:px-10">
-        <p className="eyebrow text-champagne md:col-span-3">In their words</p>
-        <div className="md:col-span-8 md:col-start-5">
-          {/* All quotes share one grid cell, so the box is as tall as the longest quote */}
-          <div className="grid" aria-live="polite">
-            {testimonials.map((item, i) => (
-              <figure
-                key={item.author}
-                aria-hidden={i !== index}
-                className={`col-start-1 row-start-1 transition-opacity duration-[900ms] ${i === index ? "opacity-100" : "opacity-0"}`}
-              >
-                <blockquote className="font-serif text-[30px] leading-[1.18] text-ink italic md:text-[44px]">“{item.quote}”</blockquote>
-                <figcaption className="mt-8 text-[15px] text-muted">{item.author}</figcaption>
-              </figure>
-            ))}
-          </div>
-          <div className="mt-10 flex items-center gap-6">
-            {[
-              { step: -1, label: "Previous quote", icon: "←" },
-              { step: 1, label: "Next quote", icon: "→" },
-            ].map((btn) => (
-              <button
-                key={btn.label}
-                type="button"
-                aria-label={btn.label}
-                onClick={() => go(btn.step)}
-                className="grid h-12 w-12 place-items-center border border-ink/30 transition-colors hover:border-forest hover:bg-forest hover:text-ivory"
-              >
-                {btn.icon}
-              </button>
-            ))}
-            <span className="text-[14px] text-muted tabular-nums">
-              {index + 1} / {testimonials.length}
-            </span>
-          </div>
-        </div>
+    <section id="stories" aria-labelledby="testimonials-title" className="bg-ivory-warm py-24 md:py-40">
+      <div className="mx-auto max-w-site px-5 md:px-10">
+        <SectionHeading
+          eyebrow="Patient stories"
+          title={<span id="testimonials-title">In their words.</span>}
+          intro="Shared with permission. Names are shortened to protect our patients' privacy."
+        />
+
+        <ul className="mt-16 grid gap-6 md:grid-cols-3 lg:gap-8">
+          {testimonials.map((item) => (
+            <Reveal as="li" key={item.initials} className="flex flex-col border border-ivory-line bg-white p-8 lg:p-10">
+              <svg width="36" height="28" viewBox="0 0 36 28" aria-hidden="true" className="fill-champagne">
+                <path d="M0 28V16.8C0 7.3 4.6 1.7 13.7 0l1.6 3.4C10.6 4.9 8.3 8 8.2 12.6H15V28H0Zm21 0V16.8C21 7.3 25.6 1.7 34.7 0l1.3 3.4c-4.7 1.5-7 4.6-7.1 9.2H36V28H21Z" />
+              </svg>
+              <blockquote className="mt-8 mb-10 font-serif text-[26px] leading-[1.25] text-ink">{item.quote}</blockquote>
+              <div className="mt-auto flex items-center gap-4 border-t border-ivory-line pt-6">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-forest text-[14px] text-ivory" aria-hidden="true">
+                  {item.initials.replace(/[.\s]/g, "")}
+                </span>
+                <p className="text-[15px] leading-snug">
+                  <span className="block text-ink">{item.initials}</span>
+                  <span className="text-muted">
+                    {item.center} patient · {item.city}
+                  </span>
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </ul>
       </div>
     </section>
   );

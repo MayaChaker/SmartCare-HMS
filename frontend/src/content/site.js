@@ -182,15 +182,21 @@ export const hospitalNumbers = [
 export const testimonials = [
   {
     quote: "From the airport to the day I flew home, I never had to ask for anything twice. It felt like being looked after by family.",
-    author: "L. M. · Cardiology patient · London",
+    initials: "L. M.",
+    center: "Cardiology",
+    city: "London",
   },
   {
     quote: "My doctor spent an hour with me before deciding anything. I left understanding my own treatment.",
-    author: "R. S. · Orthopaedics patient · Dubai",
+    initials: "R. S.",
+    center: "Orthopaedics",
+    city: "Dubai",
   },
   {
-    quote: "Quiet, discreet and kind. My family could stay with me every night.",
-    author: "N. A. · Women's Health patient · Beirut",
+    quote: "Quiet, discreet and kind. My family could stay with me every night, and the nurses knew us by name.",
+    initials: "N. A.",
+    center: "Women's Health",
+    city: "Beirut",
   },
 ];
 
