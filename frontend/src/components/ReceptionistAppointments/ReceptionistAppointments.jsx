@@ -27,12 +27,14 @@ const ReceptionistAppointments = () => {
       hour12: true,
     });
   };
-  const canFinish = (status) =>
-    status === "checked-in" || status === "in-progress";
-  const isFinal = (status) => status === "completed" || status === "cancelled";
+  // Reception checks patients in and can cancel before the visit starts.
+  // Starting and completing the visit belongs to the doctor (same rule as the API).
+  const RECEPTION_CHANGES = {
+    scheduled: ["checked-in", "cancelled"],
+    "checked-in": ["cancelled"],
+  };
   const canChangeStatus = (current, next) =>
-    next === current ||
-    (!isFinal(current) && (next !== "completed" || canFinish(current)));
+    next === current || (RECEPTION_CHANGES[current] || []).includes(next);
   const formatStatusLabel = (raw) => {
     const s = String(raw || "").trim();
     if (!s) return "";
@@ -148,20 +150,6 @@ const ReceptionistAppointments = () => {
                         </button>
                       )}
 
-                      {appointment.status === "checked-in" && (
-                        <button
-                          className="btn btn-sm btn-secondary"
-                          onClick={() =>
-                            handleUpdateAppointmentStatus(
-                              appointment.id,
-                              "in-progress"
-                            )
-                          }
-                          title="Start visit"
-                        >
-                          Start
-                        </button>
-                      )}
                     </div>
                   </td>
                 </tr>

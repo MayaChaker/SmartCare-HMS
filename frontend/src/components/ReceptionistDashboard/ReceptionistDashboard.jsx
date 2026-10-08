@@ -19,7 +19,6 @@ const ReceptionistDashboard = () => {
     appointments = [],
     openModal,
     handleCheckIn,
-    handleUpdateAppointmentStatus,
   } = useReceptionist();
   const toYmd = (d) => {
     if (!d) return "";
@@ -227,7 +226,7 @@ const ReceptionistDashboard = () => {
 
                     <td className="actions-cell">
                       <div className="action-buttons">
-                        {/* Check In (from scheduled), Take (to in-progress) */}
+                        {/* Check in when the patient arrives; the doctor starts the visit */}
                         {appointment.status === "scheduled" && (
                           <button
                             className="btn btn-sm btn-primary"
@@ -239,21 +238,6 @@ const ReceptionistDashboard = () => {
                           </button>
                         )}
 
-                        {appointment.status === "checked-in" && (
-                          <button
-                            className="btn btn-sm btn-secondary"
-                            onClick={() =>
-                              handleUpdateAppointmentStatus(
-                                appointment.id,
-                                "in-progress"
-                              )
-                            }
-                            title="Take Appointment"
-                            style={{ marginLeft: "8px" }}
-                          >
-                            Take
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>

@@ -6,6 +6,7 @@ const {
   User,
 } = require("../models");
 const { getStatusChangeError } = require("../utils/appointmentStatus");
+const { parseId } = require("../utils/schedule");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
@@ -98,6 +99,8 @@ exports.getAppointments = async (req, res) => {
           model: Patient,
           attributes: ["id", "firstName", "lastName", "email", "phone"],
         },
+        // Lets the dashboard know which visits already have a note
+        { model: MedicalRecord, attributes: ["id"] },
       ],
       order: [
         ["appointmentDate", "ASC"],
@@ -160,12 +163,15 @@ exports.getPatientDetails = async (req, res) => {
   }
 };
 
-// Create medical record
+// Statuses where the doctor writes the visit note: during the visit or right after it
+const NOTE_STATUSES = ["in-progress", "completed"];
+
+// Create the medical record (visit note) for one of the doctor's visits
 exports.createMedicalRecord = async (req, res) => {
   try {
     const userId = req.user.id;
     const {
-      patientId,
+      appointmentId,
       notes,
       prescriptions,
       testResults,
@@ -174,15 +180,30 @@ exports.createMedicalRecord = async (req, res) => {
     } = req.body;
     // Ensure a profile exists; auto-create with safe defaults if missing
     const doctor = await ensureDoctorForUser(userId);
-    const patient = await Patient.findByPk(patientId);
-    if (!patient || !(await isDoctorsPatient(doctor.id, patient.id))) {
-      return res.status(404).json({ message: "Patient not found" });
+
+    const cleanAppointmentId = parseId(appointmentId);
+    if (!cleanAppointmentId) {
+      return res.status(400).json({ message: "appointmentId is required: a record belongs to a visit" });
+    }
+    const appointment = await Appointment.findOne({
+      where: { id: cleanAppointmentId, doctorId: doctor.id },
+    });
+    if (!appointment) {
+      return res.status(404).json({ message: "Visit not found" });
+    }
+    if (!NOTE_STATUSES.includes(appointment.status)) {
+      return res.status(400).json({ message: "A record can only be added once the visit has started" });
+    }
+    const existing = await MedicalRecord.findOne({ where: { appointmentId: appointment.id } });
+    if (existing) {
+      return res.status(409).json({ message: "This visit already has a medical record" });
     }
 
     const record = await MedicalRecord.create({
-      patientId,
+      appointmentId: appointment.id,
+      patientId: appointment.patientId,
       doctorId: doctor.id,
-      visitDate: new Date(),
+      visitDate: appointment.appointmentDate,
       notes,
       prescriptions,
       testResults,
@@ -394,7 +415,7 @@ exports.updateAppointmentStatus = async (req, res) => {
 
     if (status) {
       const next = String(status).toLowerCase();
-      const statusError = getStatusChangeError(appointment.status, next);
+      const statusError = getStatusChangeError(appointment.status, next, "doctor");
       if (statusError) {
         return res.status(400).json({ message: statusError });
       }
