@@ -1,6 +1,7 @@
 const { PASSWORD, startApp, client, login, createStaff } = require("./helpers");
 const { describe, it, before, after } = require("node:test");
 const assert = require("node:assert/strict");
+const { SAMPLE_DOCTORS } = require("../demo/sampleData");
 
 const DEMO_PASSWORD = process.env.DEMO_PASSWORD;
 const RESET_HEADERS = { "X-Demo-Reset-Token": process.env.DEMO_RESET_TOKEN };
@@ -33,7 +34,7 @@ describe("public demo", () => {
   it("creates the four demo accounts with data for every dashboard", async () => {
     for (const token of Object.values(tokens)) assert.ok(token);
     const doctors = await request("GET", "/doctors");
-    assert.equal(doctors.body.length, 6);
+    assert.equal(doctors.body.length, SAMPLE_DOCTORS.length);
     const visits = await request("GET", "/patient/appointments", { token: tokens.patient });
     assert.ok(visits.body.length >= 2);
     const records = await request("GET", "/patient/records", { token: tokens.patient });

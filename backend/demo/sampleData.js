@@ -6,6 +6,8 @@ const SAMPLE_DOCTORS = [
   { username: "dr.ziad.sfeir", firstName: "Ziad", lastName: "Sfeir", specialization: "General Medicine", workingHours: "Mon - Sat 09:00 AM - 03:00 PM", fee: 35, experience: 14, qualification: "MD, Family Medicine", photo: 4 },
   { username: "dr.lina.kanaan", firstName: "Lina", lastName: "Kanaan", specialization: "Dermatology", workingHours: "Mon, Wed, Fri 11:00 AM - 07:00 PM", fee: 50, experience: 6, qualification: "MD, Dermatology", photo: 5 },
   { username: "dr.nour.haidar", firstName: "Nour", lastName: "Haidar", specialization: "Gynecology", workingHours: "Mon - Fri 08:30 AM - 04:30 PM", fee: 55, experience: 11, qualification: "MD, Obstetrics and Gynecology", photo: 6 },
+  { username: "dr.fadi.aoun", firstName: "Fadi", lastName: "Aoun", specialization: "Neurology", workingHours: "Mon - Thu 09:00 AM - 05:00 PM", fee: 65, experience: 12, qualification: "MD, Neurology", photo: 7 },
+  { username: "dr.hala.farah", firstName: "Hala", lastName: "Farah", specialization: "Oncology", workingHours: "Mon - Fri 08:00 AM - 02:00 PM", fee: 70, experience: 15, qualification: "MD, Medical Oncology", photo: 8 },
 ];
 
 // Doctor profile fields as stored in the database
