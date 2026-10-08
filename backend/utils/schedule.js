@@ -160,5 +160,6 @@ module.exports = {
   isIsoDate,
   parseId,
   normalizeTimeToSql,
+  parseWorkingHoursText,
   isSlotAllowedByWorkingHours,
 };
