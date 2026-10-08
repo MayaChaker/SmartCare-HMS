@@ -1,6 +1,7 @@
 const { startApp, client, login, createStaff, createDoctor, registerPatient, dateFromToday } = require("./helpers");
 const { describe, it, before, after } = require("node:test");
 const assert = require("node:assert/strict");
+const { Appointment } = require("../models");
 
 describe("appointments", () => {
   let app;
@@ -71,6 +72,14 @@ describe("appointments", () => {
       const res = await book("10:00", dateFromToday(-1));
       assert.equal(res.status, 400);
       assert.match(res.body.message, /in the future/);
+    });
+
+    it("does not book the same patient into two visits at the same time", async () => {
+      const other = (await createDoctor("dr.second")).doctor;
+      assert.equal((await book("10:40")).status, 201);
+      const res = await book("10:40", day, other.id);
+      assert.equal(res.status, 409);
+      assert.match(res.body.message, /another visit at this time/);
     });
 
     it("frees the slot again when a visit is cancelled", async () => {
@@ -192,6 +201,28 @@ describe("appointments", () => {
         body: { patientId: walkIn.id, doctorId: doctor.id, appointmentDate: dateFromToday(-1), appointmentTime: "10:00" },
       });
       assert.equal(res.status, 400);
+    });
+
+    it("marks a no-show only after the visit time has passed", async () => {
+      const upcoming = await request("POST", "/receptionist/appointments", {
+        token: receptionToken,
+        body: { patientId: walkIn.id, doctorId: doctor.id, appointmentDate: day, appointmentTime: "11:20" },
+      });
+      let res = await request("PUT", `/receptionist/appointments/${upcoming.body.appointment.id}`, {
+        token: receptionToken,
+        body: { status: "no-show" },
+      });
+      assert.equal(res.status, 400);
+
+      const missed = await Appointment.create({
+        patientId: walkIn.id,
+        doctorId: doctor.id,
+        appointmentDate: dateFromToday(-1),
+        appointmentTime: "11:20:00",
+      });
+      res = await request("PUT", `/receptionist/appointments/${missed.id}`, { token: receptionToken, body: { status: "no-show" } });
+      assert.equal(res.status, 200);
+      assert.equal(res.body.appointment.status, "no-show");
     });
 
     it("returns 404 when booking for an unknown patient", async () => {
