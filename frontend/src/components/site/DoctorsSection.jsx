@@ -12,21 +12,21 @@ export default function DoctorsSection() {
           intro="Every consultation lasts at least 45 minutes. Your doctor reads your file before you arrive."
         />
 
-        {/* Swipe row on phones, four columns on larger screens */}
-        <ul className="-mx-5 mt-16 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-4 md:gap-8 md:px-0 md:pb-0">
+        {/* Swipe row on phones, a 4 x 2 grid on larger screens */}
+        <ul className="-mx-5 mt-16 flex snap-x snap-mandatory scroll-px-5 gap-5 overflow-x-auto px-5 pb-4 md:mx-0 md:grid md:grid-cols-4 md:gap-x-8 md:gap-y-16 md:px-0 md:pb-0">
           {doctors.map((doctor) => (
-            <Reveal as="li" key={doctor.name} className="w-[78%] shrink-0 snap-start sm:w-[46%] md:w-auto">
+            <Reveal as="li" key={doctor.name} className="group w-[78%] shrink-0 snap-start sm:w-[46%] md:w-auto">
               <div className="aspect-[4/5] overflow-hidden bg-ivory-line">
                 <img
                   src={doctor.photo}
                   alt={doctor.name}
                   loading="lazy"
-                  className="photo-grade h-full w-full object-cover object-[50%_20%] transition-transform duration-[1400ms] hover:scale-[1.03]"
+                  className="photo-grade h-full w-full object-cover object-[50%_20%] transition-transform duration-[1400ms] group-hover:scale-[1.03]"
                 />
               </div>
               <h3 className="mt-6 font-serif text-[28px] text-ink">{doctor.name}</h3>
               <p className="text-[15px] font-medium text-forest-soft">{doctor.role}</p>
-              <p className="mt-3 border-t border-ivory-line pt-3 text-[15px] leading-relaxed text-muted">{doctor.credentials}</p>
+              <p className="mt-3 border-t border-ivory-line pt-3 text-[15px] leading-relaxed text-muted md:min-h-[106px]">{doctor.credentials}</p>
               <p className="mt-2 text-[14px] text-muted">{doctor.languages}</p>
             </Reveal>
           ))}
