@@ -21,10 +21,12 @@ Doctor.hasMany(MedicalRecord, { foreignKey: 'doctorId' });
 // Appointment associations
 Appointment.belongsTo(Patient, { foreignKey: 'patientId' });
 Appointment.belongsTo(Doctor, { foreignKey: 'doctorId' });
+Appointment.hasOne(MedicalRecord, { foreignKey: 'appointmentId' });
 
 // MedicalRecord associations
 MedicalRecord.belongsTo(Patient, { foreignKey: 'patientId' });
 MedicalRecord.belongsTo(Doctor, { foreignKey: 'doctorId' });
+MedicalRecord.belongsTo(Appointment, { foreignKey: 'appointmentId' });
 
 module.exports = {
   User,

@@ -7,6 +7,12 @@ const MedicalRecord = sequelize.define('MedicalRecord', {
     primaryKey: true,
     autoIncrement: true
   },
+  // The visit this note belongs to. One note per visit; older records may have none.
+  appointmentId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    unique: true
+  },
   visitDate: {
     type: DataTypes.DATEONLY,
     allowNull: false

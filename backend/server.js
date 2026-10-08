@@ -42,6 +42,7 @@ async function init() {
       console.log("Database models synchronized successfully.");
       await createAdminUser();
       await ensureDoctorFeeColumn();
+      await ensureMedicalRecordAppointmentColumn();
       await ensureAppointmentSlotIndexNotUnique();
       await ensureDemoData();
       startServer();
@@ -103,6 +104,30 @@ async function createAdminUser() {
     if (created) console.log(`Admin user "${username}" created.`);
   } catch (error) {
     console.error("Error creating admin user:", error);
+  }
+}
+
+// Older databases were created before medical records were linked to a visit.
+// sync() does not add columns to existing tables, so add appointmentId (and its unique index) here.
+async function ensureMedicalRecordAppointmentColumn() {
+  try {
+    const [tables] = await sequelize.query(
+      "SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND LOWER(TABLE_NAME) = 'medicalrecords' LIMIT 1",
+    );
+    const table = tables?.[0]?.name;
+    if (!table) {
+      return;
+    }
+    const [columns] = await sequelize.query(
+      `SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '${table}' AND COLUMN_NAME = 'appointmentId'`,
+    );
+    if (!Array.isArray(columns) || columns.length === 0) {
+      await sequelize.query(`ALTER TABLE \`${table}\` ADD COLUMN appointmentId INT NULL`);
+      await sequelize.query(`ALTER TABLE \`${table}\` ADD UNIQUE INDEX medical_records_appointment_id (appointmentId)`);
+      console.log("Medical record appointmentId column added");
+    }
+  } catch (error) {
+    console.error("Failed to ensure medical record appointmentId column:", error);
   }
 }
 
