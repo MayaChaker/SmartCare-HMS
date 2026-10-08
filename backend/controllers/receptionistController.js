@@ -9,6 +9,7 @@ const {
   normalizeTimeToSql,
   isSlotAllowedByWorkingHours,
 } = require("../utils/schedule");
+const { clinicToday, isSlotInPast } = require("../utils/clinicTime");
 
 // Register new patient
 exports.registerPatient = async (req, res) => {
@@ -138,6 +139,9 @@ exports.createAppointment = async (req, res) => {
     if (!cleanTime) {
       return res.status(400).json({ message: "appointmentTime is required" });
     }
+    if (isSlotInPast(cleanDate, cleanTime)) {
+      return res.status(400).json({ message: "Please choose a date and time in the future" });
+    }
 
     const patient = await Patient.findByPk(cleanPatientId);
     if (!patient) {
@@ -220,6 +224,12 @@ exports.updateAppointment = async (req, res) => {
       cleanTime !== appointment.appointmentTime;
 
     if (slotChanged) {
+      if (appointment.status !== "scheduled") {
+        return res.status(400).json({ message: "Only scheduled appointments can be rescheduled" });
+      }
+      if (cleanTime && isSlotInPast(cleanDate, cleanTime)) {
+        return res.status(400).json({ message: "Please choose a date and time in the future" });
+      }
       const doctor = await Doctor.findByPk(appointment.doctorId);
       if (!doctor) {
         return res.status(404).json({ message: "Doctor not found" });
@@ -252,7 +262,7 @@ exports.updateAppointment = async (req, res) => {
     }
     if (status) {
       const next = String(status).toLowerCase();
-      const statusError = getStatusChangeError(appointment.status, next);
+      const statusError = getStatusChangeError(appointment.status, next, "receptionist");
       if (statusError) {
         return res.status(400).json({ message: statusError });
       }
@@ -348,11 +358,8 @@ exports.getAllDoctors = async (req, res) => {
 // Get today's appointments
 exports.getTodayAppointments = async (req, res) => {
   try {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, "0");
-    const d = String(now.getDate()).padStart(2, "0");
-    const todayYmd = `${y}-${m}-${d}`;
+    // "Today" in Beirut, not on the server's UTC clock
+    const todayYmd = clinicToday();
 
     const appointments = await Appointment.findAll({
       where: { appointmentDate: todayYmd },
@@ -378,15 +385,7 @@ exports.getTodayAppointments = async (req, res) => {
 
 exports.getAppointmentsByDate = async (req, res) => {
   try {
-    const date =
-      req.query.date ||
-      (() => {
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = String(now.getMonth() + 1).padStart(2, "0");
-        const d = String(now.getDate()).padStart(2, "0");
-        return `${y}-${m}-${d}`;
-      })();
+    const date = req.query.date || clinicToday();
     const appointments = await Appointment.findAll({
       where: { appointmentDate: date },
       include: [
