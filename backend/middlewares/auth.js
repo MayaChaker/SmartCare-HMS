@@ -17,10 +17,15 @@ const verifyToken = async (req, res, next) => {
 
   // Load the user so deleted accounts and role changes take effect before the token expires
   const user = await User.findByPk(decoded.id, {
-    attributes: ["id", "username", "role"],
+    attributes: ["id", "username", "role", "mustChangePassword"],
   });
   if (!user) {
     return res.status(401).json({ message: "Invalid token" });
+  }
+
+  // Someone signed in with a temporary password may only choose their own password
+  if (user.mustChangePassword && req.originalUrl.split("?")[0] !== "/api/auth/change-password") {
+    return res.status(403).json({ message: "Choose a new password to continue", code: "PASSWORD_CHANGE_REQUIRED" });
   }
 
   req.user = { id: user.id, username: user.username, role: user.role };

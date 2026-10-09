@@ -9,6 +9,7 @@ const {
 } = require('../utils/validation');
 const { Op } = require('sequelize');
 const { hashCode, normalize } = require('../utils/activation');
+const { record } = require('../utils/audit');
 
 // Login controller
 exports.login = async (req, res) => {
@@ -30,6 +31,9 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    user.lastLoginAt = new Date();
+    await user.save({ fields: ['lastLoginAt'] });
+
     // Generate JWT token
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role },
@@ -43,7 +47,8 @@ exports.login = async (req, res) => {
       user: {
         id: user.id,
         username: user.username,
-        role: user.role
+        role: user.role,
+        mustChangePassword: user.mustChangePassword
       }
     });
   } catch (error) {
@@ -99,6 +104,7 @@ exports.registerPatient = async (req, res) => {
       return { user, patient };
     });
 
+    await record({ id: user.id, username: user.username, role: 'patient' }, 'account.registered', { type: 'patient', id: patient.id, name: `${patient.firstName} ${patient.lastName}` });
     res.status(201).json({
       message: 'Patient registered successfully',
       user: {
@@ -155,6 +161,7 @@ exports.activatePatient = async (req, res) => {
       return created;
     });
 
+    await record({ id: user.id, username: user.username, role: 'patient' }, 'account.activated', { type: 'patient', id: patient.id, name: `${patient.firstName} ${patient.lastName}` });
     res.status(201).json({
       message: 'Account activated',
       user: { id: user.id, username: user.username, role: user.role },
@@ -162,6 +169,34 @@ exports.activatePatient = async (req, res) => {
     });
   } catch (error) {
     console.error('Activation error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Choose a new password: required after a temporary password, and available to everyone signed in
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findByPk(req.user.id);
+    if (!user || !isNonEmptyString(currentPassword) || !(await user.comparePassword(String(currentPassword).trim()))) {
+      return res.status(400).json({ message: 'Your current password is not correct' });
+    }
+    const credentialsError = getCredentialsError(user.username, newPassword);
+    if (credentialsError) {
+      return res.status(400).json({ message: credentialsError });
+    }
+    if (String(newPassword).trim() === String(currentPassword).trim()) {
+      return res.status(400).json({ message: 'Choose a password different from the current one' });
+    }
+
+    user.password = String(newPassword).trim(); // hashed by the model hook
+    user.mustChangePassword = false;
+    await user.save();
+    await record(req.user, 'account.password_changed', { type: 'user', id: user.id, name: user.username });
+
+    res.json({ message: 'Password changed' });
+  } catch (error) {
+    console.error('Password change error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

@@ -10,6 +10,7 @@ const {
 const { clinicToday, isSlotInPast } = require("../utils/clinicTime");
 const { getSlotConflictError } = require("../utils/bookingConflicts");
 const { createActivationCode } = require("../utils/activation");
+const audit = require("../utils/audit");
 
 // What the front desk sees about a patient: who they are, how to reach them, and what staff must know
 const DESK_PATIENT_FIELDS = ["id", "firstName", "lastName", "phone", "dateOfBirth", "insurance", "allergies", "bloodType"];
@@ -71,6 +72,7 @@ exports.registerPatient = async (req, res) => {
       activationExpiresAt: activation.expiresAt,
     });
 
+    await audit.record(req.user, "file.opened", { type: "patient", id: patient.id, name: audit.personName(patient) });
     res.status(201).json({
       message: "Patient file opened",
       patient: deskPatient(patient),
@@ -97,6 +99,7 @@ exports.newActivationCode = async (req, res) => {
     patient.activationCodeHash = activation.hash;
     patient.activationExpiresAt = activation.expiresAt;
     await patient.save();
+    await audit.record(req.user, "file.code_reissued", { type: "patient", id: patient.id, name: audit.personName(patient) });
     res.json({ activationCode: activation.code, activationExpiresAt: activation.expiresAt });
   } catch (error) {
     console.error("Error creating activation code:", error);
@@ -124,6 +127,7 @@ exports.updatePatient = async (req, res) => {
     }
     if (dateOfBirth !== undefined) patient.dateOfBirth = dateOfBirth || null;
     await patient.save();
+    await audit.record(req.user, "patient.contact_updated", { type: "patient", id: patient.id, name: audit.personName(patient) });
     res.json({ message: "Patient updated", patient: deskPatient(patient) });
   } catch (error) {
     console.error("Error updating patient:", error);
@@ -231,6 +235,7 @@ exports.createAppointment = async (req, res) => {
       reason,
       status: "scheduled",
     });
+    await audit.recordVisit(req.user, "visit.booked", appointment);
     return res
       .status(201)
       .json({ message: "Appointment scheduled successfully", appointment });
@@ -250,6 +255,7 @@ exports.updateAppointment = async (req, res) => {
     if (!appointment) {
       return res.status(404).json({ message: "Appointment not found" });
     }
+    const before = { status: appointment.status, slot: `${appointment.appointmentDate} ${String(appointment.appointmentTime).slice(0, 5)}` };
 
     const cleanDate = appointmentDate
       ? String(appointmentDate).trim()
@@ -320,6 +326,13 @@ exports.updateAppointment = async (req, res) => {
 
     await appointment.save();
 
+    const STATUS_ACTIONS = { cancelled: "visit.cancelled", "no-show": "visit.no_show", "checked-in": "visit.checked_in" };
+    if (appointment.status !== before.status && STATUS_ACTIONS[appointment.status]) {
+      await audit.recordVisit(req.user, STATUS_ACTIONS[appointment.status], appointment);
+    } else if (`${appointment.appointmentDate} ${String(appointment.appointmentTime).slice(0, 5)}` !== before.slot) {
+      await audit.recordVisit(req.user, "visit.moved", appointment, `was ${before.slot}`);
+    }
+
     res.json({
       message: "Appointment updated successfully",
       appointment,
@@ -348,6 +361,7 @@ exports.checkInPatient = async (req, res) => {
 
     appointment.status = "checked-in";
     await appointment.save();
+    await audit.recordVisit(req.user, "visit.checked_in", appointment);
 
     res.json({
       message: "Patient checked in successfully",

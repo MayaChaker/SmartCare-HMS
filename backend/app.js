@@ -15,6 +15,7 @@ const doctorRoutes = require("./routes/doctorRoutes");
 const receptionistRoutes = require("./routes/receptionistRoutes");
 const demoRoutes = require("./routes/demoRoutes");
 const patientController = require("./controllers/patientController");
+const adminController = require("./controllers/adminController");
 
 // Initialize express app
 const app = express();
@@ -77,6 +78,16 @@ app.use("/api/demo", demoRoutes);
 
 // Public doctor route for patients (no authentication required)
 app.get("/api/doctors", patientController.getAllDoctors);
+
+// Public doctor portraits, shown on the website and in the portals (another origin)
+app.get(
+  "/api/doctors/:id/photo",
+  (req, res, next) => {
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    next();
+  },
+  adminController.getDoctorPhoto,
+);
 
 // Health check for uptime monitoring: also verifies the database connection
 app.get("/api/health", async (req, res) => {
