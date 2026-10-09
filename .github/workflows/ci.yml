@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mysql:
-        image: mysql:8.0
+        # Docker Hub's official image through Google's mirror, which avoids Docker Hub's pull limits on shared runners
+        image: mirror.gcr.io/library/mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: smartcare_test
