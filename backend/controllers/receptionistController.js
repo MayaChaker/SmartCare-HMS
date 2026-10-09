@@ -1,7 +1,5 @@
-const { User, Patient, Doctor, Appointment } = require("../models");
+const { Patient, Doctor, Appointment } = require("../models");
 const { Op } = require("sequelize");
-const { sequelize } = require("../config/db");
-const { isValidEmail, getCredentialsError } = require("../utils/validation");
 const { getStatusChangeError, INACTIVE_STATUSES } = require("../utils/appointmentStatus");
 const {
   isIsoDate,
@@ -11,69 +9,124 @@ const {
 } = require("../utils/schedule");
 const { clinicToday, isSlotInPast } = require("../utils/clinicTime");
 const { getSlotConflictError } = require("../utils/bookingConflicts");
+const { createActivationCode } = require("../utils/activation");
 
-// Register new patient
+// What the front desk sees about a patient: who they are, how to reach them, and what staff must know
+const DESK_PATIENT_FIELDS = ["id", "firstName", "lastName", "phone", "dateOfBirth", "insurance", "allergies", "bloodType"];
+
+// The patient's own health information is complete enough for a visit
+const healthInfoComplete = (p) => Boolean(p.bloodType && p.allergies);
+
+const deskPatient = (p) => {
+  const data = p.toJSON ? p.toJSON() : p;
+  return {
+    id: data.id,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    phone: data.phone,
+    dateOfBirth: data.dateOfBirth,
+    insurance: data.insurance,
+    allergies: data.allergies,
+    bloodType: data.bloodType,
+    createdAt: data.createdAt,
+    hasAccount: Boolean(data.userId),
+    activationPending: !data.userId && Boolean(data.activationExpiresAt) && new Date(data.activationExpiresAt) > new Date(),
+    healthInfoComplete: healthInfoComplete(data),
+  };
+};
+
+const cleanName = (v) => (typeof v === "string" ? v.trim() : "");
+
+// Open a file at the desk for a patient who calls or walks in without an account.
+// Staff never choose the patient's username or password: the patient activates the file
+// with the one-time code returned here, which is shown once and stored only as a hash.
 exports.registerPatient = async (req, res) => {
   try {
-    const {
-      username,
-      password,
+    const firstName = cleanName(req.body.firstName);
+    const lastName = cleanName(req.body.lastName);
+    const phone = cleanName(req.body.phone);
+    const { dateOfBirth } = req.body;
+
+    if (!firstName || !lastName || !phone) {
+      return res.status(400).json({ message: "First name, last name and mobile are required" });
+    }
+    if (dateOfBirth && !isIsoDate(dateOfBirth)) {
+      return res.status(400).json({ message: "dateOfBirth must be YYYY-MM-DD" });
+    }
+
+    // The same person registered twice would split their history across two files
+    const duplicate = await Patient.findOne({ where: { phone, ...(dateOfBirth ? { dateOfBirth } : { firstName, lastName }) } });
+    if (duplicate) {
+      return res.status(409).json({ message: "A patient with these details already has a file", patient: deskPatient(duplicate) });
+    }
+
+    const activation = createActivationCode();
+    const patient = await Patient.create({
       firstName,
       lastName,
-      dob,
-      contact,
-      medicalHistory,
-      email,
       phone,
-      bloodType,
-    } = req.body;
-
-    const credentialsError = getCredentialsError(username, password);
-    if (credentialsError) {
-      return res.status(400).json({ message: credentialsError });
-    }
-    if (email && !isValidEmail(email)) {
-      return res.status(400).json({ message: "Invalid email address" });
-    }
-    if (dob && !isIsoDate(dob)) {
-      return res.status(400).json({ message: "dob must be YYYY-MM-DD" });
-    }
-
-    const cleanUsername = username.trim();
-    const existingUser = await User.findOne({ where: { username: cleanUsername } });
-    if (existingUser) {
-      return res.status(400).json({ message: "Username already exists" });
-    }
-
-    // User and profile are created together so a failure never leaves an orphan login
-    const patient = await sequelize.transaction(async (transaction) => {
-      const user = await User.create(
-        { username: cleanUsername, password: password.trim(), role: "patient" },
-        { transaction },
-      );
-
-      return Patient.create(
-        {
-          firstName: firstName || "Patient",
-          lastName: lastName || "User",
-          email: email || cleanUsername,
-          phone: phone || contact || "00-000-000",
-          dateOfBirth: dob || null,
-          contact: contact || "00-000-000",
-          medicalHistory: medicalHistory || "",
-          bloodType: bloodType || null,
-          userId: user.id,
-        },
-        { transaction },
-      );
+      contact: phone,
+      dateOfBirth: dateOfBirth || null,
+      activationCodeHash: activation.hash,
+      activationExpiresAt: activation.expiresAt,
     });
 
     res.status(201).json({
-      message: "Patient registered successfully",
-      patient,
+      message: "Patient file opened",
+      patient: deskPatient(patient),
+      activationCode: activation.code,
+      activationExpiresAt: activation.expiresAt,
     });
   } catch (error) {
     console.error("Error registering patient:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// A new activation code, for a patient who lost theirs or let it expire
+exports.newActivationCode = async (req, res) => {
+  try {
+    const patient = await Patient.findByPk(parseId(req.params.id));
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+    if (patient.userId) {
+      return res.status(409).json({ message: "This patient already has an account" });
+    }
+    const activation = createActivationCode();
+    patient.activationCodeHash = activation.hash;
+    patient.activationExpiresAt = activation.expiresAt;
+    await patient.save();
+    res.json({ activationCode: activation.code, activationExpiresAt: activation.expiresAt });
+  } catch (error) {
+    console.error("Error creating activation code:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// The desk can correct how to reach a patient; health information stays with the patient and their doctors
+exports.updatePatient = async (req, res) => {
+  try {
+    const patient = await Patient.findByPk(parseId(req.params.id));
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+    const { dateOfBirth } = req.body;
+    if (dateOfBirth && !isIsoDate(dateOfBirth)) {
+      return res.status(400).json({ message: "dateOfBirth must be YYYY-MM-DD" });
+    }
+    for (const key of ["firstName", "lastName", "phone"]) {
+      if (req.body[key] !== undefined) {
+        const value = cleanName(req.body[key]);
+        if (!value) return res.status(400).json({ message: `${key} cannot be empty` });
+        patient[key] = value;
+      }
+    }
+    if (dateOfBirth !== undefined) patient.dateOfBirth = dateOfBirth || null;
+    await patient.save();
+    res.json({ message: "Patient updated", patient: deskPatient(patient) });
+  } catch (error) {
+    console.error("Error updating patient:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -310,18 +363,11 @@ exports.checkInPatient = async (req, res) => {
 exports.getAllPatients = async (req, res) => {
   try {
     const patients = await Patient.findAll({
-      attributes: [
-        "id",
-        "firstName",
-        "lastName",
-        "phone",
-        "dateOfBirth",
-        "bloodType",
-        "createdAt",
-      ],
+      attributes: [...DESK_PATIENT_FIELDS, "createdAt", "userId", "activationExpiresAt"],
+      order: [["lastName", "ASC"], ["firstName", "ASC"]],
     });
 
-    res.json(patients);
+    res.json(patients.map(deskPatient));
   } catch (error) {
     console.error("Error fetching patients:", error);
     res.status(500).json({ message: "Server error" });
@@ -362,11 +408,11 @@ exports.getTodayAppointments = async (req, res) => {
       include: [
         {
           model: Patient,
-          attributes: ["id", "firstName", "lastName", "phone"],
+          attributes: DESK_PATIENT_FIELDS,
         },
         {
           model: Doctor,
-          attributes: ["id", "firstName", "lastName", "specialization"],
+          attributes: ["id", "firstName", "lastName", "specialization", "photoUrl", "workingHours"],
         },
       ],
       order: [["appointmentTime", "ASC"]],
@@ -382,16 +428,19 @@ exports.getTodayAppointments = async (req, res) => {
 exports.getAppointmentsByDate = async (req, res) => {
   try {
     const date = req.query.date || clinicToday();
+    if (!isIsoDate(date)) {
+      return res.status(400).json({ message: "date must be YYYY-MM-DD" });
+    }
     const appointments = await Appointment.findAll({
       where: { appointmentDate: date },
       include: [
         {
           model: Patient,
-          attributes: ["id", "firstName", "lastName", "phone"],
+          attributes: DESK_PATIENT_FIELDS,
         },
         {
           model: Doctor,
-          attributes: ["id", "firstName", "lastName", "specialization"],
+          attributes: ["id", "firstName", "lastName", "specialization", "photoUrl", "workingHours"],
         },
       ],
       order: [["appointmentTime", "ASC"]],
@@ -408,11 +457,11 @@ exports.getAllAppointments = async (req, res) => {
       include: [
         {
           model: Patient,
-          attributes: ["id", "firstName", "lastName", "phone"],
+          attributes: DESK_PATIENT_FIELDS,
         },
         {
           model: Doctor,
-          attributes: ["id", "firstName", "lastName", "specialization"],
+          attributes: ["id", "firstName", "lastName", "specialization", "photoUrl", "workingHours"],
         },
       ],
       order: [

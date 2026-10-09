@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const patientController = require('../controllers/patientController');
+const { getAvailability } = require('../controllers/availabilityController');
 const { verifyToken, checkRole } = require('../middlewares/auth');
 const { blockDemoAccounts } = require('../middlewares/demo');
 
@@ -15,7 +16,7 @@ router.post('/appointments', patientController.createAppointment);
 router.put('/appointments/:id', patientController.updateAppointment);
 router.delete('/appointments/:id', patientController.cancelAppointment);
 router.get('/records', patientController.getMedicalRecords);
-router.get('/availability', patientController.getAvailability);
+router.get('/availability', getAvailability);
 router.get('/doctors/:doctorId/booked-dates', patientController.getDoctorBookedDates);
 router.get('/doctors/:doctorId/booked-times', patientController.getDoctorBookedTimes);
 

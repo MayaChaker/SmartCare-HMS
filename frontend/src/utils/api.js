@@ -56,6 +56,8 @@ export const authAPI = {
   login: (credentials) => api.post("/auth/login", credentials),
   // POST `/auth/register-patient` with patient profile data
   registerPatient: (userData) => api.post("/auth/register-patient", userData),
+  // POST `/auth/activate` with `{ code, username, password }` for a file opened at the front desk
+  activate: (details) => api.post("/auth/activate", details),
 };
 
 // Patient API calls
@@ -271,4 +273,21 @@ export const doctorAPI = {
   updateRecord: (id, note) => call(api.put(`/doctor/records/${id}`, note), "Couldn't save the note"),
   // { availability, workingHours }
   updateAvailability: (values) => call(api.put("/doctor/availability", values), "Couldn't save your hours"),
+};
+
+// Front desk (reception) API calls
+export const receptionAPI = {
+  getDoctors: () => call(api.get("/receptionist/doctors"), "Couldn't load the doctors"),
+  getPatients: () => call(api.get("/receptionist/patients"), "Couldn't load the patients"),
+  // Visits on one day, "YYYY-MM-DD"
+  getDay: (date) => call(api.get("/receptionist/appointments/day", { params: { date } }), "Couldn't load the visits"),
+  getAvailability: (days = 14) => call(api.get("/receptionist/availability", { params: { days } }), "Couldn't load free times"),
+  checkIn: (id) => call(api.put(`/receptionist/checkin/${id}`), "Couldn't check the patient in"),
+  setStatus: (id, status) => call(api.put(`/receptionist/appointments/${id}`, { status }), "Couldn't update the visit"),
+  move: (id, slot) => call(api.put(`/receptionist/appointments/${id}`, slot), "Couldn't move the visit"),
+  book: (visit) => call(api.post("/receptionist/appointments", visit), "Couldn't book the visit"),
+  // Returns { patient, activationCode, activationExpiresAt }
+  openFile: (details) => call(api.post("/receptionist/patients", details), "Couldn't open the file"),
+  updatePatient: (id, details) => call(api.put(`/receptionist/patients/${id}`, details), "Couldn't save the details"),
+  newActivationCode: (id) => call(api.post(`/receptionist/patients/${id}/activation-code`), "Couldn't create a new code"),
 };

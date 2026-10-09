@@ -43,7 +43,17 @@ async function init() {
       await createAdminUser();
       await ensureDoctorFeeColumn();
       await ensureMedicalRecordAppointmentColumn();
-      await ensureAppointmentStepColumns();
+      // Visit step times (check-in, start, end)
+      await ensureColumns("appointments", [
+        ["checkedInAt", "DATETIME NULL"],
+        ["startedAt", "DATETIME NULL"],
+        ["completedAt", "DATETIME NULL"],
+      ]);
+      // Files opened at the front desk, waiting for the patient to activate them
+      await ensureColumns("patients", [
+        ["activationCodeHash", "VARCHAR(64) NULL"],
+        ["activationExpiresAt", "DATETIME NULL"],
+      ]);
       await ensureAppointmentStatusValues();
       await ensureAppointmentSlotIndexNotUnique();
       await ensureDemoData();
@@ -133,25 +143,26 @@ async function ensureMedicalRecordAppointmentColumn() {
   }
 }
 
-// Visit step times (check-in, start, end) were added later; sync() does not add columns to existing tables
-async function ensureAppointmentStepColumns() {
+// sync() does not add new columns to existing tables, so columns added later are created here.
+// Table and column names come from this file only, never from a request.
+async function ensureColumns(tableName, columns) {
   try {
     const [tables] = await sequelize.query(
-      "SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND LOWER(TABLE_NAME) = 'appointments' LIMIT 1",
+      `SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND LOWER(TABLE_NAME) = '${tableName}' LIMIT 1`,
     );
     const table = tables?.[0]?.name;
     if (!table) return;
-    for (const column of ["checkedInAt", "startedAt", "completedAt"]) {
+    for (const [column, definition] of columns) {
       const [rows] = await sequelize.query(
         `SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '${table}' AND COLUMN_NAME = '${column}'`,
       );
       if (!Array.isArray(rows) || rows.length === 0) {
-        await sequelize.query(`ALTER TABLE \`${table}\` ADD COLUMN ${column} DATETIME NULL`);
-        console.log(`Appointment ${column} column added`);
+        await sequelize.query(`ALTER TABLE \`${table}\` ADD COLUMN ${column} ${definition}`);
+        console.log(`${table}.${column} column added`);
       }
     }
   } catch (error) {
-    console.error("Failed to ensure appointment step columns:", error);
+    console.error(`Failed to add columns to ${tableName}:`, error);
   }
 }
 

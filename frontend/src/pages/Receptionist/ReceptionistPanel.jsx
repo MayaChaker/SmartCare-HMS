@@ -1,159 +1,115 @@
-// Receptionist panel shell
-import React from "react";
-// Router helper for brand click navigation to Home
-import { useNavigate } from "react-router-dom";
-import "./ReceptionistPanel.css";
-import {
-  ReceptionistProvider,
-  useReceptionist,
-} from "../../context/ReceptionistContext";
+import { useEffect, useState } from "react";
+import PortalLayout from "../../components/portal/PortalLayout";
+import DeskSection from "../../components/portal/desk/DeskSection";
+import DeskBookSection from "../../components/portal/desk/DeskBookSection";
+import DeskVisitsSection from "../../components/portal/desk/DeskVisitsSection";
+import DeskPatientsSection from "../../components/portal/desk/DeskPatientsSection";
+import { ui } from "../../components/portal/ui";
+import useFrontDesk from "../../hooks/useFrontDesk";
+import useNow from "../../hooks/useNow";
+import { useAuth } from "../../context/useAuth";
+import { patientOffice } from "../../content/portal";
+import { toLocalDateString } from "../../utils/schedule";
 
-import ReceptionistDashboard from "../../components/ReceptionistDashboard/ReceptionistDashboard";
-import "../../components/ReceptionistDashboard/ReceptionistDashboard.css";
-import ReceptionistPatient from "../../components/ReceptionistPatient/ReceptionistPatient";
-import ReceptionistAppointments from "../../components/ReceptionistAppointments/ReceptionistAppointments";
-import ReceptionistNotifications from "../../components/ReceptionistNotifications/ReceptionistNotifications";
-// Icons used in header and sidebar navigation
-import { FaUserTie } from "react-icons/fa6";
-import LogoutButton from "../../components/ui/LogoutButton/LogoutButton";
-import { GrBarChart } from "react-icons/gr";
-import { FaUserInjured } from "react-icons/fa6";
-import { GoChecklist } from "react-icons/go";
-import { MdNotifications } from "react-icons/md";
-import Spinner from "../../components/ui/Spinner/Spinner";
+const SECTIONS = [
+  { id: "desk", label: "Desk" },
+  { id: "book", label: "Book a visit", short: "Book" },
+  { id: "visits", label: "Visits" },
+  { id: "patients", label: "Patients" },
+];
 
-// Inner panel: consumes receptionist context and renders the layout
-const ReceptionistPanelInner = () => {
-  const navigate = useNavigate();
-
-  // Context values: current user, active section, section setter, loading gate, modal renderer
-  const { user, activeSection, setActiveSection, loading, renderModal } =
-    useReceptionist();
-
-  return (
-    <div className="receptionist-panel">
-      {/* Header: brand navigation and user actions */}
-      <div className="receptionist-header">
-        {/* Brand area: navigates to Home; keyboard accessible */}
-        <div
-          className="header-brand"
-          onClick={() => navigate("/")}
-          role="button"
-          tabIndex={0}
-          aria-label="Go to Home"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") navigate("/");
-          }}
-          title="Go to Home"
-        >
-          <div>
-            <FaUserTie className="receptionist-icon" />
-          </div>
-          <div className="brand-row">
-            <h1 className="panel-title">
-              SmartCare Receptionist
-              <span className="welcome-inline">
-                Welcome back, {user?.username}
-              </span>
-            </h1>
-          </div>
-        </div>
-
-        <div className="header-user-info">
-          {/* Logout triggers auth flow handled elsewhere */}
-          <LogoutButton>Logout</LogoutButton>
-        </div>
-      </div>
-
-      <div className="receptionist-content">
-        {/* Sidebar navigation: switches activeSection for main content routing */}
-        <div className="receptionist-sidebar">
-          <nav className="sidebar-nav">
-            <button
-              className={`nav-button ${
-                activeSection === "dashboard" ? "active" : ""
-              }`}
-              onClick={() => setActiveSection("dashboard")}
-            >
-              <span className="nav-icon">
-                <GrBarChart />
-              </span>
-              <span className="nav-text">Dashboard</span>
-            </button>
-
-            <button
-              className={`nav-button ${
-                activeSection === "patients" ? "active" : ""
-              }`}
-              onClick={() => setActiveSection("patients")}
-            >
-              <span className="nav-icon">
-                <FaUserInjured />
-              </span>
-              <span className="nav-text">Patients</span>
-            </button>
-
-            <button
-              className={`nav-button ${
-                activeSection === "appointments" ? "active" : ""
-              }`}
-              onClick={() => setActiveSection("appointments")}
-            >
-              <span className="nav-icon">
-                <GoChecklist />
-              </span>
-              <span className="nav-text">Appointments</span>
-            </button>
-
-            <button
-              className={`nav-button ${
-                activeSection === "notifications" ? "active" : ""
-              }`}
-              onClick={() => setActiveSection("notifications")}
-            >
-              <span className="nav-icon">
-                <MdNotifications />
-              </span>
-              <span className="nav-text">Notifications</span>
-            </button>
-          </nav>
-        </div>
-
-        <div className="receptionist-main">
-          {/* Section routing: render content based on activeSection; loading gates content */}
-          {loading ? (
-            <div className="receptionist-loading-overlay">
-              <Spinner size={48} />
-              <div className="receptionist-loading-text">Loading...</div>
-            </div>
-          ) : (
-            <>
-              {/* Dashboard overview for receptionist tasks */}
-              {activeSection === "dashboard" && <ReceptionistDashboard />}
-              {/* Patient management section */}
-              {activeSection === "patients" && <ReceptionistPatient />}
-              {/* Appointment management section */}
-              {activeSection === "appointments" && <ReceptionistAppointments />}
-              {/* Notifications and alerts */}
-              {activeSection === "notifications" && (
-                <ReceptionistNotifications />
-              )}
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Modal rendering managed by context (create/edit/view flows) */}
-      {renderModal()}
-    </div>
-  );
+const sectionFromHash = () => {
+  const id = window.location.hash.slice(1);
+  return SECTIONS.some((s) => s.id === id) ? id : "desk";
 };
 
-// Provider wrapper: supplies receptionist context to the inner panel
-const ReceptionistPanel = () => (
-  <ReceptionistProvider>
-    <ReceptionistPanelInner />
-  </ReceptionistProvider>
-);
+// Front desk
+export default function ReceptionistPanel() {
+  const desk = useFrontDesk();
+  const now = useNow();
+  const { user } = useAuth();
+  const [active, setActive] = useState(sectionFromHash);
+  // Details a section is opened with (a slot or visit for Book, a patient for Patients); a menu click starts fresh
+  const [intent, setIntent] = useState({ key: 0 });
 
-export default ReceptionistPanel;
+  useEffect(() => {
+    const onHashChange = () => {
+      const id = sectionFromHash();
+      setIntent((current) => (current.section === id && current.fresh ? { ...current, fresh: false } : { key: current.key + 1 }));
+      setActive(id);
+      window.scrollTo({ top: 0 });
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
+  const open = (id, details = {}) => {
+    setIntent((current) => ({ key: current.key + 1, section: id, fresh: true, ...details }));
+    if (window.location.hash === `#${id}`) {
+      setActive(id);
+      window.scrollTo({ top: 0 });
+    } else {
+      window.location.hash = id;
+    }
+  };
+
+  const todayYmd = toLocalDateString(now);
+  const fresh = (id) => (intent.section === id ? intent : {});
+
+  return (
+    <PortalLayout
+      sections={SECTIONS}
+      active={active}
+      userName={user?.username || "Front desk"}
+      userDetail="Front desk"
+      homeLabel="front desk"
+      strip={
+        <>
+          Main reception · Ground floor · Private Patient Office <span className="text-ivory tabular-nums">{patientOffice.phone}</span>
+        </>
+      }
+    >
+      {desk.status === "loading" && <p className={`${ui.page} py-16 text-[16px] text-muted`}>Loading the desk…</p>}
+      {desk.status === "error" && (
+        <div role="alert" className={`${ui.page} py-16`}>
+          <p className="font-serif text-3xl text-ink">We could not load the desk.</p>
+          <p className="mt-2 text-[15px] text-muted">Please check your connection and try again.</p>
+          <button type="button" onClick={desk.reload} className={`${ui.primary} mt-6`}>
+            Try again
+          </button>
+        </div>
+      )}
+      {desk.status === "ready" && (
+        <>
+          {active === "desk" && (
+            <DeskSection
+              desk={desk}
+              now={now}
+              onBook={(doctorId, time) => open("book", { doctorId, date: todayYmd, time })}
+              onMove={(visit) => open("book", { moving: visit })}
+            />
+          )}
+          {active === "book" && <DeskBookSection key={intent.key} desk={desk} preset={fresh("book")} onFinished={() => open("desk")} />}
+          {active === "visits" && (
+            <DeskVisitsSection
+              key={intent.key}
+              desk={desk}
+              now={now}
+              onMove={(visit) => open("book", { moving: visit })}
+              onOpenPatient={(patientId) => open("patients", { patientId })}
+            />
+          )}
+          {active === "patients" && (
+            <DeskPatientsSection
+              key={intent.key}
+              desk={desk}
+              focusPatientId={fresh("patients").patientId}
+              onBook={(patientId) => open("book", { patientId })}
+              onNewFile={() => open("book", { newFile: true })}
+            />
+          )}
+        </>
+      )}
+    </PortalLayout>
+  );
+}

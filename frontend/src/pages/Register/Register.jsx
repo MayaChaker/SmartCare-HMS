@@ -87,6 +87,12 @@ export default function Register() {
     >
       <h2 className="font-serif text-5xl leading-tight text-ink">Create your account</h2>
       <p className="mt-3 text-[16px] text-muted">It takes a minute. Your information stays confidential.</p>
+      <p className="mt-4 text-[15px] text-muted">
+        Reception already opened a file for you?{" "}
+        <Link to="/activate" className="border-b border-champagne text-forest hover:text-champagne">
+          I have a code from reception
+        </Link>
+      </p>
 
       {serverError && (
         <p role="alert" className="mt-8 border-l-2 border-alert bg-alert/5 px-4 py-3 text-[15px] text-alert">

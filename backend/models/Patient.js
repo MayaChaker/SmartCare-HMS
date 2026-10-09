@@ -69,6 +69,15 @@ const Patient = sequelize.define('Patient', {
   medicalHistory: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  // A file opened at the front desk has no login yet: the patient activates it with a one-time code
+  activationCodeHash: {
+    type: DataTypes.STRING(64),
+    allowNull: true
+  },
+  activationExpiresAt: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 });
 
