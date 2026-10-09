@@ -18,6 +18,12 @@ const PLACES = {
   Gynecology: "Women's Health · Level 4",
   Neurology: "Neuroscience Centre · Level 3, West wing",
   Oncology: "Cancer Centre · Level 5",
+  Ophthalmology: "Eye Clinic · Level 1, East wing",
+  ENT: "Ear, Nose and Throat · Level 1, West wing",
+  Psychiatry: "Mind and Wellbeing · Level 4, quiet wing",
+  Endocrinology: "Diabetes and Hormones · Level 2, West wing",
+  Urology: "Urology · Level 2, East wing",
+  Gastroenterology: "Digestive Health · Level 3, East wing",
 };
 export const departmentPlace = (specialization) => PLACES[specialization] || PLACES["General Medicine"];
 export const departments = Object.keys(PLACES);
