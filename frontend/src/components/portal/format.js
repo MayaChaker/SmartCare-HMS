@@ -47,3 +47,9 @@ export const isUpcoming = (appointment) =>
 
 export const byDateTime = (a, b) =>
   `${a.appointmentDate} ${a.appointmentTime}`.localeCompare(`${b.appointmentDate} ${b.appointmentTime}`);
+
+// Consultation fee in US dollars: "60.00" -> "$60"; nothing when no fee is set
+export const formatFee = (fee) => {
+  const amount = Number(fee);
+  return Number.isFinite(amount) && amount > 0 ? `$${amount.toLocaleString("en-US", { maximumFractionDigits: 2 })}` : null;
+};
