@@ -4,9 +4,13 @@
 
 **Live demo:** https://smart-care-hms.vercel.app/
 
-SmartCare is a full-stack web application for managing a small hospital or clinic. It supports four roles (Admin, Doctor, Receptionist, Patient), and each user only sees the tools their role needs.
+SmartCare is a full-stack hospital management system for a private hospital. It has a public website and four portals, one for each role: patients, doctors, the front desk and the administration. Each person only sees the tools their role needs, and the server enforces the same rules.
+
+The project follows how a real visit works: a patient books a time inside the doctor's working hours, the front desk checks them in, the doctor starts and completes the visit and writes the note, and the administration follows the numbers.
 
 > The backend runs on a free hosting tier, so the first request after a period of inactivity can take up to a minute while the server wakes up.
+
+![SmartCare website](docs/screenshots/home.jpg)
 
 ## Try the Demo
 
@@ -16,26 +20,24 @@ Open the [login page](https://smart-care-hms.vercel.app/login) and click a role 
 | --- | --- | --- |
 | Patient | `demo.patient` | `SmartCareDemo` |
 | Doctor | `dr.karim.mansour` | `SmartCareDemo` |
-| Receptionist | `demo.reception` | `SmartCareDemo` |
-| Admin | `demo.admin` | `SmartCareDemo` |
+| Front desk | `demo.reception` | `SmartCareDemo` |
+| Administration | `demo.admin` | `SmartCareDemo` |
 
-Demo accounts can use every main flow: booking, rescheduling, cancelling, check-in, completing visits and adding medical records. Managing users and editing profiles are disabled for them. The demo data is reset every night.
+Demo accounts can use every main flow: booking, moving and cancelling visits, check-in, starting and completing visits, and writing visit notes. Changing accounts, profiles, portraits and working hours is turned off for them. The demo data is reset every night.
 
 ## Screenshots
 
-![Login page with demo sign-in](docs/screenshots/login.jpg)
-
-| Patient: appointments | Patient: choose a doctor |
+| Patient: home | Patient: book a visit |
 | --- | --- |
-| ![Patient appointments](docs/screenshots/patient-appointments.png) | ![Doctors list](docs/screenshots/patient-doctors.jpg) |
+| ![Patient home with the next visit](docs/screenshots/patient-home.jpg) | ![Booking a visit: doctors with their next free times and fees](docs/screenshots/patient-book.jpg) |
 
-| Doctor dashboard | Receptionist: appointments |
+| Doctor: today | Front desk: today's board |
 | --- | --- |
-| ![Doctor dashboard](docs/screenshots/doctor-dashboard.png) | ![Receptionist appointments](docs/screenshots/receptionist-appointments.png) |
+| ![Doctor's day: waiting room, next patient and today's list](docs/screenshots/doctor-today.jpg) | ![Front desk board: doctors as columns, arrivals and waiting room](docs/screenshots/reception-desk.jpg) |
 
-**Admin overview**
-
-![Admin overview](docs/screenshots/admin-dashboard.png)
+| Administration: overview | Patient portal on a phone |
+| --- | --- |
+| ![Administration overview with visits per day and by department](docs/screenshots/admin-overview.jpg) | <img src="docs/screenshots/patient-phone.jpg" alt="Patient portal on a phone" width="260"> |
 
 ## My Role
 
@@ -43,27 +45,69 @@ Demo accounts can use every main flow: booking, rescheduling, cancelling, check-
 
 ## Features
 
-- **Patients:** register, complete their profile, book a visit in a doctor's working hours, change its time, cancel it, and read their medical records
-- **Doctors:** see today's schedule and their patients, add medical records, and set their profile, photo and working hours
-- **Receptionists:** register patients, book visits for them, check patients in, and move visits through their statuses
-- **Admins:** create, edit and delete staff accounts, and view system reports
+**Public website**
+- Centers, doctors, the patient experience and facilities, with a way into the patient portal
 
-## Tech Stack
+**Patients**
+- Book a visit in under a minute: filter doctors by department, see each doctor's next free times and consultation fee, then pick a visit type
+- Move or cancel a visit, and see past and upcoming visits
+- Read visit notes and prescriptions written by the doctor
+- Keep their own file up to date (contact details, allergies, blood type, insurance)
+- Activate an account with the one-time code the front desk gives them, or register online
 
-- **Frontend:** React 19, Vite, React Router
-- **Backend:** Node.js 20, Express 5
-- **Database:** MySQL with Sequelize
-- **Auth:** JSON Web Tokens and bcrypt-hashed passwords
-- **Uploads:** Multer (doctor photos)
+**Doctors**
+- Today's list, the waiting room with waiting minutes, and the next patient
+- Start and complete a visit, and write the note: symptoms, examination, diagnosis, treatment, prescriptions and follow-up date
+- A weekly schedule, a patient list with each patient's chart, and the profile patients see (portrait, hours, taking bookings or not)
+
+**Front desk**
+- Today's board with every working doctor as a column, late arrivals, and the waiting room
+- Check patients in, mark no-shows, and book, move or cancel visits for them
+- Open a new patient file with only a name, mobile and date of birth; the patient gets an activation code and completes the rest themselves
+
+**Administration**
+- Overview for the last 7 or 30 days: visits, no-show rate, average wait, visit length, new patients, visits per day and per department, and a table per doctor
+- Activity log: who did what and when (bookings, check-ins, notes, account changes)
+- Add and edit doctors: portrait, department, qualification, fee and booking hours
+- Staff accounts with a temporary password that must be changed at first sign-in, and password resets
+
+## Rules the Server Enforces
+
+- Visits can only be booked in the future, inside the doctor's working hours, and never on a time that is already taken by the doctor or by the same patient
+- A visit only moves forward, and each step belongs to one role:
+
+  | From | To | Who |
+  | --- | --- | --- |
+  | `scheduled` | `checked-in`, `no-show` | front desk |
+  | `scheduled` | `cancelled` | front desk or patient |
+  | `checked-in` | `in-progress` | doctor |
+  | `checked-in` | `cancelled` | front desk |
+  | `in-progress` | `completed` | doctor |
+
+  Completed, cancelled and no-show visits are final. A no-show can only be marked after the visit's time.
+- A visit note belongs to one visit, and only that visit's doctor can write it once the visit has started
+- Dates and "today" follow the hospital's time zone (Beirut), not the server's clock
 
 ## Security
 
 - Every API route checks the token and the user's role on the server; hiding a button in the UI is never the only protection
 - Each request reloads the user, so deleted accounts and role changes take effect immediately
 - Patients can only reach their own data, and doctors only patients they have an appointment with
-- Login is rate-limited (10 failed attempts per IP every 15 minutes)
-- Photo uploads accept JPG, PNG and WEBP up to 3 MB, and file names are generated by the server
+- Passwords are hashed with bcrypt. Staff accounts start with a temporary password, and the server refuses every other request until it is changed
+- Activation codes are stored as hashes and expire after 14 days
+- Sign-in, registration, activation and password changes are rate-limited
+- Portraits must be JPG, PNG or WebP up to 3 MB, and the file's first bytes must match its type. They are stored in the database, because the hosting disk is wiped on every deploy
 - No credentials live in the code: the first admin account is created from environment variables
+
+## Tech Stack
+
+- **Frontend:** React 19, Vite, React Router, Tailwind CSS 4
+- **Backend:** Node.js 20, Express 5
+- **Database:** MySQL with Sequelize
+- **Auth:** JSON Web Tokens and bcrypt-hashed passwords
+- **Uploads:** Multer, kept in memory and checked before saving
+- **Tests and CI:** Node's test runner against a real MySQL database, GitHub Actions
+- **Hosting:** Vercel (frontend), Render (backend), TiDB Cloud (MySQL)
 
 ## Getting Started
 
@@ -132,11 +176,13 @@ npm install
 npm run dev
 ```
 
-The app runs at http://localhost:5173. In development, Vite forwards `/api` and `/uploads` to the backend, so no frontend configuration is needed.
+The app runs at http://localhost:5173. In development, Vite forwards `/api` to the backend, so no frontend configuration is needed.
 
 ### 4. Sample data (optional)
 
-To create six sample doctors with profiles, working hours and photos:
+**Option A: the full demo.** Set `DEMO_PASSWORD=<8+ characters>` in `backend/.env` and restart the API. On its first start it creates the four demo accounts, 14 sample doctors, a few patients and visits around today.
+
+**Option B: sample doctors only.**
 
 | OS | Command (in `backend`) |
 | --- | --- |
@@ -147,14 +193,14 @@ All sample doctors share that password; their usernames are printed by the scrip
 
 ### 5. Try it
 
-1. Sign in with your admin account and create a receptionist (and more doctors if you like).
-2. Sign in as a doctor and check the working days and hours under **Profile**.
-3. Open http://localhost:5173/register, create a patient account, and book a visit.
-4. Sign in as the receptionist to check the patient in, then as the doctor to complete the visit and add a medical record.
+1. Sign in with your admin account and add a front desk account under **Staff**. Note the temporary password it shows.
+2. Sign in as the front desk (you will be asked to choose a new password), open a patient file and book a visit.
+3. Use the activation code at http://localhost:5173/activate to create the patient's sign-in.
+4. Check the patient in at the front desk, then sign in as the doctor to start the visit, write the note and complete it.
 
 ## Tests
 
-The backend has 49 tests built on Node's test runner. They cover authentication, role checks, data ownership (IDOR), booking rules, the visit status flow, upload validation and the demo restrictions. They run against a real MySQL database named `smartcare_test`, which is created automatically and wiped on every run. The tests refuse to start against any database whose name does not end with `_test`.
+The backend has 88 tests built on Node's test runner. They cover sign-in and password changes, role checks, data ownership (IDOR), booking rules, the visit status flow, the front desk and activation codes, the administration, upload checks and the demo restrictions. They run against a real MySQL database named `smartcare_test`, which is created automatically and wiped on every run. The tests refuse to start against any database whose name does not end with `_test`.
 
 ```bash
 cd backend
@@ -163,7 +209,7 @@ npm test
 
 They use the `DB_USER`, `DB_PASSWORD` and `DB_HOST` values from `backend/.env`.
 
-[GitHub Actions](.github/workflows/ci.yml) runs these tests, plus the frontend lint and build, on every push to `main` and on every pull request.
+[GitHub Actions](.github/workflows/ci.yml) runs these tests, plus the frontend lint and build, on every push to `main` and on every pull request. The `main` branch only accepts changes through pull requests that pass both checks.
 
 ## Environment Variables
 
@@ -179,6 +225,7 @@ They use the `DB_USER`, `DB_PASSWORD` and `DB_HOST` values from `backend/.env`.
 | `NODE_ENV` | production | Set to `production` when deployed |
 | `DEMO_PASSWORD` | no | Enables the public demo accounts and sets their password (8+ characters) |
 | `DEMO_RESET_TOKEN` | no | Secret required by `POST /api/demo/reset` |
+| `CLINIC_TIME_ZONE` | no | The hospital's time zone, default `Asia/Beirut` |
 | `PORT` | no | API port, default `5000` |
 
 **Frontend** (`frontend/.env`, see [frontend/.env.example](frontend/.env.example))
@@ -191,38 +238,40 @@ They use the `DB_USER`, `DB_PASSWORD` and `DB_HOST` values from `backend/.env`.
 ## Deployment
 
 - **Frontend (Vercel):** root directory `frontend`, set `VITE_API_BASE_URL=https://<backend-host>/api`. `vercel.json` sends every route to `index.html`, so refreshing `/dashboard` works.
-- **Backend (Render or similar):** root directory `backend`, start command `npm start`, and set `NODE_ENV=production`, `JWT_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `DATABASE_URL` and `CORS_ORIGINS=https://<frontend-host>`.
-- **Public demo (optional):** set `DEMO_PASSWORD` and `DEMO_RESET_TOKEN` on the backend and `VITE_DEMO_PASSWORD` on the frontend. The first start creates the demo data. The [Reset demo data](.github/workflows/demo-reset.yml) workflow restores it every night; it needs the same token as a `DEMO_RESET_TOKEN` repository secret on GitHub.
+- **Backend (Render or similar):** root directory `backend`, start command `npm start`, and set `NODE_ENV=production`, `JWT_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `DATABASE_URL` and `CORS_ORIGINS=https://<frontend-host>`. On startup the server adds any new columns to an existing database before it serves requests.
+- **Public demo (optional):** set `DEMO_PASSWORD` and `DEMO_RESET_TOKEN` on the backend and `VITE_DEMO_PASSWORD` on the frontend. The first start creates the demo data. The [Reset demo data](.github/workflows/demo-reset.yml) workflow restores it every night and can also be run by hand from the Actions tab; it needs the same token as a `DEMO_RESET_TOKEN` repository secret on GitHub.
 - **Database:** any hosted MySQL-compatible service that provides a connection URL.
 
 ## API Overview
 
-All routes are under `/api`. Apart from the auth routes and the public doctor list, every route needs an `Authorization: Bearer <token>` header and the listed role.
+All routes are under `/api`. Apart from the public routes, every route needs an `Authorization: Bearer <token>` header and the listed role.
 
 | Area | Method and path | Role |
 | --- | --- | --- |
-| Auth | `POST /auth/login` | public |
-| | `POST /auth/register-patient` | public |
-| Doctors | `GET /doctors` | public |
+| Auth | `POST /auth/login`, `POST /auth/register-patient`, `POST /auth/activate` | public |
+| | `POST /auth/change-password` | signed in |
+| Doctors | `GET /doctors`, `GET /doctors/:id/photo` | public |
 | Health | `GET /health` (checks the database too; 503 when it is down) | public |
 | Demo | `POST /demo/reset` (header `X-Demo-Reset-Token`) | reset token |
 | Patient | `GET`, `PUT /patient/profile` | patient |
 | | `GET`, `POST /patient/appointments` | patient |
-| | `PUT /patient/appointments/:id` (reschedule) | patient |
-| | `DELETE /patient/appointments/:id` (cancel) | patient |
-| | `GET /patient/records` | patient |
-| | `GET /patient/doctors/:doctorId/booked-times?date=` | patient |
-| Doctor | `GET`, `PUT /doctor/profile`, `POST /doctor/photo` | doctor |
-| | `GET /doctor/appointments`, `PUT /doctor/appointments/:id` | doctor |
+| | `PUT /patient/appointments/:id` (move), `DELETE /patient/appointments/:id` (cancel) | patient |
+| | `GET /patient/records`, `GET /patient/doctors` | patient |
+| | `GET /patient/availability?days=` (free times per doctor) | patient |
+| Doctor | `GET`, `PUT /doctor/profile`, `POST /doctor/photo`, `PUT /doctor/availability` | doctor |
+| | `GET /doctor/appointments`, `GET /doctor/schedule`, `PUT /doctor/appointments/:id` | doctor |
 | | `GET /doctor/patients`, `GET /doctor/patients/:id` | doctor |
 | | `POST /doctor/records`, `PUT /doctor/records/:id` | doctor |
-| | `PUT /doctor/availability` | doctor |
-| Receptionist | `GET`, `POST /receptionist/patients` | receptionist |
-| | `GET /receptionist/doctors`, `GET /receptionist/doctors/:id/booked-times?date=` | receptionist |
+| Front desk | `GET`, `POST /receptionist/patients`, `PUT /receptionist/patients/:id` | receptionist |
+| | `POST /receptionist/patients/:id/activation-code` | receptionist |
+| | `GET /receptionist/doctors`, `GET /receptionist/availability?days=` | receptionist |
 | | `GET`, `POST /receptionist/appointments`, `GET /receptionist/appointments/day?date=` | receptionist |
 | | `PUT /receptionist/appointments/:id`, `PUT /receptionist/checkin/:appointmentId` | receptionist |
-| Admin | `GET`, `POST /admin/users`, `PUT`, `DELETE /admin/users/:id` | admin |
-| | `GET /admin/analytics`, `/admin/doctors`, `/admin/patients`, `/admin/appointments` | admin |
+| Administration | `GET`, `POST /admin/users`, `PUT`, `DELETE /admin/users/:id` | admin |
+| | `POST /admin/users/:id/reset-password` | admin |
+| | `GET /admin/doctors`, `PUT /admin/doctors/:id`, `POST /admin/doctors/:id/photo` | admin |
+| | `GET /admin/analytics?days=7\|30`, `GET /admin/activity` | admin |
+| | `GET /admin/patients`, `GET /admin/appointments` | admin |
 
 Example:
 
@@ -232,30 +281,32 @@ curl -X POST http://localhost:5000/api/auth/login \
   -d '{"username":"<username>","password":"<password>"}'
 ```
 
-### Visit statuses
-
-`scheduled` → `checked-in` → `in-progress` → `completed`. A visit can be `cancelled` at any point before it is completed. Completed and cancelled visits cannot be changed.
-
 ## Project Structure
 
 ```text
 SmartCare-HMS/
   backend/
-    config/        database and auth settings
+    config/        database, demo and auth settings
     controllers/   request handlers per role
     middlewares/   token, role and demo checks
+    models/        Sequelize models
+    routes/        Express routers per role
+    utils/         booking, status, time zone, activation, audit and upload rules
     demo/          sample data and the demo reset
     scripts/       seed script
     tests/         API and rule tests
-    models/        Sequelize models
-    routes/        Express routers per role
-    utils/         shared validation, scheduling and status rules
     app.js         Express app: middleware and routes
     server.js      database connection, startup tasks, listen
   frontend/
     src/
-      pages/       one page per role, plus home, login and register
-      components/  page sections and shared UI
-      context/     state and API calls per role
+      pages/       one page per portal, plus home, sign-in, activation and password change
+      components/
+        site/      the public website
+        auth/      sign-in and registration layout
+        portal/    shared portal layout and one folder per role
+      hooks/       data loading and actions for each portal
+      content/     texts for the website and portals
+      context/     signed-in user
+      styles/      Tailwind theme
       utils/       API client and scheduling helpers
 ```
