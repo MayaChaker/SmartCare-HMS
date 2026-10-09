@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import PortalLayout from "../../components/portal/PortalLayout";
+import Loader from "../../components/Loader";
 import OverviewSection from "../../components/portal/admin/OverviewSection";
 import ActivitySection from "../../components/portal/admin/ActivitySection";
 import DoctorsSection from "../../components/portal/admin/DoctorsSection";
@@ -39,7 +40,7 @@ export default function AdminPanel() {
 
   return (
     <PortalLayout sections={SECTIONS} active={active} userName={user?.username || "Administration"} userDetail="Administration" homeLabel="administration" strip="Administration · Level 6">
-      {admin.status === "loading" && <p className={`${ui.page} py-16 text-[16px] text-muted`}>Loading…</p>}
+      {admin.status === "loading" && <Loader label="Loading the administration…" />}
       {admin.status === "error" && (
         <div role="alert" className={`${ui.page} py-16`}>
           <p className="font-serif text-3xl text-ink">We could not load the administration.</p>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import PortalLayout from "../../components/portal/PortalLayout";
+import Loader from "../../components/Loader";
 import HomeSection from "../../components/portal/patient/HomeSection";
 import VisitsSection from "../../components/portal/patient/VisitsSection";
 import BookSection from "../../components/portal/patient/BookSection";
@@ -78,7 +79,7 @@ export default function Dashboard() {
         </>
       }
     >
-      {portal.status === "loading" && <p className={`${ui.page} py-16 text-[16px] text-muted`}>Loading your portal…</p>}
+      {portal.status === "loading" && <Loader label="Loading your portal…" />}
       {portal.status === "error" && (
         <div role="alert" className={`${ui.page} py-16`}>
           <p className="font-serif text-3xl text-ink">We could not load your portal.</p>

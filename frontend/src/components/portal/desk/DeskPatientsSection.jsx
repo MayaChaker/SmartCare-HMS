@@ -5,6 +5,7 @@ import { ui } from "../ui";
 import { AllergyNote, PatientInitials } from "../doctor/PatientChart";
 import ActivationCode from "./ActivationCode";
 import { personName } from "./desk";
+import { BusyLabel } from "../../Loader";
 
 const FIELDS = [
   ["firstName", "First name", "text"],
@@ -66,8 +67,8 @@ function PatientCard({ patient, desk, onBook }) {
             </div>
           ))}
           <div className="flex gap-3">
-            <button type="submit" disabled={busy} className={ui.primary}>
-              {busy ? "Saving…" : "Save"}
+            <button type="submit" disabled={busy} aria-busy={busy} className={ui.primary}>
+              <BusyLabel busy={busy} text="Save" />
             </button>
             <button type="button" onClick={() => setValues(null)} className={ui.outline}>
               Cancel

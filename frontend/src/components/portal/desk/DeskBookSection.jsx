@@ -6,6 +6,7 @@ import { ui } from "../ui";
 import { PatientInitials } from "../doctor/PatientChart";
 import ActivationCode from "./ActivationCode";
 import { personName } from "./desk";
+import { BusyLabel } from "../../Loader";
 
 const SHOWN_DAYS = 6;
 const SHOWN_TIMES = 10;
@@ -352,8 +353,8 @@ export default function DeskBookSection({ desk, preset = {}, onFinished }) {
                 {error}
               </p>
             )}
-            <button type="button" onClick={confirm} disabled={!ready || busy} className={`${ui.primary} mt-6 h-12 w-full`}>
-              {busy ? "Saving…" : moving ? "Move visit" : "Book visit"}
+            <button type="button" onClick={confirm} disabled={!ready || busy} aria-busy={busy} className={`${ui.primary} mt-6 h-12 w-full`}>
+              <BusyLabel busy={busy} text={moving ? "Move visit" : "Book visit"} />
             </button>
           </div>
         </aside>

@@ -1,5 +1,5 @@
 // Shared class names for the portal, so every button and link looks the same everywhere
-const button = "inline-flex h-11 items-center justify-center px-5 text-[15px] transition-colors disabled:cursor-not-allowed disabled:opacity-40";
+const button = "inline-flex h-11 items-center justify-center px-5 text-[15px] transition-colors disabled:cursor-not-allowed disabled:opacity-40 aria-busy:cursor-wait aria-busy:opacity-100";
 
 export const ui = {
   primary: `${button} bg-forest text-ivory hover:bg-forest-soft`,

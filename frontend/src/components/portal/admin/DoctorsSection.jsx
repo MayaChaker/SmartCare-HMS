@@ -6,6 +6,7 @@ import { departments } from "../../../content/portal";
 import { ui } from "../ui";
 import { readHours, WEEK, writeHours } from "../doctor/chart";
 import TempPassword from "./TempPassword";
+import { BusyLabel } from "../../Loader";
 
 const MAX_PHOTO = 3 * 1024 * 1024;
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -195,8 +196,8 @@ function DoctorDialog({ doctor, admin, onClose }) {
           <button type="button" onClick={onClose} className={ui.outline}>
             Cancel
           </button>
-          <button type="submit" disabled={busy} className={ui.primary}>
-            {busy ? "Saving…" : doctor ? "Save changes" : "Add doctor"}
+          <button type="submit" disabled={busy} aria-busy={busy} className={ui.primary}>
+            <BusyLabel busy={busy} text={doctor ? "Save changes" : "Add doctor"} />
           </button>
         </div>
       </form>

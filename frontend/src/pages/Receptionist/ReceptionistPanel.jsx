@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import PortalLayout from "../../components/portal/PortalLayout";
+import Loader from "../../components/Loader";
 import DeskSection from "../../components/portal/desk/DeskSection";
 import DeskBookSection from "../../components/portal/desk/DeskBookSection";
 import DeskVisitsSection from "../../components/portal/desk/DeskVisitsSection";
@@ -69,7 +70,7 @@ export default function ReceptionistPanel() {
         </>
       }
     >
-      {desk.status === "loading" && <p className={`${ui.page} py-16 text-[16px] text-muted`}>Loading the desk…</p>}
+      {desk.status === "loading" && <Loader label="Loading the desk…" />}
       {desk.status === "error" && (
         <div role="alert" className={`${ui.page} py-16`}>
           <p className="font-serif text-3xl text-ink">We could not load the desk.</p>

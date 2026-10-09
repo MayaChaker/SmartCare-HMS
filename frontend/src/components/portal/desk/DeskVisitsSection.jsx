@@ -3,6 +3,7 @@ import PageHead from "../PageHead";
 import StatusBadge from "../StatusBadge";
 import { doctorName, formatDate, formatTime } from "../format";
 import { ui } from "../ui";
+import Loader from "../../Loader";
 import { toLocalDateString } from "../../../utils/schedule";
 import VisitDialog from "./VisitDialog";
 import { isLate, personName } from "./desk";
@@ -120,7 +121,7 @@ export default function DeskVisitsSection({ desk, now, onMove, onOpenPatient }) 
         )}
 
         {visits === null ? (
-          <p className="py-10 text-[16px] text-muted">Loading…</p>
+          <Loader variant="section" label="Loading the visits…" className="py-10" />
         ) : shown.length === 0 ? (
           <p className="py-10 text-[16px] text-muted">No visits match.</p>
         ) : (

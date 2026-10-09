@@ -5,6 +5,7 @@ import { departmentPlace } from "../../../content/portal";
 import { ui } from "../ui";
 import DoctorAvatar from "../DoctorAvatar";
 import { readHours, WEEK, writeHours } from "./chart";
+import { BusyLabel } from "../../Loader";
 
 const SLOT_MINUTES = 20;
 
@@ -141,8 +142,8 @@ export default function DoctorProfileSection({ portal }) {
               {message.text}
             </p>
           )}
-          <button type="button" onClick={save} disabled={!valid || busy} className={`${ui.primary} mt-6`}>
-            {busy ? "Saving…" : "Save hours"}
+          <button type="button" onClick={save} disabled={!valid || busy} aria-busy={busy} className={`${ui.primary} mt-6`}>
+            <BusyLabel busy={busy} text="Save hours" />
           </button>
         </section>
       </div>

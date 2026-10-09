@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import PageHead from "../PageHead";
 import { ui } from "../ui";
+import Loader, { BusyLabel } from "../../Loader";
 import { clockTime } from "../doctor/chart";
 import { ROLE_LABEL, activitySentence } from "./admin";
 import { toLocalDateString } from "../../../utils/schedule";
@@ -76,7 +77,7 @@ export default function ActivitySection({ admin, now }) {
         </div>
 
         {rows === null ? (
-          <p className="py-10 text-[16px] text-muted">Loading…</p>
+          <Loader variant="section" label="Loading the activity…" className="py-10" />
         ) : rows.length === 0 ? (
           <p className="py-10 text-[16px] text-muted">Nothing recorded yet.</p>
         ) : (
@@ -100,8 +101,8 @@ export default function ActivitySection({ admin, now }) {
         )}
 
         {more && (
-          <button type="button" onClick={loadMore} disabled={busy} className={`${ui.outline} mt-8 w-full`}>
-            {busy ? "Loading…" : "Show earlier activity"}
+          <button type="button" onClick={loadMore} disabled={busy} aria-busy={busy} className={`${ui.outline} mt-8 w-full`}>
+            <BusyLabel busy={busy} busyText="Loading…" text="Show earlier activity" />
           </button>
         )}
         <p className="mt-6 text-[14px] text-muted">Only the administration can read the activity log.</p>

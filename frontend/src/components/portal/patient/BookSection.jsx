@@ -4,6 +4,7 @@ import PageHead from "../PageHead";
 import { doctorName, doctorPhoto, formatDate, formatFee, formatTime, minutesBefore, relativeDay } from "../format";
 import { departmentPlace, patientOffice, visitTypes } from "../../../content/portal";
 import { ui } from "../ui";
+import { BusyLabel } from "../../Loader";
 
 const firstFreeDay = (days = []) => days.find((d) => d.times.length > 0);
 
@@ -365,8 +366,8 @@ function Summary({ doctor, date, time, reason, insurance, moving, missing, busy,
               {error}
             </p>
           )}
-          <button type="button" onClick={onConfirm} disabled={Boolean(missing) || busy} className={`${ui.primary} h-12 w-full`}>
-            {busy ? "Saving…" : moving ? "Confirm new time" : "Confirm visit"}
+          <button type="button" onClick={onConfirm} disabled={Boolean(missing) || busy} aria-busy={busy} className={`${ui.primary} h-12 w-full`}>
+            <BusyLabel busy={busy} text={moving ? "Confirm new time" : "Confirm visit"} />
           </button>
           <p className="mt-3 text-center text-[14px] text-muted" aria-live="polite">
             {missing || "Free to cancel up to the start of your visit."}
@@ -588,8 +589,8 @@ export default function BookSection({ portal, preset = {} }) {
                 {formatDate(date, { weekday: "short", day: "numeric", month: "short" })}, {formatTime(time)}
               </span>
             </p>
-            <button type="button" onClick={confirm} disabled={Boolean(missing) || busy} className={`${ui.primary} shrink-0`}>
-              {busy ? "Saving…" : moving ? "Confirm new time" : "Confirm visit"}
+            <button type="button" onClick={confirm} disabled={Boolean(missing) || busy} aria-busy={busy} className={`${ui.primary} shrink-0`}>
+              <BusyLabel busy={busy} text={moving ? "Confirm new time" : "Confirm visit"} />
             </button>
           </div>
           {(error || missing) && (

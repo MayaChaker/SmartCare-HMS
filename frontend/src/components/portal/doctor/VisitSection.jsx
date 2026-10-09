@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import StatusBadge from "../StatusBadge";
 import { formatDate, formatTime } from "../format";
 import { ui } from "../ui";
+import Loader, { BusyLabel } from "../../Loader";
 import PatientChart from "./PatientChart";
 import { FOLLOW_UPS, followUpDate, prescriptionToRows, rowsToPrescription } from "./chart";
 
@@ -136,12 +137,12 @@ function NoteForm({ visit, record, allergies, onSave, onComplete }) {
         </p>
         <div className="flex gap-3">
           {completing && (
-            <button type="button" onClick={() => run("draft")} disabled={Boolean(busy)} className={ui.outline}>
-              {busy === "draft" ? "Saving…" : "Save draft"}
+            <button type="button" onClick={() => run("draft")} disabled={Boolean(busy)} aria-busy={busy === "draft"} className={ui.outline}>
+              <BusyLabel busy={busy === "draft"} text="Save draft" />
             </button>
           )}
-          <button type="button" onClick={() => run(completing ? "complete" : "draft")} disabled={!hasDiagnosis || Boolean(busy)} className={ui.primary}>
-            {busy && busy !== "draft" ? "Saving…" : completing ? "Complete visit" : "Save note"}
+          <button type="button" onClick={() => run(completing ? "complete" : "draft")} disabled={!hasDiagnosis || Boolean(busy)} aria-busy={Boolean(busy) && busy !== "draft"} className={ui.primary}>
+            <BusyLabel busy={Boolean(busy) && busy !== "draft"} text={completing ? "Complete visit" : "Save note"} />
           </button>
         </div>
       </div>
@@ -210,7 +211,7 @@ export default function VisitSection({ portal, visitId, onDone }) {
           {!canWrite ? (
             <p className="pt-8 text-[16px] text-muted">You can write the note once the visit has started.</p>
           ) : records === null ? (
-            <p className="pt-8 text-[16px] text-muted">Loading…</p>
+            <Loader variant="section" label="Loading the visit…" className="pt-8" />
           ) : (
             <NoteForm
               key={record?.id || "new"}
