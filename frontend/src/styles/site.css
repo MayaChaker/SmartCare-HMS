@@ -1,7 +1,7 @@
 /*
-  Tailwind for the public website.
-  Preflight (Tailwind's global reset) is left out on purpose: the staff dashboards still use their
-  old CSS, and a global reset would change them. Instead, a small reset is scoped to `.site` below.
+  Tailwind for the website and every portal.
+  Preflight (Tailwind's global reset) is not used: a small reset is scoped to `.site` below,
+  which wraps every page (the public site, sign-in pages and the portals).
 */
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
