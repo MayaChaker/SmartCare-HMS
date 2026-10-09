@@ -43,6 +43,7 @@ async function init() {
       await createAdminUser();
       await ensureDoctorFeeColumn();
       await ensureMedicalRecordAppointmentColumn();
+      await ensureAppointmentStepColumns();
       await ensureAppointmentStatusValues();
       await ensureAppointmentSlotIndexNotUnique();
       await ensureDemoData();
@@ -129,6 +130,28 @@ async function ensureMedicalRecordAppointmentColumn() {
     }
   } catch (error) {
     console.error("Failed to ensure medical record appointmentId column:", error);
+  }
+}
+
+// Visit step times (check-in, start, end) were added later; sync() does not add columns to existing tables
+async function ensureAppointmentStepColumns() {
+  try {
+    const [tables] = await sequelize.query(
+      "SELECT TABLE_NAME AS name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND LOWER(TABLE_NAME) = 'appointments' LIMIT 1",
+    );
+    const table = tables?.[0]?.name;
+    if (!table) return;
+    for (const column of ["checkedInAt", "startedAt", "completedAt"]) {
+      const [rows] = await sequelize.query(
+        `SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '${table}' AND COLUMN_NAME = '${column}'`,
+      );
+      if (!Array.isArray(rows) || rows.length === 0) {
+        await sequelize.query(`ALTER TABLE \`${table}\` ADD COLUMN ${column} DATETIME NULL`);
+        console.log(`Appointment ${column} column added`);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to ensure appointment step columns:", error);
   }
 }
 

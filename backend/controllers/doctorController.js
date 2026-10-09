@@ -6,7 +6,7 @@ const {
   User,
 } = require("../models");
 const { getStatusChangeError } = require("../utils/appointmentStatus");
-const { parseId } = require("../utils/schedule");
+const { isIsoDate, parseId } = require("../utils/schedule");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
@@ -95,12 +95,9 @@ exports.getAppointments = async (req, res) => {
     const appointments = await Appointment.findAll({
       where: { doctorId: doctor.id },
       include: [
-        {
-          model: Patient,
-          attributes: ["id", "firstName", "lastName", "email", "phone"],
-        },
+        { model: Patient, attributes: CHART_FIELDS },
         // Lets the dashboard know which visits already have a note
-        { model: MedicalRecord, attributes: ["id"] },
+        { model: MedicalRecord, attributes: ["id", "diagnosis"] },
       ],
       order: [
         ["appointmentDate", "ASC"],
@@ -114,6 +111,21 @@ exports.getAppointments = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// What a doctor needs to see about a patient before and during a visit
+const CHART_FIELDS = [
+  "id",
+  "firstName",
+  "lastName",
+  "email",
+  "phone",
+  "dateOfBirth",
+  "gender",
+  "bloodType",
+  "allergies",
+  "permanentMedicine",
+  "medicalHistory",
+];
 
 // Get doctor's schedule
 exports.getSchedule = async (req, res) => {
@@ -150,7 +162,8 @@ exports.getPatientDetails = async (req, res) => {
     // Get patient's medical records
     const records = await MedicalRecord.findAll({
       where: { patientId: patient.id },
-      include: [{ model: Doctor, attributes: ["firstName", "lastName"] }],
+      include: [{ model: Doctor, attributes: ["firstName", "lastName", "specialization"] }],
+      order: [["visitDate", "DESC"]],
     });
 
     res.json({
@@ -163,6 +176,11 @@ exports.getPatientDetails = async (req, res) => {
   }
 };
 
+// The text parts of a visit note that the doctor can write
+const NOTE_FIELDS = ["symptoms", "notes", "diagnosis", "treatment", "prescriptions", "medications", "testResults"];
+const noteFields = (body) =>
+  Object.fromEntries(NOTE_FIELDS.filter((key) => typeof body[key] === "string").map((key) => [key, body[key].trim()]));
+
 // Statuses where the doctor writes the visit note: during the visit or right after it
 const NOTE_STATUSES = ["in-progress", "completed"];
 
@@ -170,14 +188,8 @@ const NOTE_STATUSES = ["in-progress", "completed"];
 exports.createMedicalRecord = async (req, res) => {
   try {
     const userId = req.user.id;
-    const {
-      appointmentId,
-      notes,
-      prescriptions,
-      testResults,
-      diagnosis,
-      medications,
-    } = req.body;
+    const { appointmentId, followUpDate } = req.body;
+    const fields = noteFields(req.body);
     // Ensure a profile exists; auto-create with safe defaults if missing
     const doctor = await ensureDoctorForUser(userId);
 
@@ -199,16 +211,17 @@ exports.createMedicalRecord = async (req, res) => {
       return res.status(409).json({ message: "This visit already has a medical record" });
     }
 
+    if (followUpDate && !isIsoDate(followUpDate)) {
+      return res.status(400).json({ message: "followUpDate must be YYYY-MM-DD" });
+    }
+
     const record = await MedicalRecord.create({
       appointmentId: appointment.id,
       patientId: appointment.patientId,
       doctorId: doctor.id,
       visitDate: appointment.appointmentDate,
-      notes,
-      prescriptions,
-      testResults,
-      diagnosis,
-      medications,
+      ...fields,
+      followUpDate: followUpDate || null,
     });
 
     res.status(201).json({
@@ -226,8 +239,8 @@ exports.updateMedicalRecord = async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
-    const { notes, prescriptions, testResults, diagnosis, medications } =
-      req.body;
+    const fields = noteFields(req.body);
+    const { followUpDate } = req.body;
     // Ensure a profile exists; auto-create with safe defaults if missing
     const doctor = await ensureDoctorForUser(userId);
 
@@ -239,11 +252,12 @@ exports.updateMedicalRecord = async (req, res) => {
       return res.status(404).json({ message: "Medical record not found" });
     }
 
-    if (notes) record.notes = notes;
-    if (prescriptions) record.prescriptions = prescriptions;
-    if (testResults) record.testResults = testResults;
-    if (diagnosis) record.diagnosis = diagnosis;
-    if (medications) record.medications = medications;
+    if (followUpDate && !isIsoDate(followUpDate)) {
+      return res.status(400).json({ message: "followUpDate must be YYYY-MM-DD" });
+    }
+    // Sent fields replace the old text, so a doctor can also clear a part of the note
+    Object.assign(record, fields);
+    if (followUpDate !== undefined) record.followUpDate = followUpDate || null;
 
     await record.save();
 
@@ -448,15 +462,7 @@ exports.getPatients = async (req, res) => {
       include: [
         {
           model: Patient,
-          attributes: [
-            "id",
-            "firstName",
-            "lastName",
-            "email",
-            "phone",
-            "dateOfBirth",
-            "medicalHistory",
-          ],
+          attributes: CHART_FIELDS,
         },
       ],
       attributes: ["patientId"],
