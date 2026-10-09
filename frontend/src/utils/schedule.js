@@ -203,7 +203,8 @@ export const resolveDoctorImage = (doctorObj) => {
   if (!candidate) return "";
   const lc = candidate.toLowerCase();
   if (lc === "null" || lc === "undefined") return "";
-  if (candidate.startsWith("/uploads/")) {
+  // Uploaded files and portraits kept in the database are served by the backend, not the website
+  if (candidate.startsWith("/uploads/") || candidate.startsWith("/api/")) {
     return resolveUploadUrl(candidate);
   }
   return candidate;
