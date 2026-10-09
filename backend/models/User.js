@@ -20,6 +20,16 @@ const User = sequelize.define('User', {
   role: {
     type: DataTypes.ENUM('admin', 'doctor', 'receptionist', 'patient'),
     allowNull: false
+  },
+  // Set when an administrator gives a temporary password; the person must choose their own before anything else
+  mustChangePassword: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  },
+  lastLoginAt: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 }, {
   hooks: {

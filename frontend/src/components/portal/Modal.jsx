@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef } from "react";
 
 // Accessible dialog: closes on Escape or a click outside, and moves focus inside when it opens.
-export default function Modal({ title, onClose, children }) {
+export default function Modal({ title, onClose, children, wide = false }) {
   const titleId = useId();
   const panelRef = useRef(null);
 
@@ -25,7 +25,7 @@ export default function Modal({ title, onClose, children }) {
         aria-labelledby={titleId}
         tabIndex={-1}
         onMouseDown={(e) => e.stopPropagation()}
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto bg-ivory p-8 shadow-2xl outline-none"
+        className={`max-h-[90vh] w-full ${wide ? "max-w-2xl" : "max-w-lg"} overflow-y-auto bg-ivory p-8 shadow-2xl outline-none`}
       >
         <div className="flex items-start justify-between gap-6">
           <h2 id={titleId} className="font-serif text-3xl text-ink">

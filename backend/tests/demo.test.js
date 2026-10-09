@@ -66,14 +66,16 @@ describe("public demo", () => {
     assert.equal(res.status, 200);
   });
 
+  let newReceptionPassword;
   it("does not restrict other admins", async () => {
     await createStaff("real.admin", "admin");
     const token = await login(request, "real.admin");
     const res = await request("POST", "/admin/users", {
       token,
-      body: { username: "new.reception", password: PASSWORD, role: "receptionist" },
+      body: { username: "new.reception", role: "receptionist" },
     });
     assert.equal(res.status, 201);
+    newReceptionPassword = res.body.tempPassword;
   });
 
   it("restores the demo data and keeps staff accounts", async () => {
@@ -85,6 +87,6 @@ describe("public demo", () => {
     // The visit cancelled in the previous test is back to scheduled
     assert.equal(visits.body.filter((a) => a.status === "cancelled").length, 0);
     assert.ok(visits.body.filter((a) => a.status === "scheduled").length >= 2);
-    assert.ok(await login(request, "new.reception"));
+    assert.ok(await login(request, "new.reception", newReceptionPassword));
   });
 });

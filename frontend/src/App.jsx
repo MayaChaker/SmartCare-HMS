@@ -11,6 +11,7 @@ import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
 import Activate from "./pages/Activate/Activate";
+import ChangePassword from "./pages/ChangePassword/ChangePassword";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import AdminPanel from "./pages/Admin/AdminPanel";
 import DoctorPanel from "./pages/Doctor/DoctorPanel";
@@ -27,6 +28,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/activate" element={<Activate />} />
+            <Route path="/change-password" element={<ChangePassword />} />
             <Route
               path="/dashboard"
               element={

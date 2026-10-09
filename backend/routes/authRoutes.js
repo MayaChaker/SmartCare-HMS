@@ -2,6 +2,7 @@ const express = require("express");
 const rateLimit = require("express-rate-limit");
 const router = express.Router();
 const authController = require("../controllers/authController");
+const { verifyToken } = require("../middlewares/auth");
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -33,5 +34,7 @@ const activationLimiter = rateLimit({
 router.post("/login", loginLimiter, authController.login);
 router.post("/register-patient", registerLimiter, authController.registerPatient);
 router.post("/activate", activationLimiter, authController.activatePatient);
+// Signed in; limited like logins because it checks the current password
+router.post("/change-password", loginLimiter, verifyToken, authController.changePassword);
 
 module.exports = router;

@@ -41,6 +41,10 @@ api.interceptors.response.use(
   (error) => {
     // A 401 from login means wrong credentials, not an expired session
     const isAuthRequest = String(error.config?.url || "").startsWith("/auth/");
+    // A temporary password must be replaced first (the server refuses everything else)
+    if (error.response?.data?.code === "PASSWORD_CHANGE_REQUIRED" && window.location.pathname !== "/change-password") {
+      window.location.href = "/change-password";
+    }
     if (error.response?.status === 401 && !isAuthRequest) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
@@ -58,6 +62,8 @@ export const authAPI = {
   registerPatient: (userData) => api.post("/auth/register-patient", userData),
   // POST `/auth/activate` with `{ code, username, password }` for a file opened at the front desk
   activate: (details) => api.post("/auth/activate", details),
+  // POST `/auth/change-password` with `{ currentPassword, newPassword }`
+  changePassword: (details) => api.post("/auth/change-password", details),
 };
 
 // Patient API calls
@@ -290,4 +296,23 @@ export const receptionAPI = {
   openFile: (details) => call(api.post("/receptionist/patients", details), "Couldn't open the file"),
   updatePatient: (id, details) => call(api.put(`/receptionist/patients/${id}`, details), "Couldn't save the details"),
   newActivationCode: (id) => call(api.post(`/receptionist/patients/${id}/activation-code`), "Couldn't create a new code"),
+};
+
+// Administration API calls
+export const adminAPI = {
+  // { days, from, to, current, previous, waitingToActivate, perDay, byDepartment, doctors }
+  getAnalytics: (days = 30) => call(api.get("/admin/analytics", { params: { days } }), "Couldn't load the figures"),
+  // Newest first; role: receptionist | doctor | patient | admin; before: id of the oldest row already shown
+  getActivity: ({ role, before } = {}) => call(api.get("/admin/activity", { params: { role, before } }), "Couldn't load the activity"),
+  getUsers: () => call(api.get("/admin/users"), "Couldn't load the accounts"),
+  // Returns { user, doctor, tempPassword }
+  createUser: (details) => call(api.post("/admin/users", details), "Couldn't create the account"),
+  resetPassword: (id) => call(api.post(`/admin/users/${id}/reset-password`), "Couldn't reset the password"),
+  getDoctors: () => call(api.get("/admin/doctors"), "Couldn't load the doctors"),
+  updateDoctor: (id, details) => call(api.put(`/admin/doctors/${id}`, details), "Couldn't save the doctor"),
+  uploadDoctorPhoto: (id, file) => {
+    const form = new FormData();
+    form.append("photo", file);
+    return call(api.post(`/admin/doctors/${id}/photo`, form, { headers: { "Content-Type": "multipart/form-data" } }), "Couldn't save the photo");
+  },
 };

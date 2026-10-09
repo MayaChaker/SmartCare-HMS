@@ -77,6 +77,20 @@ const Doctor = sequelize.define("Doctor", {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  // Portrait uploaded by the administration. Kept in the database because the server's disk
+  // is wiped on every deploy; served by GET /api/doctors/:id/photo.
+  photoData: {
+    type: DataTypes.BLOB("medium"),
+    allowNull: true,
+  },
+  photoType: {
+    type: DataTypes.STRING(32),
+    allowNull: true,
+  },
+}, {
+  // The image bytes are only read when the photo itself is requested
+  defaultScope: { attributes: { exclude: ["photoData"] } },
+  scopes: { withPhoto: {} },
 });
 
 module.exports = Doctor;

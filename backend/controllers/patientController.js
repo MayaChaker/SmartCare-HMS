@@ -10,6 +10,7 @@ const {
 } = require("../utils/schedule");
 const { isSlotInPast } = require("../utils/clinicTime");
 const { getSlotConflictError } = require("../utils/bookingConflicts");
+const audit = require("../utils/audit");
 const { INACTIVE_STATUSES } = require("../utils/appointmentStatus");
 
 // Get patient profile
@@ -219,6 +220,7 @@ exports.createAppointment = async (req, res) => {
       status: "scheduled",
     });
 
+    await audit.recordVisit(req.user, "visit.booked", appointment);
     res.status(201).json({
       message: "Appointment scheduled successfully",
       appointment,
@@ -308,10 +310,12 @@ exports.updateAppointment = async (req, res) => {
       }
     }
 
+    const was = `${appointment.appointmentDate} ${String(appointment.appointmentTime).slice(0, 5)}`;
     if (appointmentDate) appointment.appointmentDate = cleanDate;
     if (appointmentTime !== undefined) appointment.appointmentTime = cleanTime;
 
     await appointment.save();
+    await audit.recordVisit(req.user, "visit.moved", appointment, `was ${was}`);
 
     res.json({
       message: "Appointment updated successfully",
@@ -378,6 +382,7 @@ exports.cancelAppointment = async (req, res) => {
     }
     appointment.status = "cancelled";
     await appointment.save();
+    await audit.recordVisit(req.user, "visit.cancelled", appointment);
     return res.json({
       message: "Appointment cancelled successfully",
       appointment,

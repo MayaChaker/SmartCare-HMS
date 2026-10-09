@@ -63,6 +63,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // After a temporary password is replaced, the person can use the system
+  const passwordChanged = () => {
+    setUser((current) => {
+      const next = { ...current, mustChangePassword: false };
+      localStorage.setItem("user", JSON.stringify(next));
+      return next;
+    });
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -108,6 +117,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    passwordChanged,
     isAuthenticated,
     loading,
     hasRole,
@@ -136,6 +146,11 @@ export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
   if (!isAuthenticated()) {
     return <Navigate to="/login" replace />;
+  }
+
+  // A temporary password must be replaced before anything else
+  if (user?.mustChangePassword) {
+    return <Navigate to="/change-password" replace />;
   }
 
   if (allowedRoles.length > 0 && !isRoleAllowed(allowedRoles)) {

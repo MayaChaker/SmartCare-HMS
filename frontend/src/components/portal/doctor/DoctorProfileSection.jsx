@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PageHead from "../PageHead";
-import { doctorName, doctorPhoto } from "../format";
+import { doctorName, doctorPhoto, formatFee } from "../format";
 import { departmentPlace } from "../../../content/portal";
 import { ui } from "../ui";
 import DoctorAvatar from "../DoctorAvatar";
@@ -56,6 +56,7 @@ export default function DoctorProfileSection({ portal }) {
                 <br />
                 {departmentPlace(profile.specialization)}
               </p>
+              {formatFee(profile.fee) && <p className="mt-2 text-[15px] text-ink">Consultation {formatFee(profile.fee)}</p>}
               <p className={`mt-3 text-[14px] ${profile.availability === false ? "text-alert" : "text-muted"}`}>
                 {profile.availability === false ? "Not taking new bookings" : "Taking new bookings"}
               </p>

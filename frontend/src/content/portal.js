@@ -20,6 +20,7 @@ const PLACES = {
   Oncology: "Cancer Centre · Level 5",
 };
 export const departmentPlace = (specialization) => PLACES[specialization] || PLACES["General Medicine"];
+export const departments = Object.keys(PLACES);
 
 export const arrivalNote = "Main entrance, Hamra Street. Valet parking at the door.";
 export const whatToBring = "Your ID, insurance card and the medicines you take now";

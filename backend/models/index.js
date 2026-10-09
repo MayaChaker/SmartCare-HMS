@@ -3,6 +3,7 @@ const Patient = require('./Patient');
 const Doctor = require('./Doctor');
 const Appointment = require('./Appointment');
 const MedicalRecord = require('./MedicalRecord');
+const AuditLog = require('./AuditLog');
 
 // User associations
 User.hasOne(Patient, { foreignKey: 'userId' });
@@ -33,5 +34,6 @@ module.exports = {
   Patient,
   Doctor,
   Appointment,
-  MedicalRecord
+  MedicalRecord,
+  AuditLog
 };

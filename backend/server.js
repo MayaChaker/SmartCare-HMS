@@ -40,7 +40,7 @@ async function init() {
       await sequelize.authenticate();
       await sequelize.sync({ alter: false });
       console.log("Database models synchronized successfully.");
-      await createAdminUser();
+      // Columns added after a table was first created come first: the steps below read them
       await ensureDoctorFeeColumn();
       await ensureMedicalRecordAppointmentColumn();
       // Visit step times (check-in, start, end)
@@ -49,6 +49,16 @@ async function init() {
         ["startedAt", "DATETIME NULL"],
         ["completedAt", "DATETIME NULL"],
       ]);
+      // Temporary passwords from the administration, and the last sign-in
+      await ensureColumns("users", [
+        ["mustChangePassword", "BOOLEAN NOT NULL DEFAULT FALSE"],
+        ["lastLoginAt", "DATETIME NULL"],
+      ]);
+      // Doctor portraits kept in the database
+      await ensureColumns("doctors", [
+        ["photoData", "MEDIUMBLOB NULL"],
+        ["photoType", "VARCHAR(32) NULL"],
+      ]);
       // Files opened at the front desk, waiting for the patient to activate them
       await ensureColumns("patients", [
         ["activationCodeHash", "VARCHAR(64) NULL"],
@@ -56,6 +66,7 @@ async function init() {
       ]);
       await ensureAppointmentStatusValues();
       await ensureAppointmentSlotIndexNotUnique();
+      await createAdminUser();
       await ensureDemoData();
       startServer();
       return;

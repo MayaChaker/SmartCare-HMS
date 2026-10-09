@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import DoctorAvatar from "../DoctorAvatar";
 import PageHead from "../PageHead";
-import { doctorName, doctorPhoto, formatDate, formatTime, minutesBefore, relativeDay } from "../format";
+import { doctorName, doctorPhoto, formatDate, formatFee, formatTime, minutesBefore, relativeDay } from "../format";
 import { departmentPlace, patientOffice, visitTypes } from "../../../content/portal";
 import { ui } from "../ui";
 
@@ -136,6 +136,11 @@ function DoctorStep({ doctors, availability, onPickDoctor, onPickSlot }) {
                 {(doctor.qualification || doctor.experience) && <br />}
                 {departmentPlace(doctor.specialization)}
               </p>
+              {formatFee(doctor.fee) && (
+                <p className="mt-2 text-[15px] text-ink">
+                  Consultation <span className="tabular-nums">{formatFee(doctor.fee)}</span>
+                </p>
+              )}
             </div>
             <div className="col-span-2 md:col-span-1">
               {free ? (
@@ -325,7 +330,8 @@ function Summary({ doctor, date, time, reason, insurance, moving, missing, busy,
     ["Time", time && formatTime(time)],
     ["Visit", reason],
     ["Where", doctor && departmentPlace(doctor.specialization)],
-  ];
+    ["Consultation", doctor && formatFee(doctor.fee)],
+  ].filter(([label, value]) => !(label === "Consultation" && doctor && !value));
   return (
     <aside aria-label="Your visit" className="lg:sticky lg:top-40 lg:self-start">
       <div className="border border-ivory-line bg-white">

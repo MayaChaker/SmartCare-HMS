@@ -7,51 +7,7 @@ const {
 } = require("../models");
 const { getStatusChangeError } = require("../utils/appointmentStatus");
 const { isIsoDate, parseId } = require("../utils/schedule");
-const multer = require("multer");
-const fs = require("fs");
-const path = require("path");
-
-// Configure upload storage for doctor photos
-const uploadBaseDir = path.join(__dirname, "..", "uploads");
-const doctorUploadDir = path.join(uploadBaseDir, "doctors");
-try {
-  fs.mkdirSync(doctorUploadDir, { recursive: true });
-} catch (e) {
-  console.warn("Could not ensure upload directory exists:", e);
-}
-
-// The extension comes from this list, never from the client's filename
-const ALLOWED_IMAGE_TYPES = {
-  "image/jpeg": ".jpg",
-  "image/png": ".png",
-  "image/webp": ".webp",
-};
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, doctorUploadDir);
-  },
-  filename: function (req, file, cb) {
-    const ext = ALLOWED_IMAGE_TYPES[file.mimetype];
-    cb(null, `doctor_${req.user.id}_${Date.now()}${ext}`);
-  },
-});
-
-function imageFileFilter(req, file, cb) {
-  const ext = path.extname(file.originalname).toLowerCase();
-  const allowedExts = [".jpg", ".jpeg", ".png", ".webp"];
-  if (!ALLOWED_IMAGE_TYPES[file.mimetype] || !allowedExts.includes(ext)) {
-    return cb(new Error("Only JPG, PNG or WEBP images are allowed"));
-  }
-  cb(null, true);
-}
-
-const upload = multer({
-  storage,
-  fileFilter: imageFileFilter,
-  limits: { fileSize: 3 * 1024 * 1024 }, // 3MB limit
-});
-
+const audit = require("../utils/audit");
 // Helper: ensure a Doctor profile exists for the current user
 async function ensureDoctorForUser(userId) {
   let doctor = await Doctor.findOne({ where: { userId } });
@@ -224,6 +180,7 @@ exports.createMedicalRecord = async (req, res) => {
       followUpDate: followUpDate || null,
     });
 
+    await audit.recordVisit(req.user, "note.written", appointment);
     res.status(201).json({
       message: "Medical record created successfully",
       record,
@@ -260,6 +217,7 @@ exports.updateMedicalRecord = async (req, res) => {
     if (followUpDate !== undefined) record.followUpDate = followUpDate || null;
 
     await record.save();
+    await audit.record(req.user, "note.updated", { type: "patient", id: record.patientId }, `Visit note of ${record.visitDate}`);
 
     res.json({
       message: "Medical record updated successfully",
@@ -337,34 +295,20 @@ exports.updateProfile = async (req, res) => {
 };
 
 // Upload doctor profile photo (multipart/form-data)
-exports.uploadPhoto = (req, res) => {
-  const single = upload.single("photo");
-  single(req, res, async (err) => {
-    if (err) {
-      const message =
-        err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE"
-          ? "Image must be 3MB or smaller"
-          : err.message;
-      return res.status(400).json({ message });
-    }
-    try {
-      const userId = req.user.id;
-      const doctor = await ensureDoctorForUser(userId);
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-      const publicPath = `/uploads/doctors/${req.file.filename}`;
-      doctor.photoUrl = publicPath;
-      await doctor.save();
-      return res.json({
-        message: "Photo uploaded successfully",
-        doctor,
-      });
-    } catch (error) {
-      console.error("Error saving uploaded photo:", error);
-      return res.status(500).json({ message: "Server error" });
-    }
-  });
+// The doctor's own portrait, checked by the readPhoto middleware and kept in the database
+exports.uploadPhoto = async (req, res) => {
+  try {
+    const doctor = await ensureDoctorForUser(req.user.id);
+    doctor.photoData = req.photo.data;
+    doctor.photoType = req.photo.type;
+    doctor.photoUrl = `/api/doctors/${doctor.id}/photo?v=${Date.now()}`;
+    await doctor.save();
+    await audit.record(req.user, "doctor.photo_changed", { type: "doctor", id: doctor.id, name: audit.doctorName(doctor) });
+    res.json({ message: "Photo uploaded successfully", photoUrl: doctor.photoUrl });
+  } catch (error) {
+    console.error("Error saving uploaded photo:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 // Update doctor availability
@@ -391,6 +335,7 @@ exports.updateAvailability = async (req, res) => {
 
     await doctor.save();
 
+    await audit.record(req.user, "doctor.hours_changed", { type: "doctor", id: doctor.id, name: audit.doctorName(doctor) }, doctor.availability ? doctor.workingHours : "Bookings paused");
     res.json({
       message: "Availability updated successfully",
       doctor,
@@ -438,6 +383,10 @@ exports.updateAppointmentStatus = async (req, res) => {
     if (notes) appointment.notes = notes;
 
     await appointment.save();
+    const DOCTOR_ACTIONS = { "in-progress": "visit.started", completed: "visit.completed" };
+    if (status && DOCTOR_ACTIONS[appointment.status]) {
+      await audit.recordVisit(req.user, DOCTOR_ACTIONS[appointment.status], appointment);
+    }
 
     res.json({
       message: "Appointment updated successfully",

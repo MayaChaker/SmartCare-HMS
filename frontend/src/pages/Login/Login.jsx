@@ -52,7 +52,7 @@ export default function Login() {
     try {
       const result = await login({ username, password });
       if (result.success) {
-        navigate(HOME_BY_ROLE[result.data.user.role] || "/dashboard");
+        navigate(result.data.user.mustChangePassword ? "/change-password" : HOME_BY_ROLE[result.data.user.role] || "/dashboard");
       } else {
         setError(result.error);
       }
