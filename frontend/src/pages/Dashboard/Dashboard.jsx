@@ -8,6 +8,7 @@ import ProfileSection from "../../components/portal/patient/ProfileSection";
 import { patientNumber } from "../../components/portal/format";
 import { ui } from "../../components/portal/ui";
 import usePatientPortal from "../../hooks/usePatientPortal";
+import { patientOffice } from "../../content/portal";
 import { useAuth } from "../../context/useAuth";
 
 const SECTIONS = [
@@ -65,7 +66,18 @@ export default function Dashboard() {
   };
 
   return (
-    <PortalLayout sections={SECTIONS} active={active} userName={name} userDetail={portal.profile.id ? `Patient ${patientNumber(portal.profile.id)}` : ""}>
+    <PortalLayout
+      sections={SECTIONS}
+      active={active}
+      userName={name}
+      userDetail={portal.profile.id ? `Patient ${patientNumber(portal.profile.id)}` : ""}
+      homeLabel="patient portal home"
+      strip={
+        <>
+          Private Patient Office · WhatsApp <span className="text-ivory tabular-nums">{patientOffice.whatsapp}</span> · {patientOffice.hours}
+        </>
+      }
+    >
       {portal.status === "loading" && <p className={`${ui.page} py-16 text-[16px] text-muted`}>Loading your portal…</p>}
       {portal.status === "error" && (
         <div role="alert" className={`${ui.page} py-16`}>

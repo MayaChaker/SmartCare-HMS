@@ -152,6 +152,37 @@ describe("appointments", () => {
       assert.equal(res.status, 200);
       res = await request("PUT", `/doctor/appointments/${visitId}`, { token: doctorToken, body: { status: "completed" } });
       assert.equal(res.status, 200);
+
+      // Each step keeps the time it happened, in order
+      const { checkedInAt, startedAt, completedAt } = (await Appointment.findByPk(visitId)).toJSON();
+      assert.ok(checkedInAt && startedAt && completedAt);
+      assert.ok(checkedInAt <= startedAt && startedAt <= completedAt);
+    });
+
+    it("saves the full visit note and shows the chart in the doctor's list", async () => {
+      let res = await request("POST", "/doctor/records", {
+        token: doctorToken,
+        body: {
+          appointmentId: visitId,
+          symptoms: "Headache for a week",
+          diagnosis: "Tension headache",
+          treatment: "Rest and water",
+          prescriptions: "Paracetamol, 1 g, every 8 hours, 5 days",
+          followUpDate: "2026-12-01",
+        },
+      });
+      assert.equal(res.status, 201);
+      assert.equal(res.body.record.symptoms, "Headache for a week");
+      assert.equal(res.body.record.treatment, "Rest and water");
+      assert.equal(res.body.record.followUpDate, "2026-12-01");
+
+      res = await request("PUT", `/doctor/records/${res.body.record.id}`, { token: doctorToken, body: { treatment: "", followUpDate: "soon" } });
+      assert.equal(res.status, 400, "a follow-up date must be a real date");
+
+      res = await request("GET", "/doctor/appointments", { token: doctorToken });
+      const visit = res.body.find((a) => a.id === visitId);
+      assert.equal(visit.MedicalRecord.diagnosis, "Tension headache");
+      assert.ok("allergies" in visit.Patient && "bloodType" in visit.Patient);
     });
 
     it("keeps each step with its own role", async () => {
