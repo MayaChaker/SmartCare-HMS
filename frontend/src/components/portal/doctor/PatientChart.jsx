@@ -1,5 +1,6 @@
 import { doctorName, formatDate, patientNumber } from "../format";
 import { initials, patientFacts, patientName } from "./chart";
+import Loader from "../../Loader";
 
 export function PatientInitials({ patient, size = 44 }) {
   return (
@@ -59,7 +60,7 @@ export default function PatientChart({ patient, records, showDetails = true }) {
 
       <h3 className="mt-10 font-serif text-2xl text-ink">Past visits</h3>
       {records === null ? (
-        <p className="mt-3 text-[15px] text-muted">Loading…</p>
+        <Loader variant="section" label="Loading the chart…" className="mt-3" />
       ) : records.length === 0 ? (
         <p className="mt-3 text-[15px] text-muted">No visit summaries yet.</p>
       ) : (

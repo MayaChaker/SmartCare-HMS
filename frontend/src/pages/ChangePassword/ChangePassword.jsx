@@ -4,6 +4,7 @@ import { useAuth } from "../../context/useAuth";
 import { authAPI } from "../../utils/api";
 import AuthLayout from "../../components/auth/AuthLayout";
 import TextField from "../../components/auth/TextField";
+import { BusyLabel } from "../../components/Loader";
 
 const HOME_BY_ROLE = { admin: "/admin", doctor: "/doctor", receptionist: "/receptionist", patient: "/dashboard" };
 const emptyForm = { currentPassword: "", newPassword: "", confirmPassword: "" };
@@ -82,8 +83,8 @@ export default function ChangePassword() {
           <TextField label="New password" type="password" autoComplete="new-password" placeholder="6+ characters" {...field("newPassword")} />
           <TextField label="Confirm new password" type="password" autoComplete="new-password" placeholder="Type it again" {...field("confirmPassword")} />
         </div>
-        <button type="submit" disabled={loading} className="h-12 bg-forest text-[15px] tracking-wide text-ivory transition-colors hover:bg-forest-soft disabled:opacity-70">
-          {loading ? "Saving…" : "Save and continue"}
+        <button type="submit" disabled={loading} aria-busy={loading} className="flex h-12 items-center justify-center bg-forest text-[15px] tracking-wide text-ivory transition-colors hover:bg-forest-soft disabled:opacity-70 aria-busy:cursor-wait aria-busy:opacity-100">
+          <BusyLabel busy={loading} text="Save and continue" />
         </button>
         <button
           type="button"

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import PortalLayout from "../../components/portal/PortalLayout";
+import Loader from "../../components/Loader";
 import TodaySection from "../../components/portal/doctor/TodaySection";
 import VisitSection from "../../components/portal/doctor/VisitSection";
 import ScheduleSection from "../../components/portal/doctor/ScheduleSection";
@@ -64,7 +65,7 @@ export default function DoctorPanel() {
       homeLabel="doctor portal, today"
       strip={profile.specialization ? departmentPlace(profile.specialization) : "SmartCare Private Hospital"}
     >
-      {portal.status === "loading" && <p className={`${ui.page} py-16 text-[16px] text-muted`}>Loading your day…</p>}
+      {portal.status === "loading" && <Loader label="Loading your day…" />}
       {portal.status === "error" && (
         <div role="alert" className={`${ui.page} py-16`}>
           <p className="font-serif text-3xl text-ink">We could not load your portal.</p>

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import AuthLayout from "../../components/auth/AuthLayout";
 import TextField from "../../components/auth/TextField";
+import { BusyLabel } from "../../components/Loader";
 
 // Public demo accounts; the buttons only appear when VITE_DEMO_PASSWORD is set
 const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD;
@@ -105,9 +106,10 @@ export default function Login() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-2 h-12 bg-forest text-[15px] tracking-wide text-ivory transition-colors hover:bg-forest-soft disabled:opacity-70"
+          aria-busy={loading}
+          className="mt-2 flex h-12 items-center justify-center bg-forest text-[15px] tracking-wide text-ivory transition-colors hover:bg-forest-soft disabled:opacity-70 aria-busy:cursor-wait aria-busy:opacity-100"
         >
-          {loading ? "Signing in…" : "Sign in"}
+          <BusyLabel busy={loading} busyText="Signing in…" text="Sign in" />
         </button>
         {slowServer && (
           <p role="status" className="text-[14px] text-muted">

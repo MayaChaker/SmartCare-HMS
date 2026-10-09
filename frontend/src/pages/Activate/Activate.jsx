@@ -4,6 +4,7 @@ import { useAuth } from "../../context/useAuth";
 import { authAPI } from "../../utils/api";
 import AuthLayout from "../../components/auth/AuthLayout";
 import TextField from "../../components/auth/TextField";
+import { BusyLabel } from "../../components/Loader";
 
 const emptyForm = { code: "", username: "", password: "", confirmPassword: "" };
 
@@ -81,8 +82,8 @@ export default function Activate() {
           <TextField label="Password" type="password" autoComplete="new-password" placeholder="6+ characters" {...field("password")} />
           <TextField label="Confirm password" type="password" autoComplete="new-password" placeholder="Type it again" {...field("confirmPassword")} />
         </div>
-        <button type="submit" disabled={loading} className="h-12 bg-forest text-[15px] tracking-wide text-ivory transition-colors hover:bg-forest-soft disabled:opacity-70">
-          {loading ? "Activating…" : "Activate account"}
+        <button type="submit" disabled={loading} aria-busy={loading} className="flex h-12 items-center justify-center bg-forest text-[15px] tracking-wide text-ivory transition-colors hover:bg-forest-soft disabled:opacity-70 aria-busy:cursor-wait aria-busy:opacity-100">
+          <BusyLabel busy={loading} busyText="Activating…" text="Activate account" />
         </button>
         <p className="text-[15px] text-muted">
           No code?{" "}

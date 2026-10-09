@@ -5,6 +5,7 @@ import { formatDate, patientNumber } from "../format";
 import { patientOffice } from "../../../content/portal";
 import { useAuth } from "../../../context/useAuth";
 import { ui } from "../ui";
+import { BusyLabel } from "../../Loader";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 const GENDERS = ["Female", "Male"];
@@ -123,8 +124,8 @@ function Group({ group, profile, onSave }) {
             ),
           )}
           <div className="flex gap-3 sm:col-span-2">
-            <button type="submit" disabled={busy} className={ui.primary}>
-              {busy ? "Saving…" : "Save changes"}
+            <button type="submit" disabled={busy} aria-busy={busy} className={ui.primary}>
+              <BusyLabel busy={busy} text="Save changes" />
             </button>
             <button type="button" onClick={() => setValues(null)} className={ui.outline}>
               Cancel

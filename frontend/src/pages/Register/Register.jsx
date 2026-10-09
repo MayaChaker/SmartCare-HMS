@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import AuthLayout from "../../components/auth/AuthLayout";
 import TextField from "../../components/auth/TextField";
+import { BusyLabel } from "../../components/Loader";
 
 const emptyForm = {
   firstName: "",
@@ -138,9 +139,10 @@ export default function Register() {
           <button
             type="submit"
             disabled={loading}
-            className="h-12 bg-forest text-[15px] tracking-wide text-ivory transition-colors hover:bg-forest-soft disabled:opacity-70"
+            aria-busy={loading}
+            className="flex h-12 items-center justify-center bg-forest text-[15px] tracking-wide text-ivory transition-colors hover:bg-forest-soft disabled:opacity-70 aria-busy:cursor-wait aria-busy:opacity-100"
           >
-            {loading ? "Creating your account…" : "Create account"}
+            <BusyLabel busy={loading} busyText="Creating your account…" text="Create account" />
           </button>
           <p className="text-[15px] text-muted">
             Already have an account?{" "}
