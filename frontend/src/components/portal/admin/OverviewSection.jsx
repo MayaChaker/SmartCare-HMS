@@ -10,11 +10,12 @@ const LONG_WAIT = 15;
 const HIGH_NO_SHOW = 5;
 const LOW_BOOKED = 55;
 
-// A round top for the axis: 0, 20, 40, 60, 80
-const niceMax = (value) => {
-  const steps = [5, 10, 20, 25, 50, 100, 200, 250, 500, 1000];
+// Whole, evenly spaced axis lines with at most four steps: 0, 2, 4, 6 or 0, 20, 40, 60, 80
+const niceTicks = (value) => {
+  const steps = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000];
   const step = steps.find((s) => value / s <= 4) || 1000;
-  return Math.max(step, Math.ceil(value / step) * step);
+  const max = Math.max(step, Math.ceil(value / step) * step);
+  return Array.from({ length: max / step + 1 }, (_, i) => i * step);
 };
 
 function StatTile({ label, value, change, note }) {
@@ -42,8 +43,8 @@ function VisitsChart({ perDay, today }) {
   const left = 36;
   const bottom = 26;
   const top = 18;
-  const max = niceMax(Math.max(1, ...perDay.map((d) => d.visits)));
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(max * f));
+  const ticks = niceTicks(Math.max(1, ...perDay.map((d) => d.visits)));
+  const max = ticks[ticks.length - 1];
   const band = (W - left) / perDay.length;
   const barWidth = Math.min(24, band - 2);
   const y = (v) => top + (H - top - bottom) * (1 - v / max);
