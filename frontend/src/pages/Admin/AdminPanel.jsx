@@ -1,178 +1,62 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { RiAdminLine } from "react-icons/ri";
-//
-import "./AdminPanel.css";
+import { useEffect, useState } from "react";
+import PortalLayout from "../../components/portal/PortalLayout";
+import OverviewSection from "../../components/portal/admin/OverviewSection";
+import ActivitySection from "../../components/portal/admin/ActivitySection";
+import DoctorsSection from "../../components/portal/admin/DoctorsSection";
+import StaffSection from "../../components/portal/admin/StaffSection";
+import { ui } from "../../components/portal/ui";
+import useAdmin from "../../hooks/useAdmin";
+import useNow from "../../hooks/useNow";
 import { useAuth } from "../../context/useAuth";
-import LogoutButton from "../../components/ui/LogoutButton/LogoutButton";
-import AdminUsersButton from "../../components/AdminUsersButton/AdminUsersButton";
-import AdminDashboardButton from "../../components/AdminDashboardButton/AdminDashboardButton";
-import AdminDoctorsButton from "../../components/AdminDoctorsButton/AdminDoctorsButton";
-import AdminPatientsButton from "../../components/AdminPatientsButton/AdminPatientsButton";
-import AdminAppointmentsButton from "../../components/AdminAppointmentsButton/AdminAppointmentsButton";
-import AdminReports from "../../components/AdminReports/AdminReports";
-import Spinner from "../../components/ui/Spinner/Spinner";
 
-import {
-  AdminProvider,
-  useAdmin,
-  AdminModal,
-} from "../../context/AdminContext";
+const SECTIONS = [
+  { id: "overview", label: "Overview" },
+  { id: "activity", label: "Activity" },
+  { id: "doctors", label: "Doctors" },
+  { id: "staff", label: "Staff" },
+];
 
-// Inline AdminNavItem here for reuse across admin components
-export const AdminNavItem = ({ active, onClick, icon, label }) => {
-  return (
-    <button
-      className={`admin-nav-item ${active ? "active" : ""}`}
-      onClick={onClick}
-    >
-      <span className="admin-nav-icon">{icon}</span>
-      <span className="admin-nav-label">{label}</span>
-    </button>
-  );
+const sectionFromHash = () => {
+  const id = window.location.hash.slice(1);
+  return SECTIONS.some((s) => s.id === id) ? id : "overview";
 };
 
-// ---------- Header ----------
-const AdminHeader = () => {
-  const navigate = useNavigate();
+// Administration
+export default function AdminPanel() {
+  const admin = useAdmin();
+  const now = useNow();
   const { user } = useAuth();
+  const [active, setActive] = useState(sectionFromHash);
+
+  useEffect(() => {
+    const onHashChange = () => {
+      setActive(sectionFromHash());
+      window.scrollTo({ top: 0 });
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
   return (
-    <div className="admin-header">
-      <div className="admin-header-content">
-        <div className="admin-header-left">
-          <div
-            className="admin-title-group"
-            onClick={() => navigate("/")}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") navigate("/");
-            }}
-            title="Go to Home"
-          >
-            <RiAdminLine className="admin-icon" />
-            <div className="admin-title-text">
-              <h1 className="admin-title">SmartCare Admin</h1>
-              <span className="user-name admin-user-name">
-                Welcome, {user?.username}
-              </span>
-            </div>
-          </div>
+    <PortalLayout sections={SECTIONS} active={active} userName={user?.username || "Administration"} userDetail="Administration" homeLabel="administration" strip="Administration · Level 6">
+      {admin.status === "loading" && <p className={`${ui.page} py-16 text-[16px] text-muted`}>Loading…</p>}
+      {admin.status === "error" && (
+        <div role="alert" className={`${ui.page} py-16`}>
+          <p className="font-serif text-3xl text-ink">We could not load the administration.</p>
+          <p className="mt-2 text-[15px] text-muted">Please check your connection and try again.</p>
+          <button type="button" onClick={admin.reload} className={`${ui.primary} mt-6`}>
+            Try again
+          </button>
         </div>
-        <div className="admin-header-right">
-          <LogoutButton>Logout</LogoutButton>
-        </div>
-      </div>
-    </div>
+      )}
+      {admin.status === "ready" && (
+        <>
+          {active === "overview" && <OverviewSection admin={admin} now={now} />}
+          {active === "activity" && <ActivitySection admin={admin} now={now} />}
+          {active === "doctors" && <DoctorsSection admin={admin} />}
+          {active === "staff" && <StaffSection admin={admin} now={now} me={user?.id} onDoctors={() => (window.location.hash = "doctors")} />}
+        </>
+      )}
+    </PortalLayout>
   );
-};
-
-// ---------- Sidebar ----------
-const AdminSidebar = () => {
-  return (
-    <nav className="admin-sidebar">
-      <div className="sidebar-content">
-        <div className="admin-nav-section">
-          <AdminDashboardButton />
-          <AdminUsersButton />
-          <AdminDoctorsButton />
-          <AdminPatientsButton />
-          <AdminAppointmentsButton />
-        </div>
-      </div>
-    </nav>
-  );
-};
-
-// ---------- Users section wrapper ----------
-const UsersSection = () => {
-  const {
-    activeSection,
-    setActiveSection,
-    users,
-    openModal,
-    handleDeleteUser,
-  } = useAdmin();
-
-  if (activeSection !== "users") return null;
-
-  return (
-    <AdminUsersButton
-      activeSection={activeSection}
-      setActiveSection={setActiveSection}
-      renderContent={true}
-      users={users}
-      openModal={openModal}
-      handleDeleteUser={handleDeleteUser}
-    />
-  );
-};
-
-// ---------- Main layout ----------
-const AdminMain = () => {
-  const { activeSection, loading, error, success } = useAdmin();
-
-  return (
-    <div className="admin-layout">
-      <AdminSidebar />
-
-      <main className="admin-main">
-        {loading && (
-          <div className="loading-overlay">
-            <Spinner size={48} />
-            <div className="loading-overlay-text">Loading...</div>
-          </div>
-        )}
-
-        {error && (
-          <div className="alert alert-error">
-            <span className="alert-icon">⚠️</span>
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="alert alert-success">
-            <span className="alert-icon">✅</span>
-            {success}
-          </div>
-        )}
-
-        {activeSection === "dashboard" && (
-          <AdminDashboardButton renderContent={true} />
-        )}
-
-        <UsersSection />
-
-        {activeSection === "doctors" && (
-          <AdminDoctorsButton renderContent={true} />
-        )}
-
-        {activeSection === "patients" && (
-          <AdminPatientsButton renderContent={true} />
-        )}
-
-        {activeSection === "appointments" && (
-          <AdminAppointmentsButton renderContent={true} />
-        )}
-        <AdminReports />
-      </main>
-
-      <AdminModal />
-    </div>
-  );
-};
-
-const AdminPanel = () => {
-  return (
-    <AdminProvider>
-      <div className="admin-panel">
-        <AdminHeader />
-        <AdminMain />
-      </div>
-    </AdminProvider>
-  );
-};
-
-export default AdminPanel;
+}
