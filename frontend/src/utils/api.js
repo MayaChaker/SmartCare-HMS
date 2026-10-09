@@ -248,3 +248,27 @@ export const patientAPI = {
 };
 
 export default api;
+
+// Wraps a request so callers get { success, data } or { success: false, message }
+const call = async (request, fallback) => {
+  try {
+    const response = await request;
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { success: false, message: error.response?.data?.message || fallback };
+  }
+};
+
+// Doctor API calls
+export const doctorAPI = {
+  getProfile: () => call(api.get("/doctor/profile"), "Couldn't load your profile"),
+  getAppointments: () => call(api.get("/doctor/appointments"), "Couldn't load your visits"),
+  getPatients: () => call(api.get("/doctor/patients"), "Couldn't load your patients"),
+  // { patient, medicalRecords }
+  getPatient: (id) => call(api.get(`/doctor/patients/${id}`), "Couldn't load this patient"),
+  setStatus: (appointmentId, status) => call(api.put(`/doctor/appointments/${appointmentId}`, { status }), "Couldn't update the visit"),
+  createRecord: (note) => call(api.post("/doctor/records", note), "Couldn't save the note"),
+  updateRecord: (id, note) => call(api.put(`/doctor/records/${id}`, note), "Couldn't save the note"),
+  // { availability, workingHours }
+  updateAvailability: (values) => call(api.put("/doctor/availability", values), "Couldn't save your hours"),
+};

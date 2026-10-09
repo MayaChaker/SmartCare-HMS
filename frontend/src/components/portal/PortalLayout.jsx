@@ -3,8 +3,8 @@ import "../../styles/site.css";
 import Logo from "../site/Logo";
 import { useAuth } from "../../context/useAuth";
 import { contact } from "../../content/site";
-import { patientOffice } from "../../content/portal";
 import { ui } from "./ui";
+import DoctorAvatar from "./DoctorAvatar";
 
 // Line icons for the phone tab bar, drawn on a 24px grid
 const ICONS = {
@@ -22,6 +22,24 @@ const ICONS = {
       <path d="M14 3.5v4h4M9.5 12h6M9.5 15.5h6" />
     </>
   ),
+  today: (
+    <>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12 7.5V12l3 2" />
+    </>
+  ),
+  schedule: (
+    <>
+      <rect x="4" y="5.5" width="16" height="14.5" rx="1" />
+      <path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" />
+    </>
+  ),
+  patients: (
+    <>
+      <circle cx="9" cy="8.5" r="3.2" />
+      <path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5M15.5 5.5a3 3 0 0 1 0 6M17.5 14.3c1.6.6 2.7 2.2 3 4.7" />
+    </>
+  ),
   profile: (
     <>
       <circle cx="12" cy="8.5" r="3.5" />
@@ -30,9 +48,10 @@ const ICONS = {
   ),
 };
 
-// App shell for the signed-in patient: a top bar on large screens, a tab bar at the bottom on phones.
+// App shell for signed-in people: a top bar on large screens, a tab bar at the bottom on phones.
 // Sections are plain links to "#id", so the browser's back button moves between them.
-export default function PortalLayout({ sections, active, userName, userDetail, children }) {
+// `strip` is the short line above the bar on large screens (who to call); `photo` is an optional person to show.
+export default function PortalLayout({ sections, active, userName, userDetail, photo, strip, homeLabel = "home", children }) {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -46,16 +65,14 @@ export default function PortalLayout({ sections, active, userName, userDetail, c
       <header className="sticky top-0 z-40 bg-forest-deep text-ivory">
         <div className="hidden border-b border-ivory/10 lg:block">
           <div className={`${ui.page} flex items-center justify-between py-2 text-[13px] text-ivory/65`}>
-            <p>
-              Private Patient Office · WhatsApp <span className="text-ivory tabular-nums">{patientOffice.whatsapp}</span> · {patientOffice.hours}
-            </p>
+            <p>{strip}</p>
             <p>
               Emergency 24/7 · <span className="text-ivory tabular-nums">{contact.emergency}</span>
             </p>
           </div>
         </div>
         <div className={`${ui.page} flex items-center justify-between gap-6 py-4`}>
-          <a href="#home" aria-label="SmartCare patient portal, home">
+          <a href={`#${sections[0].id}`} aria-label={`SmartCare, ${homeLabel}`}>
             <Logo />
           </a>
           <nav aria-label="Portal" className="hidden items-center gap-9 lg:flex">
@@ -73,7 +90,12 @@ export default function PortalLayout({ sections, active, userName, userDetail, c
             ))}
           </nav>
           <div className="flex items-center gap-5">
-            <div className="hidden text-right leading-tight sm:block">
+            {photo && (
+              <span className="hidden sm:block">
+                <DoctorAvatar doctor={photo} size={36} />
+              </span>
+            )}
+            <div className={`hidden leading-tight sm:block ${photo ? "text-left" : "text-right"}`}>
               <p className="text-[15px]">{userName}</p>
               {userDetail && <p className="text-[12px] text-ivory/60 tabular-nums">{userDetail}</p>}
             </div>
@@ -88,7 +110,8 @@ export default function PortalLayout({ sections, active, userName, userDetail, c
 
       <nav
         aria-label="Portal"
-        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-ivory/10 bg-forest-deep pb-[env(safe-area-inset-bottom)] text-ivory lg:hidden"
+        style={{ gridTemplateColumns: `repeat(${sections.length}, minmax(0, 1fr))` }}
+        className="fixed inset-x-0 bottom-0 z-40 grid border-t border-ivory/10 bg-forest-deep pb-[env(safe-area-inset-bottom)] text-ivory lg:hidden"
       >
         {sections.map((s) => {
           const on = s.id === active;
