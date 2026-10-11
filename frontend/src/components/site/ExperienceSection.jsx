@@ -1,6 +1,7 @@
 import Reveal from "./Reveal";
 import SectionHeading from "./SectionHeading";
 import { experienceStories } from "../../content/site";
+import { responsivePhoto } from "../../utils/photo";
 
 // Three equal columns: photo, what we promise, and the two numbers behind the promise.
 export default function ExperienceSection() {
@@ -17,7 +18,14 @@ export default function ExperienceSection() {
           {experienceStories.map((story) => (
             <Reveal as="article" key={story.title} className="flex flex-col">
               <div className="aspect-[4/5] overflow-hidden">
-                <img src={story.image} alt={story.imageAlt} loading="lazy" className="photo-grade h-full w-full object-cover" />
+                <img
+                  {...responsivePhoto(story.image)}
+                  sizes="(min-width: 768px) 45vw, 130vw"
+                  alt={story.imageAlt}
+                  loading="lazy"
+                  decoding="async"
+                  className="photo-grade h-full w-full object-cover"
+                />
               </div>
               <h3 className="mt-8 font-serif text-[32px] leading-[1.1] text-balance">{story.title}</h3>
               <p className="mt-4 mb-8 text-[16px] leading-relaxed text-ivory/75">{story.text}</p>

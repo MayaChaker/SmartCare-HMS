@@ -1,6 +1,7 @@
 import Reveal from "./Reveal";
 import SectionHeading from "./SectionHeading";
 import { facilities, hospitalNumbers } from "../../content/site";
+import { responsivePhoto } from "../../utils/photo";
 
 export default function FacilitiesSection() {
   return (
@@ -15,7 +16,15 @@ export default function FacilitiesSection() {
           {facilities.map((item) => (
             <Reveal as="figure" key={item.title}>
               <div className="aspect-[3/4] overflow-hidden bg-ivory-line">
-                <img src={item.image} alt={item.alt} loading="lazy" className="photo-grade h-full w-full object-cover" />
+                {/* Landscape photos cropped to a portrait frame, so the frame needs about 1.5 times its width */}
+                <img
+                  {...responsivePhoto(item.image)}
+                  sizes="(min-width: 1024px) 35vw, (min-width: 640px) 75vw, 150vw"
+                  alt={item.alt}
+                  loading="lazy"
+                  decoding="async"
+                  className="photo-grade h-full w-full object-cover"
+                />
               </div>
               <figcaption className="mt-5">
                 <h3 className="font-serif text-[26px] leading-tight text-ink">{item.title}</h3>

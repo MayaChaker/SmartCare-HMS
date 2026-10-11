@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import "../../styles/site.css";
 import Logo from "../site/Logo";
 import { contact } from "../../content/site";
+import { responsivePhoto } from "../../utils/photo";
 
 // Split screen used by the sign-in and sign-up pages: a photo panel with the brand on the left,
 // the form on the right. On phones the photo is hidden and the logo sits above the form.
@@ -9,7 +10,8 @@ export default function AuthLayout({ image, imageAlt, title, intro, children }) 
   return (
     <div className="site grid min-h-screen lg:grid-cols-2">
       <aside className="relative hidden overflow-hidden bg-forest text-ivory lg:sticky lg:top-0 lg:block lg:h-screen">
-        <img src={image} alt={imageAlt} className="photo-grade absolute inset-0 h-full w-full object-cover" />
+        {/* Lazy, so phones (where this panel is hidden) never download it */}
+        <img {...responsivePhoto(image)} sizes="50vw" alt={imageAlt} loading="lazy" className="photo-grade absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-linear-to-t from-forest-deep/95 via-forest-deep/55 to-forest-deep/30" />
         <div className="relative flex h-full flex-col justify-between p-12 xl:p-16">
           <Link to="/" aria-label="SmartCare Private Hospital, home">

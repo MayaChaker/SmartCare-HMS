@@ -2,6 +2,7 @@ import Reveal from "./Reveal";
 import SectionHeading from "./SectionHeading";
 import { centers } from "../../content/site";
 import { requestBooking } from "../../utils/bookingIntent";
+import { responsivePhoto } from "../../utils/photo";
 
 // All six centers visible at once, in an even grid. Each one can be booked directly.
 export default function CentersSection() {
@@ -18,9 +19,11 @@ export default function CentersSection() {
             <Reveal as="li" key={center.name} className="group flex flex-col">
               <div className="aspect-[4/3] overflow-hidden bg-ivory-line">
                 <img
-                  src={center.image}
+                  {...responsivePhoto(center.image)}
+                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                   alt={center.imageAlt}
                   loading="lazy"
+                  decoding="async"
                   className="photo-grade h-full w-full object-cover transition-transform duration-[1200ms] ease-soft group-hover:scale-[1.04]"
                 />
               </div>

@@ -5,6 +5,7 @@ import CancelDialog from "../CancelDialog";
 import { byDateTime, doctorName, doctorPhoto, formatDate, formatTime, isUpcoming, minutesBefore, relativeDay } from "../format";
 import { arrivalNote, departmentPlace, patientOffice, services, whatToBring } from "../../../content/portal";
 import { ui } from "../ui";
+import { responsivePhoto } from "../../../utils/photo";
 
 const greeting = () => {
   const hour = new Date().getHours();
@@ -96,7 +97,7 @@ export default function HomeSection({ portal, findDoctor, onReschedule }) {
   return (
     <>
       <section className="relative overflow-hidden bg-forest-deep text-ivory">
-        <img src="/images/site/corridor.jpg" alt="" className="photo-grade absolute inset-0 h-full w-full animate-settle object-cover object-[50%_45%] motion-reduce:animate-none" />
+        <img {...responsivePhoto("/images/site/corridor.jpg")} sizes="100vw" alt="" className="photo-grade absolute inset-0 h-full w-full animate-settle object-cover object-[50%_45%] motion-reduce:animate-none" />
         <div className="absolute inset-0 bg-gradient-to-r from-forest-deep via-forest-deep/75 to-forest-deep/10" />
         <div className={`${ui.page} relative pt-14 pb-32 lg:pt-20 lg:pb-40`}>
           <p className="text-[15px] text-ivory/70">

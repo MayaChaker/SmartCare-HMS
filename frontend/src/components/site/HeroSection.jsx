@@ -3,6 +3,7 @@ import ArrowIcon from "./ArrowIcon";
 import usePrefersReducedMotion from "../../hooks/usePrefersReducedMotion";
 import { actions } from "../../content/site";
 import { requestBooking } from "../../utils/bookingIntent";
+import { responsivePhoto } from "../../utils/photo";
 
 export default function HeroSection() {
   const photoRef = useRef(null);
@@ -31,7 +32,8 @@ export default function HeroSection() {
     <section id="top" className="relative flex min-h-[max(100svh,680px)] items-end overflow-hidden bg-forest text-ivory">
       <div ref={photoRef} className="absolute inset-x-0 -top-[8%] h-[116%]">
         <img
-          src="/images/site/corridor.jpg"
+          {...responsivePhoto("/images/site/corridor.jpg")}
+          sizes="100vw"
           alt="The light-filled glass corridor of the SmartCare inpatient wing"
           className="photo-grade h-full w-full object-cover object-[60%_50%] motion-safe:animate-settle"
           fetchPriority="high"
