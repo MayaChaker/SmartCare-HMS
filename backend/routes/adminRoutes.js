@@ -12,7 +12,6 @@ router.use(checkRole(["admin"]));
 // Accounts
 router.get("/users", adminController.getAllUsers);
 router.post("/users", blockDemoAccounts, adminController.createUser);
-router.put("/users/:id", blockDemoAccounts, adminController.updateUser);
 router.post("/users/:id/reset-password", blockDemoAccounts, adminController.resetPassword);
 router.delete("/users/:id", blockDemoAccounts, adminController.deleteUser);
 
@@ -24,7 +23,5 @@ router.post("/doctors/:id/photo", blockDemoAccounts, readPhoto, adminController.
 // Reading
 router.get("/analytics", adminController.getAnalytics);
 router.get("/activity", adminController.getActivity);
-router.get("/patients", adminController.getAllPatients);
-router.get("/appointments", adminController.getAllAppointments);
 
 module.exports = router;

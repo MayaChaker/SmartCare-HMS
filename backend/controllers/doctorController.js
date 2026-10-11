@@ -6,7 +6,7 @@ const {
   User,
 } = require("../models");
 const { getStatusChangeError } = require("../utils/appointmentStatus");
-const { isIsoDate, parseId } = require("../utils/schedule");
+const { isIsoDate, parseId, parseWorkingHoursText } = require("../utils/schedule");
 const audit = require("../utils/audit");
 // Helper: ensure a Doctor profile exists for the current user
 async function ensureDoctorForUser(userId) {
@@ -83,34 +83,14 @@ const CHART_FIELDS = [
   "medicalHistory",
 ];
 
-// Get doctor's schedule
-exports.getSchedule = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    // Ensure a profile exists; auto-create with safe defaults if missing
-    const doctor = await ensureDoctorForUser(userId);
-
-    const appointments = await Appointment.findAll({
-      where: { doctorId: doctor.id },
-      include: [
-        { model: Patient, attributes: ["id", "firstName", "lastName"] },
-      ],
-    });
-
-    res.json(appointments);
-  } catch (error) {
-    console.error("Error fetching schedule:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
 // Get patient details
 exports.getPatientDetails = async (req, res) => {
   try {
     const { id } = req.params;
     const doctor = await ensureDoctorForUser(req.user.id);
 
-    const patient = await Patient.findByPk(id);
+    // Only the chart: never the account link or the activation code's hash
+    const patient = await Patient.findByPk(parseId(id), { attributes: CHART_FIELDS });
     if (!patient || !(await isDoctorsPatient(doctor.id, patient.id))) {
       return res.status(404).json({ message: "Patient not found" });
     }
@@ -202,7 +182,7 @@ exports.updateMedicalRecord = async (req, res) => {
     const doctor = await ensureDoctorForUser(userId);
 
     const record = await MedicalRecord.findOne({
-      where: { id, doctorId: doctor.id },
+      where: { id: parseId(id), doctorId: doctor.id },
     });
 
     if (!record) {
@@ -243,58 +223,6 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-// Update doctor profile
-exports.updateProfile = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const {
-      firstName,
-      lastName,
-      phone,
-      specialization,
-      photoUrl,
-      availability,
-      workingHours,
-      availableDay,
-      availableStartTime,
-      availableEndTime,
-      availableDate,
-      licenseNumber,
-      experience,
-      qualification,
-    } = req.body;
-
-    // Ensure a profile exists; auto-create with safe defaults if missing
-    const doctor = await ensureDoctorForUser(userId);
-
-    if (firstName) doctor.firstName = firstName;
-    if (lastName) doctor.lastName = lastName;
-    if (phone) doctor.phone = phone;
-    if (specialization) doctor.specialization = specialization;
-    if (photoUrl) doctor.photoUrl = photoUrl;
-    if (availability !== undefined) doctor.availability = availability;
-    if (workingHours) doctor.workingHours = workingHours;
-    if (availableDay) doctor.availableDay = availableDay;
-    if (availableStartTime) doctor.availableStartTime = availableStartTime;
-    if (availableEndTime) doctor.availableEndTime = availableEndTime;
-    if (availableDate) doctor.availableDate = availableDate;
-    if (licenseNumber) doctor.licenseNumber = licenseNumber;
-    if (experience !== undefined) doctor.experience = experience;
-    if (qualification) doctor.qualification = qualification;
-
-    await doctor.save();
-
-    res.json({
-      message: "Profile updated successfully",
-      doctor,
-    });
-  } catch (error) {
-    console.error("Error updating doctor profile:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// Upload doctor profile photo (multipart/form-data)
 // The doctor's own portrait, checked by the readPhoto middleware and kept in the database
 exports.uploadPhoto = async (req, res) => {
   try {
@@ -311,28 +239,22 @@ exports.uploadPhoto = async (req, res) => {
   }
 };
 
-// Update doctor availability
+// Pause or reopen bookings, and set the booking days and hours
 exports.updateAvailability = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const {
-      availability,
-      workingHours,
-      availableDay,
-      availableStartTime,
-      availableEndTime,
-      availableDate,
-    } = req.body;
-    // Ensure a profile exists; auto-create with safe defaults if missing
-    const doctor = await ensureDoctorForUser(userId);
-
+    const { availability, workingHours } = req.body;
+    if (availability !== undefined && typeof availability !== "boolean") {
+      return res.status(400).json({ message: "availability must be true or false" });
+    }
+    if (workingHours !== undefined) {
+      const hours = typeof workingHours === "string" ? parseWorkingHoursText(workingHours) : null;
+      if (!hours || hours.days.length === 0 || hours.start >= hours.end) {
+        return res.status(400).json({ message: 'Working hours need at least one day and an end after the start, for example "Mon - Fri 09:00 AM - 05:00 PM"' });
+      }
+    }
+    const doctor = await ensureDoctorForUser(req.user.id);
     if (availability !== undefined) doctor.availability = availability;
-    if (workingHours) doctor.workingHours = workingHours;
-    if (availableDay) doctor.availableDay = availableDay;
-    if (availableStartTime) doctor.availableStartTime = availableStartTime;
-    if (availableEndTime) doctor.availableEndTime = availableEndTime;
-    if (availableDate) doctor.availableDate = availableDate;
-
+    if (workingHours !== undefined) doctor.workingHours = workingHours.trim();
     await doctor.save();
 
     await audit.record(req.user, "doctor.hours_changed", { type: "doctor", id: doctor.id, name: audit.doctorName(doctor) }, doctor.availability ? doctor.workingHours : "Bookings paused");
@@ -356,7 +278,7 @@ exports.updateAppointmentStatus = async (req, res) => {
     const doctor = await ensureDoctorForUser(userId);
 
     const appointment = await Appointment.findOne({
-      where: { id },
+      where: { id: parseId(id) },
       include: [{ model: Doctor, attributes: ["id", "userId"] }],
     });
 
@@ -398,40 +320,28 @@ exports.updateAppointmentStatus = async (req, res) => {
   }
 };
 
-// Get all patients for the doctor
+// The doctor's patients (anyone with at least one visit with them), and whether they have visit notes
 exports.getPatients = async (req, res) => {
   try {
-    const userId = req.user.id;
-    // Ensure a profile exists; auto-create with safe defaults if missing
-    const doctor = await ensureDoctorForUser(userId);
+    const doctor = await ensureDoctorForUser(req.user.id);
 
-    // Get unique patients from appointments
-    const appointments = await Appointment.findAll({
+    const visits = await Appointment.findAll({
       where: { doctorId: doctor.id },
-      include: [
-        {
-          model: Patient,
-          attributes: CHART_FIELDS,
-        },
-      ],
+      include: [{ model: Patient, attributes: CHART_FIELDS }],
       attributes: ["patientId"],
       group: ["patientId"],
     });
+    const patients = visits.map((v) => v.Patient).filter(Boolean);
 
-    const rawPatients = appointments.map((app) => app.Patient).filter(Boolean);
-    const patients = await Promise.all(
-      rawPatients.map(async (p) => {
-        const count = await MedicalRecord.count({ where: { patientId: p.id } });
-        const obj = p.toJSON();
-        obj.hasMedicalRecords = count > 0;
-        if (!obj.medicalHistory && count > 0) {
-          obj.medicalHistory = "Available";
-        }
-        return obj;
-      })
-    );
+    // One query for every patient instead of one per patient
+    const notes = await MedicalRecord.findAll({
+      where: { patientId: patients.map((p) => p.id) },
+      attributes: ["patientId"],
+      group: ["patientId"],
+    });
+    const withNotes = new Set(notes.map((r) => r.patientId));
 
-    res.json(patients);
+    res.json(patients.map((p) => ({ ...p.toJSON(), hasMedicalRecords: withNotes.has(p.id) })));
   } catch (error) {
     console.error("Error fetching patients:", error);
     res.status(500).json({ message: "Server error" });

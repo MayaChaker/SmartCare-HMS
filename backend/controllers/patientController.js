@@ -1,122 +1,97 @@
 const { Patient, Appointment, MedicalRecord, Doctor } = require("../models");
-const { Op } = require("sequelize");
 
-const { isNonEmptyString } = require("../utils/validation");
+const { isNonEmptyString, isValidEmail } = require("../utils/validation");
 const {
   isIsoDate,
   parseId,
   normalizeTimeToSql,
   isSlotAllowedByWorkingHours,
 } = require("../utils/schedule");
-const { isSlotInPast } = require("../utils/clinicTime");
-const { getSlotConflictError } = require("../utils/bookingConflicts");
+const { clinicToday, isSlotInPast } = require("../utils/clinicTime");
+const { saveIfSlotFree } = require("../utils/bookingConflicts");
 const audit = require("../utils/audit");
-const { INACTIVE_STATUSES } = require("../utils/appointmentStatus");
+
+const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+const GENDERS = ["Female", "Male"];
+const MAX_TEXT = 2000;
+
+// The patient's own file, as the portal shows it (never the account link or activation details)
+const ownProfile = (patient) => ({
+  id: patient.id,
+  name: patient.name,
+  firstName: patient.firstName,
+  lastName: patient.lastName,
+  email: patient.email || "",
+  phone: patient.phone || patient.contact || "",
+  dateOfBirth: patient.dateOfBirth || "",
+  gender: patient.gender || "",
+  address: patient.address || "",
+  emergencyContact: patient.emergencyContact || "",
+  bloodType: patient.bloodType || "",
+  allergies: patient.allergies || "",
+  insurance: patient.insurance || "",
+  medicalHistory: patient.medicalHistory || "",
+  permanentMedicine: patient.permanentMedicine || "",
+});
+
+// Fields a patient may change. Names are required; every other field can be cleared with an empty value.
+const REQUIRED_FIELDS = ["firstName", "lastName"];
+const OPTIONAL_FIELDS = ["email", "phone", "dateOfBirth", "gender", "address", "emergencyContact", "bloodType", "allergies", "insurance", "medicalHistory", "permanentMedicine"];
+
+// Returns { changes } or { error }
+function profileChanges(body) {
+  const changes = {};
+  for (const key of [...REQUIRED_FIELDS, ...OPTIONAL_FIELDS]) {
+    if (body[key] === undefined) continue;
+    if (body[key] !== null && typeof body[key] !== "string") return { error: `${key} must be text` };
+    const value = (body[key] || "").trim();
+    if (value.length > MAX_TEXT) return { error: `${key} is too long` };
+    if (REQUIRED_FIELDS.includes(key) && !value) return { error: "First and last name cannot be empty" };
+    changes[key] = value || null;
+  }
+  if (changes.email && !isValidEmail(changes.email)) return { error: "Enter a valid email address" };
+  if (changes.dateOfBirth && (!isIsoDate(changes.dateOfBirth) || changes.dateOfBirth > clinicToday())) {
+    return { error: "Enter a valid date of birth" };
+  }
+  if (changes.gender && !GENDERS.includes(changes.gender)) return { error: "Choose a gender from the list" };
+  if (changes.bloodType && !BLOOD_TYPES.includes(changes.bloodType)) return { error: "Choose a blood type from the list" };
+  return { changes };
+}
+
+const findOwnPatient = (req) => Patient.findOne({ where: { userId: req.user.id } });
 
 // Get patient profile
 exports.getProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
-
-    const patient = await Patient.findOne({ where: { userId } });
+    const patient = await findOwnPatient(req);
     if (!patient) {
       return res.status(404).json({ message: "Patient profile not found" });
     }
-
-    // Return profile in the format expected by frontend
-    res.json({
-      id: patient.id,
-      name: patient.name,
-      firstName: patient.firstName,
-      lastName: patient.lastName,
-      email: patient.email || "",
-      phone: patient.phone || patient.contact || "",
-      dateOfBirth: patient.dateOfBirth || "",
-      gender: patient.gender || "",
-      address: patient.address || "",
-      emergencyContact: patient.emergencyContact || "",
-      bloodType: patient.bloodType || "",
-      allergies: patient.allergies || "",
-      insurance: patient.insurance || "",
-      medicalHistory: patient.medicalHistory || "",
-      permanentMedicine: patient.permanentMedicine || "",
-    });
+    res.json(ownProfile(patient));
   } catch (error) {
     console.error("Error fetching patient profile:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// Update patient profile
+// Update patient profile: only the fields sent are changed
 exports.updateProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const {
-      name,
-      firstName,
-      lastName,
-      email,
-      phone,
-      dateOfBirth,
-      gender,
-      address,
-      emergencyContact,
-      bloodType,
-      allergies,
-      insurance,
-      medicalHistory,
-      permanentMedicine,
-    } = req.body;
+    const { changes, error } = profileChanges(req.body || {});
+    if (error) {
+      return res.status(400).json({ message: error });
+    }
 
-    const patient = await Patient.findOne({ where: { userId } });
+    const patient = await findOwnPatient(req);
     if (!patient) {
       return res.status(404).json({ message: "Patient profile not found" });
     }
 
-    // Handle name field - split into firstName and lastName if provided
-    if (name && !firstName && !lastName) {
-      const nameParts = name.trim().split(" ");
-      patient.firstName = nameParts[0] || patient.firstName;
-      patient.lastName = nameParts.slice(1).join(" ") || patient.lastName;
-    }
-
-    // Update patient fields
-    if (firstName) patient.firstName = firstName;
-    if (lastName) patient.lastName = lastName;
-    if (email) patient.email = email;
-    if (phone) patient.phone = phone;
-    if (dateOfBirth) {
-      patient.dateOfBirth = dateOfBirth;
-    }
-    if (gender) patient.gender = gender;
-    if (address) patient.address = address;
-    if (emergencyContact) patient.emergencyContact = emergencyContact;
-    if (bloodType) patient.bloodType = bloodType;
-    if (allergies) patient.allergies = allergies;
-    if (insurance) patient.insurance = insurance;
-    if (medicalHistory) patient.medicalHistory = medicalHistory;
-    if (permanentMedicine) patient.permanentMedicine = permanentMedicine;
-
+    Object.assign(patient, changes);
     await patient.save();
 
-    res.json({
-      message: "Profile updated successfully",
-      patient: {
-        id: patient.id,
-        name: patient.name,
-        firstName: patient.firstName,
-        lastName: patient.lastName,
-        email: patient.email,
-        phone: patient.phone,
-        dateOfBirth: patient.dateOfBirth,
-        gender: patient.gender,
-        address: patient.address,
-        emergencyContact: patient.emergencyContact,
-        bloodType: patient.bloodType,
-        allergies: patient.allergies,
-        insurance: patient.insurance,
-      },
-    });
+    // The whole profile, so the portal shows exactly what was saved
+    res.json({ message: "Profile updated successfully", patient: ownProfile(patient) });
   } catch (error) {
     console.error("Error updating patient profile:", error);
     res.status(500).json({ message: "Server error" });
@@ -126,32 +101,27 @@ exports.updateProfile = async (req, res) => {
 // Get patient appointments
 exports.getAppointments = async (req, res) => {
   try {
-    const userId = req.user.id;
-
-    const patient = await Patient.findOne({ where: { userId } });
+    const patient = await findOwnPatient(req);
     if (!patient) {
       return res.status(404).json({ message: "Patient profile not found" });
     }
 
+    // The doctor is loaded with the visits in one query
     const appointments = await Appointment.findAll({
       where: { patientId: patient.id },
+      include: [{ model: Doctor, attributes: ["firstName", "lastName", "specialization"] }],
     });
 
-    // Get doctor information separately for each appointment
-    const appointmentsWithDoctors = await Promise.all(
-      appointments.map(async (appointment) => {
-        const doctor = await Doctor.findByPk(appointment.doctorId);
+    res.json(
+      appointments.map((appointment) => {
+        const { Doctor: doctor, ...visit } = appointment.toJSON();
         return {
-          ...appointment.toJSON(),
-          doctorName: doctor
-            ? `${doctor.firstName} ${doctor.lastName}`
-            : "Unknown Doctor",
+          ...visit,
+          doctorName: doctor ? `${doctor.firstName} ${doctor.lastName}` : "Unknown Doctor",
           specialty: doctor ? doctor.specialization : "Unknown",
         };
       }),
     );
-
-    res.json(appointmentsWithDoctors);
   } catch (error) {
     console.error("Error fetching appointments:", error);
     res.status(500).json({ message: "Server error" });
@@ -161,13 +131,12 @@ exports.getAppointments = async (req, res) => {
 // Schedule new appointment
 exports.createAppointment = async (req, res) => {
   try {
-    const userId = req.user.id;
     const { doctorId, appointmentDate, appointmentTime, reason } = req.body;
 
     const cleanDoctorId = parseId(doctorId);
     const cleanDate = String(appointmentDate || "").trim();
     const cleanTime = normalizeTimeToSql(appointmentTime);
-    const cleanReason = isNonEmptyString(reason) ? reason.trim() : "";
+    const cleanReason = isNonEmptyString(reason) ? reason.trim().slice(0, 255) : "";
 
     if (!cleanDoctorId) {
       return res.status(400).json({ message: "doctorId is required" });
@@ -184,7 +153,7 @@ exports.createAppointment = async (req, res) => {
       return res.status(400).json({ message: "Please choose a date and time in the future" });
     }
 
-    const patient = await Patient.findOne({ where: { userId } });
+    const patient = await findOwnPatient(req);
     if (!patient) {
       return res.status(404).json({ message: "Patient profile not found" });
     }
@@ -201,24 +170,24 @@ exports.createAppointment = async (req, res) => {
       return res.status(409).json({ message: whCheck.message });
     }
 
-    const conflictError = await getSlotConflictError({
-      doctorId: cleanDoctorId,
-      patientId: patient.id,
-      date: cleanDate,
-      time: cleanTime,
-    });
-    if (conflictError) {
-      return res.status(409).json({ message: conflictError });
+    const { error, appointment } = await saveIfSlotFree(
+      { doctorId: cleanDoctorId, patientId: patient.id, date: cleanDate, time: cleanTime },
+      (transaction) =>
+        Appointment.create(
+          {
+            patientId: patient.id,
+            doctorId: cleanDoctorId,
+            appointmentDate: cleanDate,
+            appointmentTime: cleanTime,
+            reason: cleanReason,
+            status: "scheduled",
+          },
+          { transaction },
+        ),
+    );
+    if (error) {
+      return res.status(409).json({ message: error });
     }
-
-    const appointment = await Appointment.create({
-      patientId: patient.id,
-      doctorId: cleanDoctorId,
-      appointmentDate: cleanDate,
-      appointmentTime: cleanTime,
-      reason: cleanReason,
-      status: "scheduled",
-    });
 
     await audit.recordVisit(req.user, "visit.booked", appointment);
     res.status(201).json({
@@ -231,20 +200,18 @@ exports.createAppointment = async (req, res) => {
   }
 };
 
-// Update appointment
+// Move one of the patient's own visits to another day or time
 exports.updateAppointment = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { id } = req.params;
     const { appointmentDate, appointmentTime } = req.body;
 
-    const patient = await Patient.findOne({ where: { userId } });
+    const patient = await findOwnPatient(req);
     if (!patient) {
       return res.status(404).json({ message: "Patient profile not found" });
     }
 
     const appointment = await Appointment.findOne({
-      where: { id, patientId: patient.id },
+      where: { id: parseId(req.params.id), patientId: patient.id },
     });
 
     if (!appointment) {
@@ -281,40 +248,37 @@ exports.updateAppointment = async (req, res) => {
     const nextDate = appointmentDate ? cleanDate : appointment.appointmentDate;
     const nextTime =
       appointmentTime !== undefined ? cleanTime : appointment.appointmentTime;
+    if (!nextDate || !nextTime) {
+      return res.status(400).json({ message: "Choose a day and a time" });
+    }
 
-    if ((appointmentDate || appointmentTime) && nextDate && nextTime) {
-      if (isSlotInPast(nextDate, nextTime)) {
-        return res.status(400).json({ message: "Please choose a date and time in the future" });
-      }
-      const doctor = await Doctor.findByPk(appointment.doctorId);
-      if (!doctor) {
-        return res.status(404).json({ message: "Doctor not found" });
-      }
-      if (doctor.availability === false) {
-        return res.status(409).json({ message: "Doctor is not available" });
-      }
-      const whCheck = isSlotAllowedByWorkingHours(doctor, nextDate, nextTime);
-      if (!whCheck.ok) {
-        return res.status(409).json({ message: whCheck.message });
-      }
-
-      const conflictError = await getSlotConflictError({
-        doctorId: appointment.doctorId,
-        patientId: appointment.patientId,
-        date: nextDate,
-        time: nextTime,
-        excludeId: appointment.id,
-      });
-      if (conflictError) {
-        return res.status(409).json({ message: conflictError });
-      }
+    if (isSlotInPast(nextDate, nextTime)) {
+      return res.status(400).json({ message: "Please choose a date and time in the future" });
+    }
+    const doctor = await Doctor.findByPk(appointment.doctorId);
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor not found" });
+    }
+    if (doctor.availability === false) {
+      return res.status(409).json({ message: "Doctor is not available" });
+    }
+    const whCheck = isSlotAllowedByWorkingHours(doctor, nextDate, nextTime);
+    if (!whCheck.ok) {
+      return res.status(409).json({ message: whCheck.message });
     }
 
     const was = `${appointment.appointmentDate} ${String(appointment.appointmentTime).slice(0, 5)}`;
-    if (appointmentDate) appointment.appointmentDate = cleanDate;
-    if (appointmentTime !== undefined) appointment.appointmentTime = cleanTime;
-
-    await appointment.save();
+    const { error } = await saveIfSlotFree(
+      { doctorId: appointment.doctorId, patientId: appointment.patientId, date: nextDate, time: nextTime, excludeId: appointment.id },
+      (transaction) => {
+        appointment.appointmentDate = nextDate;
+        appointment.appointmentTime = nextTime;
+        return appointment.save({ transaction });
+      },
+    );
+    if (error) {
+      return res.status(409).json({ message: error });
+    }
     await audit.recordVisit(req.user, "visit.moved", appointment, `was ${was}`);
 
     res.json({
@@ -330,9 +294,7 @@ exports.updateAppointment = async (req, res) => {
 // Get medical records
 exports.getMedicalRecords = async (req, res) => {
   try {
-    const userId = req.user.id;
-
-    const patient = await Patient.findOne({ where: { userId } });
+    const patient = await findOwnPatient(req);
     if (!patient) {
       return res.status(404).json({ message: "Patient profile not found" });
     }
@@ -358,16 +320,13 @@ exports.getMedicalRecords = async (req, res) => {
 // Cancel appointment
 exports.cancelAppointment = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { id } = req.params;
-
-    const patient = await Patient.findOne({ where: { userId } });
+    const patient = await findOwnPatient(req);
     if (!patient) {
       return res.status(404).json({ message: "Patient profile not found" });
     }
 
     const appointment = await Appointment.findOne({
-      where: { id, patientId: patient.id },
+      where: { id: parseId(req.params.id), patientId: patient.id },
     });
 
     if (!appointment) {
@@ -393,77 +352,7 @@ exports.cancelAppointment = async (req, res) => {
   }
 };
 
-// Get booked dates for a specific doctor (active appointments only)
-exports.getDoctorBookedDates = async (req, res) => {
-  try {
-    const { doctorId } = req.params;
-    if (!doctorId) {
-      return res.status(400).json({ message: "doctorId is required" });
-    }
-
-
-    const appointments = await Appointment.findAll({
-      where: {
-        doctorId: parseInt(doctorId),
-        status: { [Op.notIn]: INACTIVE_STATUSES },
-      },
-      attributes: ["appointmentDate", "status"],
-      order: [["appointmentDate", "ASC"]],
-    });
-
-    // DATEONLY values are already "YYYY-MM-DD" strings; converting to Date could shift the day
-    const bookedDatesSet = new Set(appointments.map((a) => a.appointmentDate));
-
-    res.json({
-      doctorId: parseInt(doctorId),
-      bookedDates: Array.from(bookedDatesSet),
-    });
-  } catch (error) {
-    console.error("Error fetching doctor's booked dates:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// Get booked times for a specific doctor on a given date (active appointments only)
-exports.getDoctorBookedTimes = async (req, res) => {
-  try {
-    const { doctorId } = req.params;
-    const { date } = req.query;
-    if (!doctorId || !date) {
-      return res
-        .status(400)
-        .json({ message: "doctorId and date are required" });
-    }
-
-
-    const appointments = await Appointment.findAll({
-      where: {
-        doctorId: parseInt(doctorId),
-        appointmentDate: date,
-        status: { [Op.notIn]: INACTIVE_STATUSES },
-      },
-      attributes: ["appointmentTime"],
-      order: [["appointmentTime", "ASC"]],
-    });
-
-    // Return times in HH:mm format for frontend simplicity
-    const bookedTimes = appointments
-      .map((a) => a.appointmentTime)
-      .filter(Boolean)
-      .map((t) => {
-        // t may be a string 'HH:MM:SS'
-        const parts = String(t).split(":");
-        return `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}`;
-      });
-
-    res.json({ doctorId: parseInt(doctorId), date, bookedTimes });
-  } catch (error) {
-    console.error("Error fetching doctor's booked times:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// Get all doctors (for booking)
+// Every doctor with what patients see when they book (also served publicly at GET /api/doctors)
 exports.getAllDoctors = async (req, res) => {
   try {
     const doctors = await Doctor.findAll({

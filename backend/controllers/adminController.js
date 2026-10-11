@@ -7,6 +7,7 @@ const { addDays } = require("../utils/availability");
 const { parseWorkingHoursText } = require("../utils/schedule");
 const { createTempPassword } = require("../utils/tempPassword");
 const { record, doctorName } = require("../utils/audit");
+const { isDuplicateError } = require("../utils/validation");
 
 const STAFF_ROLES = ["doctor", "receptionist", "admin"];
 const ROLE_NAMES = { doctor: "Doctor", receptionist: "Reception", admin: "Administration", patient: "Patient" };
@@ -94,7 +95,7 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ message: "The username needs at least 3 characters" });
     }
     if (await User.findOne({ where: { username } })) {
-      return res.status(400).json({ message: "Username already exists" });
+      return res.status(409).json({ message: "Username already exists" });
     }
 
     let profile = null;
@@ -122,6 +123,7 @@ exports.createUser = async (req, res) => {
       tempPassword,
     });
   } catch (error) {
+    if (isDuplicateError(error)) return res.status(409).json({ message: "Username already exists" });
     console.error("Error creating user:", error);
     res.status(500).json({ message: "Server error" });
   }
@@ -147,42 +149,11 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-// Rename an account or change its role
-exports.updateUser = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { username, role } = req.body;
-
-    const user = await User.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    if (role && ![...STAFF_ROLES, "patient"].includes(role)) {
-      return res.status(400).json({ message: "Invalid role" });
-    }
-
-    const cleanUsername = clean(username);
-    if (cleanUsername && cleanUsername !== user.username) {
-      if (await User.findOne({ where: { username: cleanUsername } })) {
-        return res.status(400).json({ message: "Username already exists" });
-      }
-      user.username = cleanUsername;
-    }
-    if (role) user.role = role;
-    await user.save();
-    await record(req.user, "account.updated", { type: "user", id: user.id, name: user.username });
-
-    res.json({ message: "User updated successfully", user: { id: user.id, username: user.username, role: user.role } });
-  } catch (error) {
-    console.error("Error updating user:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// Delete an account and everything linked to it
+// Delete an account. Visits and visit notes are medical history, so they are never deleted with it:
+// a doctor or patient who already has visits keeps their account (bookings can be paused instead).
 exports.deleteUser = async (req, res) => {
   try {
-    const user = await User.findByPk(req.params.id);
+    const user = await User.findByPk(parseId(req.params.id));
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -190,23 +161,20 @@ exports.deleteUser = async (req, res) => {
       return res.status(400).json({ message: "You cannot delete your own account" });
     }
 
-    // Related rows are removed in one transaction so a failure cannot leave half a user behind
-    await sequelize.transaction(async (transaction) => {
-      if (user.role === "doctor") {
-        const doctor = await Doctor.findOne({ where: { userId: user.id }, transaction });
-        if (doctor) {
-          await MedicalRecord.destroy({ where: { doctorId: doctor.id }, transaction });
-          await Appointment.destroy({ where: { doctorId: doctor.id }, transaction });
-          await doctor.destroy({ transaction });
-        }
-      } else if (user.role === "patient") {
-        const patient = await Patient.findOne({ where: { userId: user.id }, transaction });
-        if (patient) {
-          await MedicalRecord.destroy({ where: { patientId: patient.id }, transaction });
-          await Appointment.destroy({ where: { patientId: patient.id }, transaction });
-          await patient.destroy({ transaction });
-        }
+    const doctor = user.role === "doctor" ? await Doctor.findOne({ where: { userId: user.id } }) : null;
+    const patient = user.role === "patient" ? await Patient.findOne({ where: { userId: user.id } }) : null;
+    const owner = doctor ? { doctorId: doctor.id } : patient ? { patientId: patient.id } : null;
+    if (owner) {
+      const [visits, notes] = await Promise.all([Appointment.count({ where: owner }), MedicalRecord.count({ where: owner })]);
+      if (visits || notes) {
+        return res.status(409).json({ message: "This account has visits in the medical history, so it cannot be deleted" });
       }
+    }
+
+    // The profile and the login go together, so a failure cannot leave half an account behind
+    await sequelize.transaction(async (transaction) => {
+      if (doctor) await doctor.destroy({ transaction });
+      if (patient) await patient.destroy({ transaction });
       await user.destroy({ transaction });
     });
 
@@ -420,34 +388,6 @@ exports.getAnalytics = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching analytics:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// ---------- Lists kept for other screens ----------
-
-exports.getAllPatients = async (req, res) => {
-  try {
-    const patients = await Patient.findAll({ include: [{ model: User, attributes: ["username", "createdAt"] }] });
-    res.json(patients);
-  } catch (error) {
-    console.error("Error fetching patients:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-exports.getAllAppointments = async (req, res) => {
-  try {
-    const appointments = await Appointment.findAll({
-      include: [
-        { model: Patient, attributes: ["firstName", "lastName", "email"] },
-        { model: Doctor, attributes: ["firstName", "lastName", "specialization"] },
-      ],
-      order: [["appointmentDate", "DESC"]],
-    });
-    res.json(appointments);
-  } catch (error) {
-    console.error("Error fetching appointments:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

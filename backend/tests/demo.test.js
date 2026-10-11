@@ -46,9 +46,9 @@ describe("public demo", () => {
     const someone = users.body.find((u) => u.username === "dr.rania.nasr");
     const blocked = [
       ["POST", "/admin/users", tokens.admin, { username: "intruder", password: PASSWORD, role: "admin" }],
-      ["PUT", `/admin/users/${someone.id}`, tokens.admin, { password: `${PASSWORD}-changed` }],
+      ["POST", `/admin/users/${someone.id}/reset-password`, tokens.admin],
       ["DELETE", `/admin/users/${someone.id}`, tokens.admin],
-      ["PUT", "/doctor/profile", tokens.doctor, { firstName: "Changed" }],
+      ["POST", "/doctor/photo", tokens.doctor],
       ["PUT", "/doctor/availability", tokens.doctor, { availability: false }],
       ["PUT", "/patient/profile", tokens.patient, { firstName: "Changed" }],
     ];

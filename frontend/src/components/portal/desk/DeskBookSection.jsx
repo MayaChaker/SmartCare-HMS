@@ -7,6 +7,7 @@ import { PatientInitials } from "../doctor/PatientChart";
 import ActivationCode from "./ActivationCode";
 import { personName } from "./desk";
 import { BusyLabel } from "../../Loader";
+import DateOfBirthField, { isRealDate } from "../../DateOfBirthField";
 
 const SHOWN_DAYS = 6;
 const SHOWN_TIMES = 10;
@@ -31,6 +32,7 @@ function NewFileForm({ onOpen, onBack }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (values.dateOfBirth && !isRealDate(values.dateOfBirth)) return setError("Enter the day, month and year of birth, for example 21 07 1990.");
     setBusy(true);
     setError("");
     const result = await onOpen(values);
@@ -44,15 +46,15 @@ function NewFileForm({ onOpen, onBack }) {
         ["firstName", "First name", "e.g. Rana", "text"],
         ["lastName", "Last name", "e.g. Haddad", "text"],
         ["phone", "Mobile", "e.g. +961 70 123 456", "tel"],
-        ["dateOfBirth", "Date of birth", "", "date"],
       ].map(([key, label, placeholder, type]) => (
         <div key={key} className="grid gap-2">
           <label htmlFor={`file-${key}`} className="text-[14px] font-medium text-ink">
             {label}
           </label>
-          <input id={`file-${key}`} type={type} value={values[key]} onChange={set(key)} placeholder={placeholder} required={key !== "dateOfBirth"} className={`${ui.input} h-12`} />
+          <input id={`file-${key}`} type={type} value={values[key]} onChange={set(key)} placeholder={placeholder} required className={`${ui.input} h-12`} />
         </div>
       ))}
+      <DateOfBirthField value={values.dateOfBirth} onChange={(dateOfBirth) => setValues((v) => ({ ...v, dateOfBirth }))} hint="Optional. For example 21 07 1990" />
       {error && (
         <p role="alert" className="text-[15px] text-alert sm:col-span-2">
           {error}

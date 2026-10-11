@@ -6,6 +6,7 @@ import { patientOffice } from "../../../content/portal";
 import { useAuth } from "../../../context/useAuth";
 import { ui } from "../ui";
 import { BusyLabel } from "../../Loader";
+import DateOfBirthField, { isRealDate } from "../../DateOfBirthField";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 const GENDERS = ["Female", "Male"];
@@ -78,6 +79,9 @@ function Group({ group, profile, onSave }) {
   };
   const save = async (e) => {
     e.preventDefault();
+    if (values.dateOfBirth && !isRealDate(values.dateOfBirth)) {
+      return setMessage({ ok: false, text: "Enter the day, month and year of birth, for example 21 07 1990." });
+    }
     setBusy(true);
     const result = await onSave(values);
     setBusy(false);
@@ -115,7 +119,9 @@ function Group({ group, profile, onSave }) {
       {values ? (
         <form onSubmit={save} className="grid gap-x-8 gap-y-5 pt-6 sm:grid-cols-2">
           {group.fields.map(([key, label, type, options]) =>
-            type === "select" ? (
+            type === "date" ? (
+              <DateOfBirthField key={key} label={label} value={values[key]} onChange={(next) => setValues((v) => ({ ...v, [key]: next }))} />
+            ) : type === "select" ? (
               <SelectField key={key} id={`profile-field-${key}`} label={label} options={options} value={values[key]} onChange={update(key)} />
             ) : (
               <div key={key} className={type === "wide" ? "sm:col-span-2" : ""}>

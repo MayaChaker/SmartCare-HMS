@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import AuthLayout from "../../components/auth/AuthLayout";
 import TextField from "../../components/auth/TextField";
+import DateOfBirthField, { isRealDate } from "../../components/DateOfBirthField";
 import { BusyLabel } from "../../components/Loader";
 
 const emptyForm = {
@@ -21,6 +22,7 @@ function validate(form) {
   if (!form.firstName.trim()) errors.firstName = "Please enter your first name.";
   if (!form.lastName.trim()) errors.lastName = "Please enter your last name.";
   if (!form.dob) errors.dob = "Please enter your date of birth.";
+  else if (!isRealDate(form.dob)) errors.dob = "Enter the day, month and year, for example 21 07 1990.";
   else if (form.dob > new Date().toISOString().slice(0, 10)) errors.dob = "The date of birth cannot be in the future.";
   if (form.contact.replace(/\D/g, "").length < 7) errors.contact = "Please enter a phone number with at least 7 digits.";
   if (form.username.trim().length < 3) errors.username = "Use at least 3 characters.";
@@ -77,7 +79,6 @@ export default function Register() {
   };
 
   const field = (name) => ({ name, value: formData[name], onChange: handleChange, error: errors[name] });
-  const today = new Date().toISOString().slice(0, 10);
 
   return (
     <AuthLayout
@@ -105,7 +106,16 @@ export default function Register() {
         <div className="grid gap-6 sm:grid-cols-2">
           <TextField label="First name" autoComplete="given-name" placeholder="e.g. Lina" {...field("firstName")} />
           <TextField label="Last name" autoComplete="family-name" placeholder="e.g. Haddad" {...field("lastName")} />
-          <TextField label="Date of birth" type="date" max={today} autoComplete="bday" {...field("dob")} />
+          <DateOfBirthField
+            name="dob"
+            value={formData.dob}
+            onChange={(dob) => {
+              setFormData((f) => ({ ...f, dob }));
+              if (errors.dob) setErrors((errs) => ({ ...errs, dob: undefined }));
+            }}
+            error={errors.dob}
+            required
+          />
           <TextField label="Phone number" type="tel" autoComplete="tel" placeholder="+961 70 123 456" {...field("contact")} />
         </div>
 

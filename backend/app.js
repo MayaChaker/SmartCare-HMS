@@ -56,7 +56,7 @@ app.use(
     optionsSuccessStatus: 200,
   }),
 );
-app.use(express.json());
+app.use(express.json({ limit: "100kb" }));
 
 // Serve uploaded assets
 app.use(
@@ -108,25 +108,20 @@ app.get("/", (req, res) => {
   });
 });
 
-// 404 handler for API routes
-app.use("/api", (req, res) => {
-  res.status(404).json({
-    error: "API endpoint not found",
-    path: req.path,
-    method: req.method,
-  });
+// Anything not matched above. Every error answer has the same shape: { message }
+app.use((req, res) => {
+  res.status(404).json({ message: "Not found" });
 });
 
-// Global error handler
+// Errors thrown by middleware or route handlers (Express needs all four arguments to treat this as one)
 app.use((err, req, res, next) => {
+  // Client mistakes reported by Express itself, e.g. malformed JSON (400) or a body that is too large (413)
+  const status = Number(err.status || err.statusCode);
+  if (status >= 400 && status < 500) {
+    return res.status(status).json({ message: err.expose && err.message ? err.message : "Bad request" });
+  }
   console.error("Server error:", err);
-  res.status(500).json({
-    error: "Internal server error",
-    message:
-      process.env.NODE_ENV === "development"
-        ? err.message
-        : "Something went wrong",
-  });
+  res.status(500).json({ message: "Something went wrong" });
 });
 
 module.exports = app;

@@ -1,0 +1,11 @@
+# The public website can be indexed; sign-in pages and the portals are private
+User-agent: *
+Disallow: /login
+Disallow: /register
+Disallow: /activate
+Disallow: /change-password
+Disallow: /dashboard
+# "$" ends the match, so the portraits under /doctors/ stay visible
+Disallow: /doctor$
+Disallow: /receptionist
+Disallow: /admin
