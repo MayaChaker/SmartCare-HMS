@@ -112,7 +112,7 @@ function DoctorDialog({ doctor, admin, onClose }) {
 
   return (
     <Modal title={title} onClose={onClose} wide>
-      <form onSubmit={save} className="grid gap-6">
+      <form onSubmit={save} className="grid grid-cols-1 gap-6">
         <div className="flex items-center gap-5 border-b border-ivory-line pb-6">
           <span className="grid h-28 w-24 shrink-0 place-items-center overflow-hidden bg-ivory-warm">
             {currentPhoto ? (
@@ -130,13 +130,13 @@ function DoctorDialog({ doctor, admin, onClose }) {
               type="file"
               accept={PHOTO_TYPES.join(",")}
               onChange={choosePhoto}
-              className="text-[14px] file:mr-3 file:h-10 file:cursor-pointer file:border file:border-ivory-line file:bg-white file:px-4 file:text-[14px] file:text-ink hover:file:border-forest"
+              className="w-full min-w-0 text-[14px] file:mr-3 file:h-10 file:cursor-pointer file:border file:border-ivory-line file:bg-white file:px-4 file:text-[14px] file:text-ink hover:file:border-forest"
             />
             <p className="text-[13px] text-muted">JPG, PNG or WebP, up to 3 MB. A head-and-shoulders photo in portrait works best.</p>
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field id="doctor-first" label="First name" value={values.firstName} onChange={set("firstName")} placeholder="e.g. Karim" />
           <Field id="doctor-last" label="Last name" value={values.lastName} onChange={set("lastName")} placeholder="e.g. Mansour" />
           <div className="grid gap-2">
@@ -158,7 +158,7 @@ function DoctorDialog({ doctor, admin, onClose }) {
 
         <fieldset>
           <legend className="text-[14px] font-medium text-ink">Booking days</legend>
-          <div className="mt-2 grid grid-cols-7 gap-2">
+          <div className="mt-2 grid grid-cols-7 gap-1.5 sm:gap-2">
             {WEEK.map((day) => {
               const on = days.includes(day);
               return (
@@ -167,7 +167,7 @@ function DoctorDialog({ doctor, admin, onClose }) {
                   type="button"
                   aria-pressed={on}
                   onClick={() => setDays((list) => (on ? list.filter((d) => d !== day) : [...list, day]))}
-                  className={`h-11 border text-[14px] ${on ? "border-forest bg-forest text-ivory" : "border-ivory-line bg-white text-ink hover:border-forest"}`}
+                  className={`h-11 min-w-0 border text-[13px] sm:text-[14px] ${on ? "border-forest bg-forest text-ivory" : "border-ivory-line bg-white text-ink hover:border-forest"}`}
                 >
                   {day}
                 </button>
@@ -192,7 +192,7 @@ function DoctorDialog({ doctor, admin, onClose }) {
             {error}
           </p>
         )}
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button type="button" onClick={onClose} className={ui.outline}>
             Cancel
           </button>
@@ -208,13 +208,19 @@ function DoctorDialog({ doctor, admin, onClose }) {
 export default function DoctorsSection({ admin }) {
   const [open, setOpen] = useState(null); // a doctor, "new", or null
   const [busyId, setBusyId] = useState(null);
-  const [message, setMessage] = useState("");
+  // Shown inside the card that was changed, so it is seen on a phone too: { id, text, ok }
+  const [notice, setNotice] = useState(null);
 
   const toggleBookings = async (doctor) => {
     setBusyId(doctor.id);
+    setNotice(null);
     const result = await admin.updateDoctor(doctor.id, { availability: doctor.availability === false });
     setBusyId(null);
-    setMessage(result.success ? `${doctorName(doctor)}: bookings ${doctor.availability === false ? "reopened" : "paused"}.` : result.message);
+    setNotice({
+      id: doctor.id,
+      ok: result.success,
+      text: result.success ? `Bookings ${doctor.availability === false ? "reopened" : "paused"}.` : result.message,
+    });
   };
 
   return (
@@ -229,11 +235,6 @@ export default function DoctorsSection({ admin }) {
         }
       />
       <div className={`${ui.page} pb-24`}>
-        {message && (
-          <p role="status" className="mb-6 border-l-2 border-forest bg-white px-5 py-3 text-[15px]">
-            {message}
-          </p>
-        )}
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
           {admin.doctors.map((d) => (
             <article key={d.id} className="flex min-w-0 flex-col border border-ivory-line bg-white">
@@ -269,10 +270,13 @@ export default function DoctorsSection({ admin }) {
                   <button type="button" onClick={() => setOpen(d)} className={`${ui.outline} h-10 flex-1`}>
                     Edit
                   </button>
-                  <button type="button" onClick={() => toggleBookings(d)} disabled={busyId === d.id} className={`${ui.outline} h-10 flex-1`}>
-                    {d.availability === false ? "Reopen" : "Pause"}
+                  <button type="button" onClick={() => toggleBookings(d)} disabled={busyId === d.id} aria-busy={busyId === d.id} className={`${ui.outline} h-10 flex-1`}>
+                    <BusyLabel busy={busyId === d.id} busyText="Saving…" text={d.availability === false ? "Reopen" : "Pause"} />
                   </button>
                 </div>
+                <p role="status" className={`text-[14px] ${notice?.ok === false ? "text-alert" : "text-muted"}`}>
+                  {notice?.id === d.id && <span className="mt-3 block">{notice.text}</span>}
+                </p>
               </div>
             </article>
           ))}
