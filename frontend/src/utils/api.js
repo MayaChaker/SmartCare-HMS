@@ -184,37 +184,6 @@ export const patientAPI = {
     }
   },
 
-  // Fetch a doctor's booked dates (calendar view)
-  getDoctorBookedDates: async (doctorId) => {
-    try {
-      const response = await patientAPI._getCached(
-        `/patient/doctors/${doctorId}/booked-dates`,
-      );
-      return { success: true, data: response.data };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Couldn't load booked dates",
-      };
-    }
-  },
-
-  // Fetch a doctor's booked times for a specific date
-  getDoctorBookedTimes: async (doctorId, date) => {
-    try {
-      const response = await patientAPI._getCached(
-        `/patient/doctors/${doctorId}/booked-times`,
-        { date },
-      );
-      return { success: true, data: response.data };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Couldn't load booked times",
-      };
-    }
-  },
-
   // Free times for every doctor over the next `days` days: { from, days, doctors: [{ doctorId, days: [{ date, working, times }] }] }
   getAvailability: async (days = 14) => {
     try {
@@ -224,19 +193,6 @@ export const patientAPI = {
       return {
         success: false,
         message: error.response?.data?.message || "Couldn't load free times",
-      };
-    }
-  },
-
-  // Public doctor listing
-  getDoctors: async () => {
-    try {
-      const response = await patientAPI._getCached("/doctors");
-      return { success: true, data: response.data };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Couldn't load doctors",
       };
     }
   },
