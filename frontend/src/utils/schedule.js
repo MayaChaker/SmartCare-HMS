@@ -1,4 +1,5 @@
 import { resolveUploadUrl } from "./api";
+import { portraitUrl } from "./photo";
 
 export const parseWorkingHours = (workingHours) => {
   if (!workingHours || typeof workingHours !== "string") {
@@ -207,5 +208,5 @@ export const resolveDoctorImage = (doctorObj) => {
   if (candidate.startsWith("/uploads/") || candidate.startsWith("/api/")) {
     return resolveUploadUrl(candidate);
   }
-  return candidate;
+  return portraitUrl(candidate);
 };

@@ -8,6 +8,15 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#16302b" />
+    <!-- The hero photo is the first thing on screen: start downloading it with the page -->
+    <link
+      rel="preload"
+      as="image"
+      href="/images/site/corridor-800.webp"
+      imagesrcset="/images/site/corridor-800.webp 800w, /images/site/corridor-1600.webp 1600w"
+      imagesizes="100vw"
+      fetchpriority="high"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Elegant brand font for logo -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

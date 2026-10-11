@@ -2,6 +2,7 @@ import Reveal from "./Reveal";
 import SectionHeading from "./SectionHeading";
 import { actions, doctors } from "../../content/site";
 import { requestBooking } from "../../utils/bookingIntent";
+import { responsivePhoto } from "../../utils/photo";
 
 export default function DoctorsSection() {
   return (
@@ -18,9 +19,11 @@ export default function DoctorsSection() {
             <Reveal as="li" key={doctor.name} className="group w-[78%] shrink-0 snap-start sm:w-[46%] md:w-auto">
               <div className="aspect-[4/5] overflow-hidden bg-ivory-line">
                 <img
-                  src={doctor.photo}
+                  {...responsivePhoto(doctor.photo)}
+                  sizes="(min-width: 768px) 25vw, (min-width: 640px) 46vw, 78vw"
                   alt={doctor.name}
                   loading="lazy"
+                  decoding="async"
                   className="photo-grade h-full w-full object-cover object-[50%_20%] transition-transform duration-[1400ms] group-hover:scale-[1.03]"
                 />
               </div>
