@@ -73,7 +73,7 @@ Demo accounts can use every main flow: booking, moving and cancelling visits, ch
 
 ## Rules the Server Enforces
 
-- Visits can only be booked in the future, inside the doctor's working hours, and never on a time that is already taken by the doctor or by the same patient
+- Visits can only be booked in the future, inside the doctor's working hours, and never on a time that is already taken by the doctor or by the same patient. The check and the booking happen in one database transaction with row locks, so two people asking for the same slot at the same moment cannot both get it
 - A visit only moves forward, and each step belongs to one role:
 
   | From | To | Who |
@@ -87,6 +87,7 @@ Demo accounts can use every main flow: booking, moving and cancelling visits, ch
   Completed, cancelled and no-show visits are final. A no-show can only be marked after the visit's time.
 - A visit note belongs to one visit, and only that visit's doctor can write it once the visit has started
 - Dates and "today" follow the hospital's time zone (Beirut), not the server's clock
+- Visits and visit notes are never deleted: a visit is cancelled instead, and an account that has medical history cannot be deleted
 
 ## Security
 
@@ -94,7 +95,8 @@ Demo accounts can use every main flow: booking, moving and cancelling visits, ch
 - Each request reloads the user, so deleted accounts and role changes take effect immediately
 - Patients can only reach their own data, and doctors only patients they have an appointment with
 - Passwords are hashed with bcrypt. Staff accounts start with a temporary password, and the server refuses every other request until it is changed
-- Activation codes are stored as hashes and expire after 14 days
+- Activation codes are stored as hashes and expire after 14 days, and API answers never include them
+- Sign-in takes the same time whether or not the username exists, so usernames cannot be discovered from response times
 - Sign-in, registration, activation and password changes are rate-limited
 - Portraits must be JPG, PNG or WebP up to 3 MB, and the file's first bytes must match its type. They are stored in the database, because the hosting disk is wiped on every deploy
 - No credentials live in the code: the first admin account is created from environment variables
@@ -200,7 +202,7 @@ All sample doctors share that password; their usernames are printed by the scrip
 
 ## Tests
 
-The backend has 88 tests built on Node's test runner. They cover sign-in and password changes, role checks, data ownership (IDOR), booking rules, the visit status flow, the front desk and activation codes, the administration, upload checks and the demo restrictions. They run against a real MySQL database named `smartcare_test`, which is created automatically and wiped on every run. The tests refuse to start against any database whose name does not end with `_test`.
+The backend has 102 tests built on Node's test runner. They cover sign-in and password changes, role checks, data ownership (IDOR), booking rules, the visit status flow, the front desk and activation codes, the administration, upload checks, the demo restrictions, error answers, input checks and two bookings for the same slot at the same moment. They run against a real MySQL database named `smartcare_test`, which is created automatically and wiped on every run. The tests refuse to start against any database whose name does not end with `_test`.
 
 ```bash
 cd backend
@@ -258,8 +260,8 @@ All routes are under `/api`. Apart from the public routes, every route needs an 
 | | `PUT /patient/appointments/:id` (move), `DELETE /patient/appointments/:id` (cancel) | patient |
 | | `GET /patient/records`, `GET /patient/doctors` | patient |
 | | `GET /patient/availability?days=` (free times per doctor) | patient |
-| Doctor | `GET`, `PUT /doctor/profile`, `POST /doctor/photo`, `PUT /doctor/availability` | doctor |
-| | `GET /doctor/appointments`, `GET /doctor/schedule`, `PUT /doctor/appointments/:id` | doctor |
+| Doctor | `GET /doctor/profile`, `POST /doctor/photo`, `PUT /doctor/availability` | doctor |
+| | `GET /doctor/appointments`, `PUT /doctor/appointments/:id` | doctor |
 | | `GET /doctor/patients`, `GET /doctor/patients/:id` | doctor |
 | | `POST /doctor/records`, `PUT /doctor/records/:id` | doctor |
 | Front desk | `GET`, `POST /receptionist/patients`, `PUT /receptionist/patients/:id` | receptionist |
@@ -267,11 +269,12 @@ All routes are under `/api`. Apart from the public routes, every route needs an 
 | | `GET /receptionist/doctors`, `GET /receptionist/availability?days=` | receptionist |
 | | `GET`, `POST /receptionist/appointments`, `GET /receptionist/appointments/day?date=` | receptionist |
 | | `PUT /receptionist/appointments/:id`, `PUT /receptionist/checkin/:appointmentId` | receptionist |
-| Administration | `GET`, `POST /admin/users`, `PUT`, `DELETE /admin/users/:id` | admin |
+| Administration | `GET`, `POST /admin/users`, `DELETE /admin/users/:id` | admin |
 | | `POST /admin/users/:id/reset-password` | admin |
 | | `GET /admin/doctors`, `PUT /admin/doctors/:id`, `POST /admin/doctors/:id/photo` | admin |
 | | `GET /admin/analytics?days=7\|30`, `GET /admin/activity` | admin |
-| | `GET /admin/patients`, `GET /admin/appointments` | admin |
+
+Every error answer has the same shape, `{ "message": "..." }`, with a status that says what went wrong: `400` invalid input (including malformed JSON), `401` missing or invalid token, `403` the role may not do this (or a demo account), `404` unknown route or a record the user may not see, `409` a conflict with existing data (a taken username or slot, a visit note that already exists, an account with medical history), `429` too many attempts, `500` an unexpected server error (details are only logged, never sent).
 
 Example:
 
