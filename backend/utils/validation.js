@@ -17,4 +17,8 @@ const getCredentialsError = (username, password) => {
   return null;
 };
 
-module.exports = { isNonEmptyString, isValidEmail, getCredentialsError };
+// A unique column (such as a username) already holds this value. Checking first is not enough on its own:
+// two requests at the same moment can both pass the check, and the database then refuses the second.
+const isDuplicateError = (error) => error?.name === "SequelizeUniqueConstraintError";
+
+module.exports = { isNonEmptyString, isValidEmail, getCredentialsError, isDuplicateError };

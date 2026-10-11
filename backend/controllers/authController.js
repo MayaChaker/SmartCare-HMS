@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const { User, Patient } = require('../models');
 const { sequelize } = require('../config/db');
 const { JWT_SECRET } = require('../config/auth');
@@ -10,6 +11,13 @@ const {
 const { Op } = require('sequelize');
 const { hashCode, normalize } = require('../utils/activation');
 const { record } = require('../utils/audit');
+const { isDuplicateError } = require('../utils/validation');
+
+const USERNAME_TAKEN = 'Username already exists';
+
+// Compared against when the username does not exist, so an unknown username takes as long as a wrong
+// password and response times do not reveal which usernames are registered
+const UNKNOWN_USER_HASH = bcrypt.hashSync('no account has this password', 10);
 
 // Login controller
 exports.login = async (req, res) => {
@@ -19,15 +27,11 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Username and password are required' });
     }
 
-    // Find user by username
     const user = await User.findOne({ where: { username: username.trim() } });
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    // Check password
-    const isPasswordValid = await user.comparePassword(password.trim());
-    if (!isPasswordValid) {
+    const isPasswordValid = user
+      ? await user.comparePassword(password.trim())
+      : await bcrypt.compare(password.trim(), UNKNOWN_USER_HASH).then(() => false);
+    if (!user || !isPasswordValid) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
@@ -73,7 +77,7 @@ exports.registerPatient = async (req, res) => {
     const cleanUsername = String(username).trim();
     const existingUser = await User.findOne({ where: { username: cleanUsername } });
     if (existingUser) {
-      return res.status(400).json({ message: 'Username already exists' });
+      return res.status(409).json({ message: USERNAME_TAKEN });
     }
 
     // User and profile are created together so a failure never leaves an orphan login
@@ -122,6 +126,7 @@ exports.registerPatient = async (req, res) => {
       }
     });
   } catch (error) {
+    if (isDuplicateError(error)) return res.status(409).json({ message: USERNAME_TAKEN });
     console.error('Registration error:', error);
     res.status(500).json({ message: 'Server error' });
   }
@@ -148,7 +153,7 @@ exports.activatePatient = async (req, res) => {
 
     const cleanUsername = String(username).trim();
     if (await User.findOne({ where: { username: cleanUsername } })) {
-      return res.status(400).json({ message: 'Username already exists' });
+      return res.status(409).json({ message: USERNAME_TAKEN });
     }
 
     // The login is created and linked in one step, and the code can never be used again
@@ -168,6 +173,7 @@ exports.activatePatient = async (req, res) => {
       patient: { id: patient.id, firstName: patient.firstName, lastName: patient.lastName },
     });
   } catch (error) {
+    if (isDuplicateError(error)) return res.status(409).json({ message: USERNAME_TAKEN });
     console.error('Activation error:', error);
     res.status(500).json({ message: 'Server error' });
   }

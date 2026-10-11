@@ -1,6 +1,5 @@
 const { Patient, Doctor, Appointment } = require("../models");
-const { Op } = require("sequelize");
-const { getStatusChangeError, INACTIVE_STATUSES } = require("../utils/appointmentStatus");
+const { getStatusChangeError } = require("../utils/appointmentStatus");
 const {
   isIsoDate,
   parseId,
@@ -8,7 +7,7 @@ const {
   isSlotAllowedByWorkingHours,
 } = require("../utils/schedule");
 const { clinicToday, isSlotInPast } = require("../utils/clinicTime");
-const { getSlotConflictError } = require("../utils/bookingConflicts");
+const { saveIfSlotFree } = require("../utils/bookingConflicts");
 const { createActivationCode } = require("../utils/activation");
 const audit = require("../utils/audit");
 
@@ -135,34 +134,6 @@ exports.updatePatient = async (req, res) => {
   }
 };
 
-// View all doctors' schedules
-exports.getAllSchedules = async (req, res) => {
-  try {
-    const doctors = await Doctor.findAll({
-      attributes: ["id", "firstName", "lastName", "specialization"],
-    });
-
-    const schedules = [];
-
-    for (const doctor of doctors) {
-      const appointments = await Appointment.findAll({
-        where: { doctorId: doctor.id },
-        include: [{ model: Patient, attributes: ["firstName", "lastName"] }],
-      });
-
-      schedules.push({
-        doctor,
-        appointments,
-      });
-    }
-
-    res.json(schedules);
-  } catch (error) {
-    console.error("Error fetching schedules:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
 // Schedule appointment for patient
 exports.createAppointment = async (req, res) => {
   try {
@@ -217,24 +188,24 @@ exports.createAppointment = async (req, res) => {
       return res.status(409).json({ message: whCheck.message });
     }
 
-    const conflictError = await getSlotConflictError({
-      doctorId: cleanDoctorId,
-      patientId: patient.id,
-      date: cleanDate,
-      time: cleanTime,
-    });
-    if (conflictError) {
-      return res.status(409).json({ message: conflictError });
+    const { error, appointment } = await saveIfSlotFree(
+      { doctorId: cleanDoctorId, patientId: patient.id, date: cleanDate, time: cleanTime },
+      (transaction) =>
+        Appointment.create(
+          {
+            patientId: patient.id,
+            doctorId: cleanDoctorId,
+            appointmentDate: cleanDate,
+            appointmentTime: cleanTime,
+            reason: typeof reason === "string" ? reason.trim().slice(0, 255) : "",
+            status: "scheduled",
+          },
+          { transaction },
+        ),
+    );
+    if (error) {
+      return res.status(409).json({ message: error });
     }
-
-    const appointment = await Appointment.create({
-      patientId: cleanPatientId,
-      doctorId: cleanDoctorId,
-      appointmentDate: cleanDate,
-      appointmentTime: cleanTime,
-      reason,
-      status: "scheduled",
-    });
     await audit.recordVisit(req.user, "visit.booked", appointment);
     return res
       .status(201)
@@ -251,7 +222,7 @@ exports.updateAppointment = async (req, res) => {
     const { id } = req.params;
     const { appointmentDate, appointmentTime, status } = req.body;
 
-    const appointment = await Appointment.findByPk(id);
+    const appointment = await Appointment.findByPk(parseId(id));
     if (!appointment) {
       return res.status(404).json({ message: "Appointment not found" });
     }
@@ -298,19 +269,7 @@ exports.updateAppointment = async (req, res) => {
         if (!whCheck.ok) {
           return res.status(409).json({ message: whCheck.message });
         }
-        const conflictError = await getSlotConflictError({
-          doctorId: appointment.doctorId,
-          patientId: appointment.patientId,
-          date: cleanDate,
-          time: cleanTime,
-          excludeId: appointment.id,
-        });
-        if (conflictError) {
-          return res.status(409).json({ message: conflictError });
-        }
       }
-      appointment.appointmentDate = cleanDate;
-      appointment.appointmentTime = cleanTime;
     }
     if (status) {
       const next = String(status).toLowerCase();
@@ -324,7 +283,22 @@ exports.updateAppointment = async (req, res) => {
       appointment.status = next;
     }
 
-    await appointment.save();
+    if (slotChanged && cleanTime) {
+      const { error } = await saveIfSlotFree(
+        { doctorId: appointment.doctorId, patientId: appointment.patientId, date: cleanDate, time: cleanTime, excludeId: appointment.id },
+        (transaction) => {
+          appointment.appointmentDate = cleanDate;
+          appointment.appointmentTime = cleanTime;
+          return appointment.save({ transaction });
+        },
+      );
+      if (error) {
+        return res.status(409).json({ message: error });
+      }
+    } else {
+      if (slotChanged) appointment.appointmentDate = cleanDate;
+      await appointment.save();
+    }
 
     const STATUS_ACTIONS = { cancelled: "visit.cancelled", "no-show": "visit.no_show", "checked-in": "visit.checked_in" };
     if (appointment.status !== before.status && STATUS_ACTIONS[appointment.status]) {
@@ -348,7 +322,7 @@ exports.checkInPatient = async (req, res) => {
   try {
     const { appointmentId } = req.params;
 
-    const appointment = await Appointment.findByPk(appointmentId);
+    const appointment = await Appointment.findByPk(parseId(appointmentId));
     if (!appointment) {
       return res.status(404).json({ message: "Appointment not found" });
     }
@@ -411,34 +385,6 @@ exports.getAllDoctors = async (req, res) => {
   }
 };
 
-// Get today's appointments
-exports.getTodayAppointments = async (req, res) => {
-  try {
-    // "Today" in Beirut, not on the server's UTC clock
-    const todayYmd = clinicToday();
-
-    const appointments = await Appointment.findAll({
-      where: { appointmentDate: todayYmd },
-      include: [
-        {
-          model: Patient,
-          attributes: DESK_PATIENT_FIELDS,
-        },
-        {
-          model: Doctor,
-          attributes: ["id", "firstName", "lastName", "specialization", "photoUrl", "workingHours"],
-        },
-      ],
-      order: [["appointmentTime", "ASC"]],
-    });
-
-    res.json(appointments);
-  } catch (error) {
-    console.error("Error fetching today's appointments:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
 exports.getAppointmentsByDate = async (req, res) => {
   try {
     const date = req.query.date || clinicToday();
@@ -462,65 +408,5 @@ exports.getAppointmentsByDate = async (req, res) => {
     res.json(appointments);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
-  }
-};
-// Get all appointments (upcoming and past)
-exports.getAllAppointments = async (req, res) => {
-  try {
-    const appointments = await Appointment.findAll({
-      include: [
-        {
-          model: Patient,
-          attributes: DESK_PATIENT_FIELDS,
-        },
-        {
-          model: Doctor,
-          attributes: ["id", "firstName", "lastName", "specialization", "photoUrl", "workingHours"],
-        },
-      ],
-      order: [
-        ["appointmentDate", "ASC"],
-        ["appointmentTime", "ASC"],
-      ],
-    });
-
-    res.json(appointments);
-  } catch (error) {
-    console.error("Error fetching all appointments:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-exports.getDoctorBookedTimes = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { date } = req.query;
-    if (!id) {
-      return res.status(400).json({ message: "Missing doctor id" });
-    }
-    if (!date) {
-      return res
-        .status(400)
-        .json({ message: "Missing date query parameter (YYYY-MM-DD)" });
-    }
-
-    const appts = await Appointment.findAll({
-      where: {
-        doctorId: id,
-        appointmentDate: date,
-        status: { [Op.notIn]: INACTIVE_STATUSES },
-      },
-      attributes: ["appointmentTime"],
-      order: [["appointmentTime", "ASC"]],
-    });
-
-    const bookedTimes = (appts || [])
-      .map((a) => (a.appointmentTime || "").slice(0, 5))
-      .filter((t) => t && t.includes(":"));
-
-    return res.json({ bookedTimes });
-  } catch (error) {
-    console.error("Error fetching booked times:", error);
-    return res.status(500).json({ message: "Server error" });
   }
 };

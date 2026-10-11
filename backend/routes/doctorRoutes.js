@@ -10,10 +10,8 @@ router.use(verifyToken);
 router.use(checkRole(["doctor"]));
 
 router.get("/profile", doctorController.getProfile);
-router.put("/profile", blockDemoAccounts, doctorController.updateProfile);
 router.post("/photo", blockDemoAccounts, readPhoto, doctorController.uploadPhoto);
 router.get("/appointments", doctorController.getAppointments);
-router.get("/schedule", doctorController.getSchedule);
 router.get("/patients", doctorController.getPatients);
 router.get("/patients/:id", doctorController.getPatientDetails);
 router.post("/records", doctorController.createMedicalRecord);

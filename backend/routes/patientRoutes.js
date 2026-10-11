@@ -17,8 +17,6 @@ router.put('/appointments/:id', patientController.updateAppointment);
 router.delete('/appointments/:id', patientController.cancelAppointment);
 router.get('/records', patientController.getMedicalRecords);
 router.get('/availability', getAvailability);
-router.get('/doctors/:doctorId/booked-dates', patientController.getDoctorBookedDates);
-router.get('/doctors/:doctorId/booked-times', patientController.getDoctorBookedTimes);
 
 // Public route for doctors list (still requires authentication)
 router.get('/doctors', patientController.getAllDoctors);

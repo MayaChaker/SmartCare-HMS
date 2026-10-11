@@ -1,6 +1,11 @@
 // Date, time and working-hours helpers shared by the booking controllers
 
-const isIsoDate = (v) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+// "YYYY-MM-DD" and a real calendar day (2026-02-30 is refused)
+const isIsoDate = (v) => {
+  if (typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+  const date = new Date(`${v}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === v;
+};
 const parseId = (v) => {
   const n = Number.parseInt(String(v), 10);
   return Number.isFinite(n) ? n : null;

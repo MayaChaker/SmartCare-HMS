@@ -24,8 +24,9 @@ describe("authentication", () => {
   it("validates registration input", async () => {
     let res = await request("POST", "/auth/register-patient", { body: { username: "ab", password: PASSWORD } });
     assert.equal(res.status, 400);
+    // A taken username is a conflict with an existing account, not a malformed request
     res = await request("POST", "/auth/register-patient", { body: { username: "alice", password: PASSWORD } });
-    assert.equal(res.status, 400);
+    assert.equal(res.status, 409);
     assert.equal(res.body.message, "Username already exists");
   });
 
