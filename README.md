@@ -10,7 +10,7 @@ The project follows how a real visit works: a patient books a time inside the do
 
 > The backend runs on a free hosting tier, so the first request after a period of inactivity can take up to a minute while the server wakes up.
 
-![SmartCare website](docs/screenshots/home.jpg)
+![SmartCare website](https://raw.githubusercontent.com/MayaChaker/SmartCare-HMS/main/docs/screenshots/home.jpg)
 
 ## Try the Demo
 
@@ -29,15 +29,15 @@ Demo accounts can use every main flow: booking, moving and cancelling visits, ch
 
 | Patient: home | Patient: book a visit |
 | --- | --- |
-| ![Patient home with the next visit](docs/screenshots/patient-home.jpg) | ![Booking a visit: doctors with their next free times and fees](docs/screenshots/patient-book.jpg) |
+| ![Patient home with the next visit](https://raw.githubusercontent.com/MayaChaker/SmartCare-HMS/main/docs/screenshots/patient-home.jpg) | ![Booking a visit: doctors with their next free times and fees](https://raw.githubusercontent.com/MayaChaker/SmartCare-HMS/main/docs/screenshots/patient-book.jpg) |
 
 | Doctor: today | Front desk: today's board |
 | --- | --- |
-| ![Doctor's day: waiting room, next patient and today's list](docs/screenshots/doctor-today.jpg) | ![Front desk board: doctors as columns, arrivals and waiting room](docs/screenshots/reception-desk.jpg) |
+| ![Doctor's day: waiting room, next patient and today's list](https://raw.githubusercontent.com/MayaChaker/SmartCare-HMS/main/docs/screenshots/doctor-today.jpg) | ![Front desk board: doctors as columns, arrivals and waiting room](https://raw.githubusercontent.com/MayaChaker/SmartCare-HMS/main/docs/screenshots/reception-desk.jpg) |
 
 | Administration: overview | Patient portal on a phone |
 | --- | --- |
-| ![Administration overview with visits per day and by department](docs/screenshots/admin-overview.jpg) | <img src="docs/screenshots/patient-phone.jpg" alt="Patient portal on a phone" width="260"> |
+| ![Administration overview with visits per day and by department](https://raw.githubusercontent.com/MayaChaker/SmartCare-HMS/main/docs/screenshots/admin-overview.jpg) | <img src="https://raw.githubusercontent.com/MayaChaker/SmartCare-HMS/main/docs/screenshots/patient-phone.jpg" alt="Patient portal on a phone" width="260"> |
 
 ## My Role
 
