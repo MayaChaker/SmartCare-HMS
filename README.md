@@ -41,7 +41,20 @@ Demo accounts can use every main flow: booking, moving and cancelling visits, ch
 
 ## My Role
 
-<!-- Describe what you designed and built, the decisions you made, and what you learned. -->
+I started SmartCare from an empty folder because I wanted to understand how a real hospital system works, not just how to build screens. I planned the architecture, designed the database, built the frontend and the API, and deployed everything myself: the React app on Vercel, the Express API on Render and the MySQL database on TiDB.
+
+Most of my time went into the rules, not the UI. Some examples:
+
+- A visit only moves forward. The front desk checks the patient in, only the doctor can start and complete the visit, and a no-show can only be marked after the visit's time has passed.
+- Patients own their file. When someone calls or walks in, the front desk opens a file with just a name, phone and date of birth. The patient then activates it with a one-time code and fills in their own health information.
+- Medical history is never deleted. A visit can be cancelled but not removed, and an account that already has visits cannot be deleted.
+- Two people can't book the same slot. The check and the booking happen in one database transaction, which I tested with two requests sent at the same moment.
+
+I also worked the way a team would: every change went through its own branch and pull request, CI runs 102 backend tests on each one, and I tested every flow on desktop and on my phone before merging. I redesigned the whole interface several times until it felt like a calm private hospital and not a template.
+
+I used an AI coding assistant to speed up writing code, but I made every design decision and reviewed, tested and merged every change myself.
+
+This project taught me more than any course did: system design, server-side security, data integrity, testing and a clean Git workflow. I can walk through any part of it and explain why it was built that way.
 
 ## Features
 
