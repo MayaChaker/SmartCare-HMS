@@ -6,12 +6,12 @@ import { AllergyNote, PatientInitials } from "../doctor/PatientChart";
 import ActivationCode from "./ActivationCode";
 import { personName } from "./desk";
 import { BusyLabel } from "../../Loader";
+import DateOfBirthField, { isRealDate } from "../../DateOfBirthField";
 
 const FIELDS = [
   ["firstName", "First name", "text"],
   ["lastName", "Last name", "text"],
   ["phone", "Mobile", "tel"],
-  ["dateOfBirth", "Date of birth", "date"],
 ];
 
 // The desk's view of one patient: contact details it can correct, and the state of their account
@@ -23,6 +23,7 @@ function PatientCard({ patient, desk, onBook }) {
 
   const save = async (e) => {
     e.preventDefault();
+    if (values.dateOfBirth && !isRealDate(values.dateOfBirth)) return setMessage({ ok: false, text: "Enter the day, month and year of birth, for example 21 07 1990." });
     setBusy(true);
     const result = await desk.updatePatient(patient.id, values);
     setBusy(false);
@@ -61,11 +62,12 @@ function PatientCard({ patient, desk, onBook }) {
                 type={type}
                 value={values[key] || ""}
                 onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
-                required={key !== "dateOfBirth"}
+                required
                 className={`${ui.input} h-12`}
               />
             </div>
           ))}
+          <DateOfBirthField value={values.dateOfBirth || ""} onChange={(dateOfBirth) => setValues((v) => ({ ...v, dateOfBirth }))} />
           <div className="flex gap-3">
             <button type="submit" disabled={busy} aria-busy={busy} className={ui.primary}>
               <BusyLabel busy={busy} text="Save" />
