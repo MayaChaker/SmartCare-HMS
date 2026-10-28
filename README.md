@@ -228,27 +228,7 @@ They use the `DB_USER`, `DB_PASSWORD` and `DB_HOST` values from `backend/.env`.
 
 ## Environment Variables
 
-**Backend** (`backend/.env`, see [backend/.env.example](backend/.env.example))
-
-| Variable | Required | Description |
-| --- | --- | --- |
-| `JWT_SECRET` | yes | Secret used to sign login tokens; the server will not start without it |
-| `ADMIN_USERNAME`, `ADMIN_PASSWORD` | first run | First admin account, created only if it does not exist |
-| `DATABASE_URL` | one of | Full MySQL connection URL for a hosted database (SSL enabled) |
-| `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` | one of | Local MySQL connection settings |
-| `CORS_ORIGINS` | production | Comma-separated frontend URLs allowed to call the API |
-| `NODE_ENV` | production | Set to `production` when deployed |
-| `DEMO_PASSWORD` | no | Enables the public demo accounts and sets their password (8+ characters) |
-| `DEMO_RESET_TOKEN` | no | Secret required by `POST /api/demo/reset` |
-| `CLINIC_TIME_ZONE` | no | The hospital's time zone, default `Asia/Beirut` |
-| `PORT` | no | API port, default `5000` |
-
-**Frontend** (`frontend/.env`, see [frontend/.env.example](frontend/.env.example))
-
-| Variable | Description |
-| --- | --- |
-| `VITE_API_BASE_URL` | Backend URL ending in `/api`; only needed for production builds |
-| `VITE_DEMO_PASSWORD` | Shows the demo sign-in buttons on the login page; must match the backend's `DEMO_PASSWORD` |
+All backend and frontend settings are listed in [docs/configuration.md](docs/configuration.md).
 
 ## Deployment
 
@@ -259,43 +239,7 @@ They use the `DB_USER`, `DB_PASSWORD` and `DB_HOST` values from `backend/.env`.
 
 ## API Overview
 
-All routes are under `/api`. Apart from the public routes, every route needs an `Authorization: Bearer <token>` header and the listed role.
-
-| Area | Method and path | Role |
-| --- | --- | --- |
-| Auth | `POST /auth/login`, `POST /auth/register-patient`, `POST /auth/activate` | public |
-| | `POST /auth/change-password` | signed in |
-| Doctors | `GET /doctors`, `GET /doctors/:id/photo` | public |
-| Health | `GET /health` (checks the database too; 503 when it is down) | public |
-| Demo | `POST /demo/reset` (header `X-Demo-Reset-Token`) | reset token |
-| Patient | `GET`, `PUT /patient/profile` | patient |
-| | `GET`, `POST /patient/appointments` | patient |
-| | `PUT /patient/appointments/:id` (move), `DELETE /patient/appointments/:id` (cancel) | patient |
-| | `GET /patient/records`, `GET /patient/doctors` | patient |
-| | `GET /patient/availability?days=` (free times per doctor) | patient |
-| Doctor | `GET /doctor/profile`, `POST /doctor/photo`, `PUT /doctor/availability` | doctor |
-| | `GET /doctor/appointments`, `PUT /doctor/appointments/:id` | doctor |
-| | `GET /doctor/patients`, `GET /doctor/patients/:id` | doctor |
-| | `POST /doctor/records`, `PUT /doctor/records/:id` | doctor |
-| Front desk | `GET`, `POST /receptionist/patients`, `PUT /receptionist/patients/:id` | receptionist |
-| | `POST /receptionist/patients/:id/activation-code` | receptionist |
-| | `GET /receptionist/doctors`, `GET /receptionist/availability?days=` | receptionist |
-| | `GET`, `POST /receptionist/appointments`, `GET /receptionist/appointments/day?date=` | receptionist |
-| | `PUT /receptionist/appointments/:id`, `PUT /receptionist/checkin/:appointmentId` | receptionist |
-| Administration | `GET`, `POST /admin/users`, `DELETE /admin/users/:id` | admin |
-| | `POST /admin/users/:id/reset-password` | admin |
-| | `GET /admin/doctors`, `PUT /admin/doctors/:id`, `POST /admin/doctors/:id/photo` | admin |
-| | `GET /admin/analytics?days=7\|30`, `GET /admin/activity` | admin |
-
-Every error answer has the same shape, `{ "message": "..." }`, with a status that says what went wrong: `400` invalid input (including malformed JSON), `401` missing or invalid token, `403` the role may not do this (or a demo account), `404` unknown route or a record the user may not see, `409` a conflict with existing data (a taken username or slot, a visit note that already exists, an account with medical history), `429` too many attempts, `500` an unexpected server error (details are only logged, never sent).
-
-Example:
-
-```bash
-curl -X POST http://localhost:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"<username>","password":"<password>"}'
-```
+Every route, the role it needs, the error format and a `curl` example are in [docs/api.md](docs/api.md).
 
 ## Project Structure
 
